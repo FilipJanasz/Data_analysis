@@ -75,9 +75,7 @@ function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.property_popupmenu,'Value',1);
 
     %update variables popupmenus
-    command=['set(handles.property_popupmenu,''String'',fieldnames(handles.data.',vars{1},'))'];
-    eval(command)
-
+    set(handles.property_popupmenu,'String',fieldnames(handles.data.(vars{1})))
 
     % Update handles structure
     guidata(hObject, handles);
@@ -94,8 +92,7 @@ function var_popupmenu_Callback(hObject, eventdata, handles)
        
     %the next line is to set the second popupmenu to common value, otherwise it breaks
     set(handles.property_popupmenu,'Value',1);
-    command=['set(handles.property_popupmenu,''String'',fieldnames(handles.data.',vars,'))'];
-    eval(command)
+    set(handles.property_popupmenu,'String',fieldnames(handles.data.(vars)))
 
 % --- Executes during object creation, after setting all properties.
 function var_popupmenu_CreateFcn(hObject, eventdata, handles)
@@ -127,7 +124,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     list_y_var=get(handles.property_popupmenu,'String');
     val_y_var=get(handles.property_popupmenu,'Value');
     y_param_var=list_y_var{val_y_var};
-    y_dat=eval(['[handles.data.',y_param,'(',num2str(file),').',y_param_var,'];']);
+    y_dat=handles.data.(y_param)(file).(y_param_var);
 
     % figure out how many data points are to be plotted
     y_amount=numel(y_dat);
@@ -584,7 +581,11 @@ function normalize_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in FFT.
 function FFT_Callback(hObject, eventdata, handles)
-
+    
+    if ~isfield(handles,'y_dat')
+        errordlg('No data to perform FFT - plot data to graph first')
+    end
+    
     current_graph=get(handles.graph_list,'Value');
     y=handles.y_dat{current_graph};
     x=handles.x_dat{current_graph};

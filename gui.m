@@ -1,13 +1,16 @@
 function varargout = gui(varargin)
+profile on
     clc
-    addpath('D:\Data\Data_analysis\moving_average');
-    addpath('D:\Data\Data_analysis\convertTDMS');
-    addpath('D:\Data\Data_analysis\polyplot');
-    addpath('D:\Data\Data_analysis\menu');
-    addpath('D:\Data\Data_analysis\NC_filling_evaluation');
-    addpath('D:\Data\Data_analysis\errors');
-    addpath('D:\Data\Data_analysis\errorbarxy');
-    addpath('D:\Data\Data_analysis\calibration');
+%     pwd
+    addpath('D:\Data\Data_analysis');
+%     addpath('D:\Data\Data_analysis\moving_average');
+%     addpath('D:\Data\Data_analysis\convertTDMS');
+%     addpath('D:\Data\Data_analysis\polyplot');
+%     addpath('D:\Data\Data_analysis\menu');
+%     addpath('D:\Data\Data_analysis\NC_filling_evaluation');
+%     addpath('D:\Data\Data_analysis\errors');
+%     addpath('D:\Data\Data_analysis\errorbarxy');
+%     addpath('D:\Data\Data_analysis\calibration');
 
     % GUI MATLAB code for gui.fig
     %      GUI, by itself, creates a new GUI or raises the existing
@@ -67,21 +70,17 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     imshow(logo);
     % Update handles structure
     guidata(hObject, handles);
-
+profile viewer
     % UIWAIT makes gui wait for user response (see UIRESUME)
     % uiwait(handles.figure1);
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(~, ~, handles) 
 
-
-% Get default command line output from handles structure
-varargout{1} = handles.output;
-h = findobj('Tag','pushbutton1');
-varargout{2} = getappdata(h,'result');
-
-
+    % Get default command line output from handles structure
+    % varargout{1} = handles.output;
+    % h = findobj('Tag','pushbutton1');
+    % varargout{2} = getappdata(h,'result');
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, ~, handles)
@@ -163,10 +162,9 @@ function process_btn_Callback(hObject, ~, handles)
     set(handles.popupmenu_y_axis_var,'Value',1);
 
     %update variables popupmenus
-    command1=['set(handles.popupmenu_x_axis_var,''String'',fieldnames(handles.',vars{1},'))'];
-    command2=['set(handles.popupmenu_y_axis_var,''String'',fieldnames(handles.',vars{1},'))'];
-    eval(command1)
-    eval(command2)
+    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
+    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    
     guidata(hObject, handles)
     
     % --- Executes on button press in reprocess_btn.
@@ -226,14 +224,14 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     set(handles.popupmenu_y_axis_var,'Value',1);
 
     %update variables popupmenus
-    command1=['set(handles.popupmenu_x_axis_var,''String'',fieldnames(handles.',vars{1},'))'];
-    command2=['set(handles.popupmenu_y_axis_var,''String'',fieldnames(handles.',vars{1},'))'];
-    eval(command1)
-    eval(command2)
+    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
+    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    
     guidata(hObject, handles)
 
 function pushbutton2_Callback(hObject, eventdata, handles)
-   
+%     profile on
+    %make sure data is loaded
     if ~isfield(handles,'steam')
         errordlg('No data available for plotting - load data first')
     end
@@ -252,18 +250,25 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     val_y_var=get(handles.popupmenu_y_axis_var,'Value');
     x_param_var=list_x_var{val_x_var};
     y_param_var=list_y_var{val_y_var};
-
+    
+    %allocate
+    points_amount=numel(handles.(x_param));
+    x_dat=ones(1,points_amount);
+    y_dat=ones(1,points_amount);
+    x_err=ones(1,points_amount);
+    y_err=ones(1,points_amount);
+    
     %extract data values and error values
-    for cntr=1:length(eval(['handles.',x_param]))
-        x_dat(cntr)=eval(['[handles.',x_param,'(',num2str(cntr),').',x_param_var,'.value];']);
-        y_dat(cntr)=eval(['[handles.',y_param,'(',num2str(cntr),').',y_param_var,'.value];']);
-        x_err(cntr)=eval(['[handles.',x_param,'(',num2str(cntr),').',x_param_var,'.error];']);
-        y_err(cntr)=eval(['[handles.',y_param,'(',num2str(cntr),').',y_param_var,'.error];']);
+    for cntr=1:points_amount
+        x_dat(cntr)=handles.(x_param)(cntr).(x_param_var).value;
+        y_dat(cntr)=handles.(y_param)(cntr).(y_param_var).value;
+        x_err(cntr)=handles.(x_param)(cntr).(x_param_var).error;
+        y_err(cntr)=handles.(y_param)(cntr).(y_param_var).error;
     end
 
     %get units for the plot
-    x_unit=eval(['[handles.',x_param,'(',num2str(1),').',x_param_var,'.unit];']);
-    y_unit=eval(['[handles.',y_param,'(',num2str(1),').',y_param_var,'.unit];']);
+    x_unit=handles.(x_param)(cntr).(x_param_var).unit;
+    y_unit=handles.(y_param)(cntr).(y_param_var).unit;
     
     hold_flag=get(handles.hold_checkbox, 'Value');
  
@@ -403,7 +408,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     %add point labeling
     label_flag=get(handles.checkbox_point_labels, 'Value');
     if label_flag == 1
-        for cntr=1:length(eval('handles.file'))
+        for cntr=1:numel(handles.file)
             str_label=[handles.file(cntr).name,' ',y_param_var];
             %str_label=handles.file(cntr).name;
             text(x_dat(cntr),y_dat(cntr),str_label);            
@@ -420,7 +425,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
         
     
     guidata(hObject, handles)
- 
+%  profile viewer
 
 % --- Executes on selection change in popupmenu_x_axis_var.
 function popupmenu_x_axis_var_Callback(~, ~, ~)
@@ -521,8 +526,7 @@ function popupmenu_x_axis_Callback(hObject, eventdata, handles)
        
     %the next line is to set the second popupmenu to common value, otherwise it breaks
     set(handles.popupmenu_x_axis_var,'Value',1);
-    command=['set(handles.popupmenu_x_axis_var,''String'',fieldnames(handles.',vars,'))'];
-    eval(command)
+    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars)));
     
 % --- Executes during object creation, after setting all properties.
 function popupmenu_x_axis_CreateFcn(hObject, eventdata, handles)
@@ -540,8 +544,7 @@ function popupmenu_y_axis_Callback(hObject, eventdata, handles)
     
     %the next line is to set the second popupmenu to common value, otherwise it breaks
     set(handles.popupmenu_y_axis_var,'Value',1);
-    command=['set(handles.popupmenu_y_axis_var,''String'',fieldnames(handles.',vars,'))'];
-    eval(command)
+    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars)));
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
@@ -693,6 +696,9 @@ function b_edit_CreateFcn(hObject, eventdata, handles)
 
 % --- Executes on button press in plotrfln_pushbutton.
 function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
+     
+    %point to plotting axes and clear them
+    axes(handles.axes1);
     
     %update plotcounter
     handles.plotcounter=handles.plotcounter+1;
@@ -761,7 +767,11 @@ function ymingrid_radiobutton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in time_pushbutton.
 function time_pushbutton_Callback(hObject, eventdata, handles)
-
+    
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
     %code below extracts elements from the main struct array that have the
     %field "vars" storing time dependant experimental data
     vars={'steam','coolant','facility','GHFS','MP'};
@@ -786,10 +796,16 @@ function time_pushbutton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in distr_pushbutton.
 function distr_pushbutton_Callback(hObject, eventdata, handles)
-
+    
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
+    
     for l=1:numel(handles.file)
         file_name{l}=[handles.file(l).name];
     end
+    %call distribution function
     gui_distributions(handles.distributions,file_name);
 
 

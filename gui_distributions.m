@@ -83,9 +83,9 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     list_y=get(handles.var_popupmenu,'String');
     val_y=get(handles.var_popupmenu,'Value');
     y_param=list_y{val_y}; 
-    value_dat=eval(['[handles.data(',num2str(file),').',y_param,'.value.',calibration_mode '];']);
-    vertical_pos=eval(['[handles.data(',num2str(file),').',y_param,'.position_y];']);
-    horizontal_pos=eval(['[handles.data(',num2str(file),').',y_param,'.position_x];']);
+    value_dat=handles.data(file).(y_param).value.(calibration_mode);
+    vertical_pos=handles.data(file).(y_param).position_y;
+    horizontal_pos=handles.data(file).(y_param).position_x;
       
     % figure out how many data points are to be plotted
     y_amount=numel(value_dat);

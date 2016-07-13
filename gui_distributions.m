@@ -93,20 +93,15 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     %define axes
     axes(handles.var_axes);
     
-    %check which y axis to use for plotting
-    y_axis_flag=get(handles.y_axis_primary,'Value');
-    
-    if y_axis_flag
-        yyaxis left
-    else
-        yyaxis right
-    end
-    
     %check if user wants to hold previous graphs
     axes(handles.var_axes);
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
+        yyaxis left
+        cla
+        yyaxis right
+        cla
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -120,6 +115,17 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     else
         hold on
         handles.plotcounter=handles.plotcounter+1;
+    end
+    
+    %check which y axis to use for plotting
+    y_axis_flag=get(handles.y_axis_primary,'Value');
+    
+    if y_axis_flag
+        yyaxis left
+        handles.axischoice{handles.plotcounter}=1;
+    else
+        yyaxis right
+        handles.axischoice{handles.plotcounter}=2;
     end
         
     %if clause below allows user to choose plotting direction (along or
@@ -272,6 +278,7 @@ function clear_pushbutton_Callback(hObject, eventdata, handles)
         handles=rmfield(handles,'graph');
         handles=rmfield(handles,'x_dat');
         handles=rmfield(handles,'value_dat');
+        handles=rmfield(handles,'axischoice');
     catch
     end
     
@@ -300,6 +307,9 @@ function line_delete_Callback(hObject, eventdata, handles)
         
         handles.value_dat{del_choice}=[]; %first set desired cell to empty
         handles.value_dat=handles.value_dat(~cellfun('isempty',handles.value_dat)); %remove empty cells
+        
+        handles.axischoice{del_choice}=[]; %first set desired cell to empty
+        handles.axischoice=handles.axischoice(~cellfun('isempty',handles.axischoice)); %remove empty cells
 
         %redraw updated legend
         handles.legend=legend(handles.graph_name{1:end});
@@ -367,9 +377,20 @@ function normalize_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in boundary_layer.
 function boundary_layer_Callback(hObject, eventdata, handles)
-        
-        graph_choice=get(handles.graph_list,'Value');
-        graph=handles.graph_name{graph_choice};
+     
+    %get user choice
+    graph_choice=get(handles.graph_list,'Value');
+    graph=handles.graph_name{graph_choice};
+    yaxis=handles.axischoice{graph_choice};
+    
+    %set appropriate y axis
+    if yaxis==1
+        yyaxis left
+    elseif yaxis==2
+        yyaxis right
+    end
+    
+    %verify the choice
     if isempty(strfind(graph,'MP')) 
         errordlg('Boundary layer can only be estimated for data from movable probe - pick correct data')
     else         
@@ -410,6 +431,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         handles.x_dat{handles.plotcounter}=[boundary_layer boundary_layer];
         handles.value_dat{handles.plotcounter}=ylim;
         handles.graph_name{handles.plotcounter}=[graph,' boundary_layer'];
+        handles.axischoice{handles.plotcounter}=yaxis;
 
         %update legend
         handles.legend=legend(handles.graph_name{1:end});
@@ -422,7 +444,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         end
 
         %update list of graphs
-        set(handles.graph_list,'String',handles.graph_name)
+        set(handles.graph_list,'String',handles.graph_name)  
 
         %Plotting processing graphs
         if get(handles.bl_graph,'Value')

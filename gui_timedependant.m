@@ -313,13 +313,17 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
+        yyaxis left
+        cla
+        yyaxis right
+        cla
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
             handles=rmfield(handles,'graph_name');
             handles=rmfield(handles,'graph');
             handles=rmfield(handles,'x_dat');
-            handles=rmfield(handles,'value_dat');
+            handles=rmfield(handles,'y_dat');
         catch
         end
         handles.plotcounter=1;
@@ -370,6 +374,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     handles.graph{handles.plotcounter}=plot(x_dat,y_dat,line_spec);
     
+    %assign and store a name to the graph
     processing_string=[notch_str,lowpass_str,smooth_str,norm_str,flip_str];
     handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,' ',y_param_var,' ',processing_string];
     
@@ -384,16 +389,6 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         set(handles.legend,'Visible','Off')
     end
     
-    
-    %update list of graphs
-    set(handles.graph_list,'String',handles.graph_name)
-    set(handles.graph_list,'Value', handles.plotcounter)
-    set(handles.cross_cor_1,'String',handles.graph_name)
-%     set(handles.cross_cor_1,'Value', handles.plotcounter)
-    set(handles.cross_cor_2,'String',handles.graph_name)
-    set(handles.cross_cor_2,'Value', handles.plotcounter)
-    
-    
     %store data in the figure
     handles.y_dat{handles.plotcounter}=y_dat;
     handles.x_dat{handles.plotcounter}=x_dat;
@@ -403,6 +398,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     handles.y_amount{handles.plotcounter}=y_amount;
     
     %update data info
+    set(handles.graph_list,'String',handles.graph_name)
+    set(handles.graph_list,'Value', handles.plotcounter)
+    set(handles.cross_cor_1,'String',handles.graph_name)
+%     set(handles.cross_cor_1,'Value', handles.plotcounter)
+    set(handles.cross_cor_2,'String',handles.graph_name)
+    set(handles.cross_cor_2,'Value', handles.plotcounter)
     set(handles.aq_period,'String',num2str(period));
     set(handles.aq_freq,'String',num2str(sample_rate));
     set(handles.points_no,'String',num2str(y_amount));
@@ -464,8 +465,7 @@ function clear_pushbutton_Callback(hObject, eventdata, handles)
         handles=rmfield(handles,'x_dat');
         handles=rmfield(handles,'y_dat');
     catch
-    end
-    
+    end    
     
     %forward changes in handles
     guidata(hObject, handles);
@@ -474,52 +474,52 @@ function clear_pushbutton_Callback(hObject, eventdata, handles)
 function line_delete_Callback(hObject, eventdata, handles)
 
     if handles.plotcounter>1
-    %get user choice for deltion
-    del_choice=get(handles.graph_list,'Value');
+        %get user choice for deltion
+        del_choice=get(handles.graph_list,'Value');
 
-    %delete
-    delete(handles.graph{del_choice})
-    handles.graph{del_choice}=[];
-    handles.graph=handles.graph(~cellfun('isempty',handles.graph));
-    
-    %update variables
-    handles.plotcounter=handles.plotcounter-1;
-    
-    handles.x_dat{del_choice}=[]; %first set desired cell to empty
-    handles.x_dat=handles.x_dat(~cellfun('isempty',handles.x_dat)); %remove empty cells
+        %delete
+        delete(handles.graph{del_choice})
+        handles.graph{del_choice}=[];
+        handles.graph=handles.graph(~cellfun('isempty',handles.graph));
 
-    handles.y_dat{del_choice}=[]; %first set desired cell to empty
-    handles.y_dat=handles.y_dat(~cellfun('isempty',handles.y_dat)); %remove empty cells
-    
-    handles.sample_rate{del_choice}=[];
-    handles.sample_rate=handles.sample_rate(~cellfun('isempty',handles.sample_rate));
-    
-    handles.period{del_choice}=[];
-    handles.period=handles.period(~cellfun('isempty',handles.period));
-    
-    handles.y_amount{del_choice}=[];
-    handles.y_amount=handles.y_amount(~cellfun('isempty',handles.y_amount));
-        
-    handles.graph_name{del_choice}=[]; %first set desired cell to empty
-    handles.graph_name=handles.graph_name(~cellfun('isempty',handles.graph_name)); %remove empty cells
-    
-    %redraw updated legend
-    handles.legend=legend(handles.graph_name{1:end});
-    set(handles.legend,'interpreter','none')
-    legend_state=get(handles.legend_on,'Value');
-    if (legend_state && handles.plotcounter>0)
-        set(handles.legend,'Visible','On')   
-    elseif handles.plotcounter>0
-        set(handles.legend,'Visible','Off')
-    end
-    
-    %update GUI
-    set(handles.graph_list,'String',handles.graph_name)
-    set(handles.graph_list,'Value', handles.plotcounter)
-    set(handles.cross_cor_1,'String',handles.graph_name)
-    set(handles.cross_cor_1,'Value', 1)
-    set(handles.cross_cor_2,'String',handles.graph_name)
-    set(handles.cross_cor_2,'Value', handles.plotcounter)
+        %update variables
+        handles.plotcounter=handles.plotcounter-1;
+
+        handles.x_dat{del_choice}=[]; %first set desired cell to empty
+        handles.x_dat=handles.x_dat(~cellfun('isempty',handles.x_dat)); %remove empty cells
+
+        handles.y_dat{del_choice}=[]; %first set desired cell to empty
+        handles.y_dat=handles.y_dat(~cellfun('isempty',handles.y_dat)); %remove empty cells
+
+        handles.sample_rate{del_choice}=[];
+        handles.sample_rate=handles.sample_rate(~cellfun('isempty',handles.sample_rate));
+
+        handles.period{del_choice}=[];
+        handles.period=handles.period(~cellfun('isempty',handles.period));
+
+        handles.y_amount{del_choice}=[];
+        handles.y_amount=handles.y_amount(~cellfun('isempty',handles.y_amount));
+
+        handles.graph_name{del_choice}=[]; %first set desired cell to empty
+        handles.graph_name=handles.graph_name(~cellfun('isempty',handles.graph_name)); %remove empty cells
+
+        %redraw updated legend
+        handles.legend=legend(handles.graph_name{1:end});
+        set(handles.legend,'interpreter','none')
+        legend_state=get(handles.legend_on,'Value');
+        if (legend_state && handles.plotcounter>0)
+            set(handles.legend,'Visible','On')   
+        elseif handles.plotcounter>0
+            set(handles.legend,'Visible','Off')
+        end
+
+        %update GUI
+        set(handles.graph_list,'String',handles.graph_name)
+        set(handles.graph_list,'Value', handles.plotcounter)
+        set(handles.cross_cor_1,'String',handles.graph_name)
+        set(handles.cross_cor_1,'Value', 1)
+        set(handles.cross_cor_2,'String',handles.graph_name)
+        set(handles.cross_cor_2,'Value', handles.plotcounter)
     
     else
         clear_pushbutton_Callback(hObject, eventdata, handles)

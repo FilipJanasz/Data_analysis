@@ -505,14 +505,12 @@ function polyfit_Callback(hObject, ~, handles)
     %forward changes
     guidata(hObject, handles);
 
-
 % --- Executes during object creation, after setting all properties.
 function edit1_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in popupmenu_x_axis.
 function popupmenu_x_axis_Callback(hObject, eventdata, handles)
@@ -526,16 +524,12 @@ function popupmenu_x_axis_Callback(hObject, eventdata, handles)
     command=['set(handles.popupmenu_x_axis_var,''String'',fieldnames(handles.',vars,'))'];
     eval(command)
     
-  
-
-
 % --- Executes during object creation, after setting all properties.
 function popupmenu_x_axis_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in popupmenu_y_axis.
 function popupmenu_y_axis_Callback(hObject, eventdata, handles)
@@ -549,115 +543,98 @@ function popupmenu_y_axis_Callback(hObject, eventdata, handles)
     command=['set(handles.popupmenu_y_axis_var,''String'',fieldnames(handles.',vars,'))'];
     eval(command)
 
-
-
 % --- Executes during object creation, after setting all properties.
 function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 
 % --- Executes on button press in save_pushbutton.
 function save_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to save_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-figure2=figure;
-copyobj(handles.axes1,figure2);
-set(figure2,'units','centimeters','Position',[1 1 29 21])
-set(gca,'units','normalized','position',[0.1 0.1 0.8 0.8])
-set(gca,'fontsize', 20)
-set(figure2,'Visible', 'on');
-% gcf
-% figure2
-set(figure2,'PaperType','A4')
-set(figure2,'paperunits','normalized')
-set(figure2,'paperorientation','landscape')
-set(figure2,'PaperPositionMode','manual')
-set(figure2,'PaperPosition',[0.1 0.1 0.9 0.9])
-figure_name = uiputfile('figure.emf','Save plot as .emf');
-% savefig(figure2,figure_name)
-% set(figure2,'paperunits','inches','papersize',[20,30],'paperposition',[0,0,20,30])
-print(figure2,'-r0',figure_name,'-dmeta')
-
+    
+    figure2=figure;
+    copyobj(handles.axes1,figure2);
+    set(figure2,'units','centimeters','Position',[1 1 29 21])
+    set(gca,'units','normalized','position',[0.1 0.1 0.8 0.8])
+    set(gca,'fontsize', 20)
+    set(figure2,'Visible', 'on');
+    % gcf
+    % figure2
+    set(figure2,'PaperType','A4')
+    set(figure2,'paperunits','normalized')
+    set(figure2,'paperorientation','landscape')
+    set(figure2,'PaperPositionMode','manual')
+    set(figure2,'PaperPosition',[0.1 0.1 0.9 0.9])
+    figure_name = uiputfile('figure.emf','Save plot as .emf');
+    % savefig(figure2,figure_name)
+    % set(figure2,'paperunits','inches','papersize',[20,30],'paperposition',[0,0,20,30])
+    print(figure2,'-r0',figure_name,'-dmeta')
 
 function edit1_Callback(hObject, eventdata, handles)
 
 function xmin_edit_Callback(hObject, eventdata, handles)
 
-
-
 % --- Executes during object creation, after setting all properties.
 function xmin_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function xmax_edit_Callback(hObject, eventdata, handles)
-
 
 % --- Executes during object creation, after setting all properties.
 function xmax_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function ymin_edit_Callback(hObject, eventdata, handles)
-
 
 % --- Executes during object creation, after setting all properties.
 function ymin_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function ymax_edit_Callback(hObject, eventdata, handles)
-
-
 
 % --- Executes during object creation, after setting all properties.
 function ymax_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 
 % --- Executes on button press in rescale_pushbutton.
 function rescale_pushbutton_Callback(hObject, eventdata, handles)
-        xmin=str2double(get(handles.xmin_edit,'String'));
-        xmax=str2double(get(handles.xmax_edit,'String'));
-        ymin=str2double(get(handles.ymin_edit,'String'));
-        ymax=str2double(get(handles.ymax_edit,'String'));
-        set(handles.axes1,'xlim',[xmin xmax])
-        set(handles.axes1,'ylim',[ymin ymax])
+    xmin=str2double(get(handles.xmin_edit,'String'));
+    xmax=str2double(get(handles.xmax_edit,'String'));
+    ymin=str2double(get(handles.ymin_edit,'String'));
+    ymax=str2double(get(handles.ymax_edit,'String'));
+    set(handles.axes1,'xlim',[xmin xmax])
+    set(handles.axes1,'ylim',[ymin ymax])
 
 
 % --- Executes on button press in fitaxes_pushbutton.
 function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
-        axes(handles.axes1);
-        axis auto
-        x=xlim;
-        xmin=num2str(x(1));
-        xmax=num2str(x(2));
-        y=ylim;
-        ymin=num2str(y(1));
-        ymax=num2str(y(2));
-        set(handles.xmin_edit,'String',xmin)
-        set(handles.xmax_edit,'String',xmax)
-        set(handles.ymin_edit,'String',ymin)
-        set(handles.ymax_edit,'String',ymax)
+    axes(handles.axes1);
+    axis auto
+    x=xlim;
+    xmin=num2str(x(1));
+    xmax=num2str(x(2));
+    y=ylim;
+    ymin=num2str(y(1));
+    ymax=num2str(y(2));
+    set(handles.xmin_edit,'String',xmin)
+    set(handles.xmax_edit,'String',xmax)
+    set(handles.ymin_edit,'String',ymin)
+    set(handles.ymax_edit,'String',ymax)
 %         axis(handles.axes1,'mode','auto')
 
 
@@ -665,7 +642,6 @@ function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
 function plotflag_checkbox_Callback(hObject, eventdata, handles)
 
 function uipanel5_CreateFcn(hObject, eventdata, handles)
-
 
 % --- Executes on button press in xerr_checkbox.
 function xerr_checkbox_Callback(hObject, eventdata, handles)
@@ -702,44 +678,65 @@ function a_edit_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function a_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function b_edit_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function b_edit_CreateFcn(hObject, eventdata, handles)
 
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on button press in plotrfln_pushbutton.
 function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
-    try    
-        delete(handles.ref)
-    catch
+    
+    %update plotcounter
+    handles.plotcounter=handles.plotcounter+1;
+    
+    %check which y axis to use for plotting
+    y_axis_flag=get(handles.y_axis_primary,'Value');
+    
+    if y_axis_flag
+        yyaxis left
+        handles.axischoice{handles.plotcounter}=1;
+    else
+        yyaxis right
+        handles.axischoice{handles.plotcounter}=2;
     end
+    
     axes(handles.axes1);
     a=str2double(get(handles.a_edit,'String'));
     b=str2double(get(handles.b_edit,'String'));
-    handles.ref=refline(a,b);
-    set(handles.ref,'Color',[0.5 0.5 0.5])
-    set(handles.ref,'LineStyle','-.')
-    guidata(hObject,handles); 
+    handles.graph{handles.plotcounter}=refline(a,b);
+    set(handles.graph{handles.plotcounter},'Color',[0.5 0.5 0.5])
+    set(handles.graph{handles.plotcounter},'LineStyle','-.')
     
-
-
-% --- Executes on button press in clearrfln_pushbutton.
-function clearrfln_pushbutton_Callback(hObject, eventdata, handles)
-    try
-        delete(handles.ref)
-        guidata(hObject,handles); 
-    catch
+    %update variables
+    handles.x_dat{handles.plotcounter}=a;    %just so there is something in there
+    handles.y_dat{handles.plotcounter}=b;    %just so there is something in there
+    handles.graph_name{handles.plotcounter}=['refline',a,' ',b];
+    
+    %update legend
+    handles.legend=legend(handles.graph_name{1:end});
+    set(handles.legend,'interpreter','none')
+    legend_state=get(handles.legend_on,'Value');
+    if (legend_state && handles.plotcounter>0)
+        set(handles.legend,'Visible','On')   
+    elseif handles.plotcounter>0
+        set(handles.legend,'Visible','Off')
     end
-
-
+    
+    %update GUI
+    set(handles.graph_list,'String',handles.graph_name)
+    set(handles.graph_list,'Value', handles.plotcounter)
+        
+    %forward changes
+    guidata(hObject, handles);
+    
 % --- Executes on button press in xmingrid_radiobutton.
 function xmingrid_radiobutton_Callback(hObject, eventdata, handles)
     ax=handles.axes1;

@@ -1,8 +1,11 @@
 function varargout = gui(varargin)
 profile on
     clc
-%     pwd
-    addpath('D:\Data\Data_analysis');
+    % Determine where your m-file's folder is.
+    script_folder = fileparts(which(mfilename)); 
+    % Add that folder plus all subfolders to the path.
+    addpath(script_folder);
+%     addpath('D:\Data\Data_analysis');
 %     addpath('D:\Data\Data_analysis\moving_average');
 %     addpath('D:\Data\Data_analysis\convertTDMS');
 %     addpath('D:\Data\Data_analysis\polyplot');

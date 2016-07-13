@@ -167,6 +167,7 @@ end
 
     if plot_flag
         h = figure;
+        set(h, 'Visible', 'on');
     else
         h = figure;
         set(h, 'Visible', 'off');
@@ -195,7 +196,7 @@ end
 
     % write graphs to file, as .emf and as .fig
     savefig(h,figure_name)
-    print(h,figure_name,'-dmeta')
+%     print(h,figure_name,'-dmeta')
 
 
 end

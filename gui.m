@@ -1,19 +1,11 @@
 function varargout = gui(varargin)
-profile on
+    % profile on
     clc
     % Determine where your m-file's folder is.
     script_folder = fileparts(which(mfilename)); 
     % Add that folder plus all subfolders to the path.
-    addpath(script_folder);
-%     addpath('D:\Data\Data_analysis');
-%     addpath('D:\Data\Data_analysis\moving_average');
-%     addpath('D:\Data\Data_analysis\convertTDMS');
-%     addpath('D:\Data\Data_analysis\polyplot');
-%     addpath('D:\Data\Data_analysis\menu');
-%     addpath('D:\Data\Data_analysis\NC_filling_evaluation');
-%     addpath('D:\Data\Data_analysis\errors');
-%     addpath('D:\Data\Data_analysis\errorbarxy');
-%     addpath('D:\Data\Data_analysis\calibration');
+    addpath(genpath(script_folder));
+    cd(script_folder)
 
     % GUI MATLAB code for gui.fig
     %      GUI, by itself, creates a new GUI or raises the existing
@@ -73,7 +65,7 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     imshow(logo);
     % Update handles structure
     guidata(hObject, handles);
-profile viewer
+% profile viewer
     % UIWAIT makes gui wait for user response (see UIRESUME)
     % uiwait(handles.figure1);
 
@@ -115,6 +107,7 @@ end
 
 % --- Executes on button press in process_btn.
 function process_btn_Callback(hObject, ~, handles)
+%     profile on
     clear steam coolant facility NC distributions file BC GHFS MP timing
     userChoice=handles.userChoice;
 
@@ -169,10 +162,11 @@ function process_btn_Callback(hObject, ~, handles)
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     guidata(hObject, handles)
+%     profile viewer
     
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
-
+%     profile on
 %essentially the same as process, but with different flag
     clear steam coolant facility NC distributions file BC GHFS MP timing
     userChoice=handles.userChoice;
@@ -231,6 +225,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     guidata(hObject, handles)
+%     profile viewer
 
 function pushbutton2_Callback(hObject, eventdata, handles)
 %     profile on
@@ -479,6 +474,7 @@ function polyfit_Callback(hObject, ~, handles)
     
     %to the fit 
     fit_flag=get(handles.polyfit, 'Value');
+    poly_err_flag=get(handles.poly_error,'Value');
     if fit_flag
         order=str2double(get(handles.edit1,'String'));
         if order==0
@@ -486,7 +482,11 @@ function polyfit_Callback(hObject, ~, handles)
             set(handles.edit1,'String',num2str(order));
         end
         hold on
-        handles.graph{handles.plotcounter}=polyplot(x_dat,y_dat,order,'r','error','b--','linewidth',.3);
+        if poly_err_flag
+            handles.graph{handles.plotcounter}=polyplot(x_dat,y_dat,order,'r','error','b--','linewidth',.3);
+        else
+            handles.graph{handles.plotcounter}=polyplot(x_dat,y_dat,order,'r');
+        end
         hold off
     end
     
@@ -508,7 +508,6 @@ function polyfit_Callback(hObject, ~, handles)
     
     %update GUI
     set(handles.graph_list,'String',handles.graph_name)
-    set(handles.graph_list,'Value', handles.plotcounter)
         
     %forward changes
     guidata(hObject, handles);
@@ -1015,3 +1014,7 @@ function y_axis_secondary_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in flip_y_axis.
 function flip_y_axis_Callback(hObject, eventdata, handles)
+
+% --- Executes on button press in poly_error.
+function poly_error_Callback(hObject, eventdata, handles)
+

@@ -70,6 +70,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     %% PROCESS FILES
 
     for dir_counter=1:dir_amount
+%         cd(directories{dir_counter})  %move to data directory, so it's easier on the user when picking again
         for fc=1:fileCounter{dir_counter}
             disp(file_list{dir_counter}{fc})
             %if reprocessing

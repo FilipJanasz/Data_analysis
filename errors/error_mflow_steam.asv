@@ -1,0 +1,5 @@
+function mflow_error_abs=error_mflow_steam(power,
+%error propagation during multiplication
+%see http://www.rit.edu/cos/uphysics/uncertainties/Uncertaintiespart2.html
+mflow_error_abs=sqrt((power_error/power)^2+(evapheat_error/evap_heat)^2)*mflow
+end

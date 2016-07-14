@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 11-Jul-2016 16:51:27
+    % Last Modified by GUIDE v2.5 14-Jul-2016 18:02:37
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -364,13 +364,33 @@ function line_delete_Callback(hObject, eventdata, handles)
     guidata(hObject, handles);
     
 % --------------------------------------------------------------------
-function uipushtool2_ClickedCallback(hObject, eventdata, handles)
-    figure2=figure;
-    set(figure2, 'Visible', 'off');
-    copyobj(handles.var_axes,figure2);
-    figure_name = uiputfile('figure.emf','Save plot as .emf');
-    % savefig(figure2,figure_name)
-    print(figure2,figure_name,'-dmeta')
+function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
+        
+    %saving figure is problematic due to two y axes
+    % 1. Ask user for the file name
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    [~, file_name, ext] = fileparts(saveDataName);
+
+    % 2. Save .fig file with the name
+    hgsave(handles.var_axes,file_name)
+
+    % 3. Display a hidden figure and load saved .fig to it
+    f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
+    movegui(f,'center')
+    h=hgload(file_name);
+    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+    h.Parent=f;
+    %optionally make visible
+%         f.Visible='on';
+%         f.Name=saveDataName;
+    % 4.save again, to desired format, if it different than fig
+    if ~strcmp(ext,'.fig')
+        delete([file_name,'.fig'])  
+        export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    end
+    msgbox(['Figure saved succesfully as ',saveDataName])
+
 
     % --- Executes on selection change in cal_popupmenu.
     function cal_popupmenu_Callback(hObject, eventdata, handles)

@@ -1033,27 +1033,27 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         
-        %saving figure is problematic due to two y axes
-        % 1. Ask user for the file name
-        saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
-        [~, file_name, ext] = fileparts(saveDataName);
-        
-        % 2. Save .fig file with the name
-        hgsave(handles.var_axes,file_name)
-        
-        % 3. Display a hidden figure and load saved .fig to it
-        f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
-        movegui(f,'center')
-        h=hgload(file_name);
-        %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
-        %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
-        h.Parent=f;
-        %optionally make visible
+    %saving figure is problematic due to two y axes
+    % 1. Ask user for the file name
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    [~, file_name, ext] = fileparts(saveDataName);
+
+    % 2. Save .fig file with the name
+    hgsave(handles.var_axes,file_name)
+
+    % 3. Display a hidden figure and load saved .fig to it
+    f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
+    movegui(f,'center')
+    h=hgload(file_name);
+    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+    h.Parent=f;
+    %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
-        % 4.save again, to desired format, if it different than fig
-        if ~strcmp(ext,'.fig')
-            delete([file_name,'.fig'])  
-            export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
-        end
-        msgbox('Figure saved succesfully as %s ',saveDataName)
+    % 4.save again, to desired format, if it different than fig
+    if ~strcmp(ext,'.fig')
+        delete([file_name,'.fig'])  
+        export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    end
+    msgbox(['Figure saved succesfully as ',saveDataName])

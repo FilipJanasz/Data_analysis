@@ -937,6 +937,27 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             MP.T_boundlayer_backward.error=MP.Pos.error; %XXXXXXXXXXXXXXXXXXX  
             MP.T_boundlayer_mean.error=MP.Pos.error;
         end
+        
+        % Distribution errors
+            distributions.GHFS_TC.error=0.05;       
+            distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_backward_temp.error=0.05;
+            distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_forward_temp.error=0.05;
+            distributions.MP_temp_SMOOTH_backward.error=0.05;
+            distributions.MP_temp_SMOOTH_forward.error=0.05;
+            distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.centerline_temp.error=0.05;
+            distributions.coolant_temp_0deg.error=0.05;
+            distributions.coolant_temp_180deg.error=0.05;
+            distributions.outer_wall_temp_0deg.error=0.05;
+            distributions.outer_wall_temp_180deg.error=0.05;
+            distributions.wall_dT.unit=0.05;
+            distributions.wall_inner.unit=0.05;
+            distributions.wall_outer.unit=0.05;
          
         %% ADD UNITS
         disp('5. Adding measurments units')
@@ -1048,7 +1069,26 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         BC.He_molefraction.unit=NC.He_molefraction.unit;  
         BC.N2_molefraction.unit=NC.N2_molefraction.unit;
         
-   
+    % Distribution units
+        distributions.GHFS_TC.unit=[char(176),'C'];
+        distributions.MP_backward_molefr_h2o.unit=1;
+        distributions.MP_backward_partpress_h2o.unit='bar';
+        distributions.MP_backward_temp.unit=[char(176),'C'];
+        distributions.MP_forward_molefr_h2o.unit=1;
+        distributions.MP_forward_partpress_h2o.unit='bar';
+        distributions.MP_forward_temp.unit=[char(176),'C'];
+        distributions.MP_temp_SMOOTH_backward.unit=[char(176),'C'];
+        distributions.MP_temp_SMOOTH_forward.unit=[char(176),'C'];
+        distributions.centerline_molefr_h2o.unit=1;
+        distributions.centerline_partpress_h2o.unit='bar';
+        distributions.centerline_temp.unit=[char(176),'C'];
+        distributions.coolant_temp_0deg.unit=[char(176),'C'];
+        distributions.coolant_temp_180deg.unit=[char(176),'C'];
+        distributions.outer_wall_temp_0deg.unit=[char(176),'C'];
+        distributions.outer_wall_temp_180deg.unit=[char(176),'C'];
+        distributions.wall_dT.unit=[char(176),'C'];
+        distributions.wall_inner.unit=[char(176),'C'];
+        distributions.wall_outer.unit=[char(176),'C'];
     
 %% Sort variables and save
         disp('6. Sorting and storing data in .mat files')

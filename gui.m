@@ -271,14 +271,16 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     hold_flag=get(handles.hold_checkbox, 'Value');
  
     %point to plotting axes and clear them
-    axes(handles.axes1);
+    axes(handles.var_axes);
         
-    if  hold_flag==0
+    if  ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -325,10 +327,26 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
     
@@ -375,15 +393,12 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     %plot data according to user preferences
-    handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
     
+    handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
+    box off
     %assign and store a name to the graph
     processing_string=[norm_str,flip_str];
     handles.graph_name{handles.plotcounter}=[x_param_var,' ',y_param_var,' ',processing_string];
-%     hold on
-%      if ~hold_flag
-%        hold off
-%      end
     
      %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -493,7 +508,7 @@ function polyfit_Callback(hObject, ~, handles)
     %update variables
     handles.x_dat{handles.plotcounter}=xlim;    %just so there is something in there
     handles.y_dat{handles.plotcounter}=ylim;    %just so there is something in there
-    handles.graph_name{handles.plotcounter}=[graph,' fit'];
+    handles.graph_name{handles.plotcounter}=[graph,'fit order ',num2str(order)];
     handles.axischoice{handles.plotcounter}=yaxis;
     
     %update legend
@@ -555,28 +570,6 @@ function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
         set(hObject,'BackgroundColor','white');
     end
 
-
-% --- Executes on button press in save_pushbutton.
-function save_pushbutton_Callback(hObject, eventdata, handles)
-    
-    figure2=figure;
-    copyobj(handles.axes1,figure2);
-    set(figure2,'units','centimeters','Position',[1 1 29 21])
-    set(gca,'units','normalized','position',[0.1 0.1 0.8 0.8])
-    set(gca,'fontsize', 20)
-    set(figure2,'Visible', 'on');
-    % gcf
-    % figure2
-    set(figure2,'PaperType','A4')
-    set(figure2,'paperunits','normalized')
-    set(figure2,'paperorientation','landscape')
-    set(figure2,'PaperPositionMode','manual')
-    set(figure2,'PaperPosition',[0.1 0.1 0.9 0.9])
-    figure_name = uiputfile('figure.emf','Save plot as .emf');
-    % savefig(figure2,figure_name)
-    % set(figure2,'paperunits','inches','papersize',[20,30],'paperposition',[0,0,20,30])
-    print(figure2,'-r0',figure_name,'-dmeta')
-
 function edit1_Callback(hObject, eventdata, handles)
 
 function xmin_edit_Callback(hObject, eventdata, handles)
@@ -622,13 +615,13 @@ function rescale_pushbutton_Callback(hObject, eventdata, handles)
     xmax=str2double(get(handles.xmax_edit,'String'));
     ymin=str2double(get(handles.ymin_edit,'String'));
     ymax=str2double(get(handles.ymax_edit,'String'));
-    set(handles.axes1,'xlim',[xmin xmax])
-    set(handles.axes1,'ylim',[ymin ymax])
+    set(handles.var_axes,'xlim',[xmin xmax])
+    set(handles.var_axes,'ylim',[ymin ymax])
 
 
 % --- Executes on button press in fitaxes_pushbutton.
 function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
-    axes(handles.axes1);
+    axes(handles.var_axes);
     axis auto
     x=xlim;
     xmin=num2str(x(1));
@@ -640,7 +633,7 @@ function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.xmax_edit,'String',xmax)
     set(handles.ymin_edit,'String',ymin)
     set(handles.ymax_edit,'String',ymax)
-%         axis(handles.axes1,'mode','auto')
+%         axis(handles.var_axes,'mode','auto')
 
 
 % --- Executes on button press in plotflag_checkbox.
@@ -657,7 +650,7 @@ function yerr_checkbox_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in xmaj_radiobutton.
 function xmaj_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'Xgrid','on')
         set(ax,'GridLineStyle', '-')
@@ -669,7 +662,7 @@ function xmaj_radiobutton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in ymaj_radiobutton.
 function ymaj_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'Ygrid','on')
         set(ax,'GridLineStyle', '-')
@@ -700,7 +693,7 @@ function b_edit_CreateFcn(hObject, eventdata, handles)
 function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
      
     %point to plotting axes and clear them
-    axes(handles.axes1);
+    axes(handles.var_axes);
     
     %update plotcounter
     handles.plotcounter=handles.plotcounter+1;
@@ -709,14 +702,30 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
     
-    axes(handles.axes1);
+    axes(handles.var_axes);
     a=str2double(get(handles.a_edit,'String'));
     b=str2double(get(handles.b_edit,'String'));
     handles.graph{handles.plotcounter}=refline(a,b);
@@ -747,7 +756,7 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
     
 % --- Executes on button press in xmingrid_radiobutton.
 function xmingrid_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'XMinorGrid','on')
         set(ax,'MinorGridLineStyle', ':')
@@ -755,61 +764,15 @@ function xmingrid_radiobutton_Callback(hObject, eventdata, handles)
         set(ax,'XMinorGrid','off')
     end
 
-
 % --- Executes on button press in ymingrid_radiobutton.
 function ymingrid_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'YMinorGrid','on')
         set(ax,'MinorGridLineStyle', ':')
     else
         set(ax,'YMinorGrid','off')
     end
-
-
-% --- Executes on button press in time_pushbutton.
-function time_pushbutton_Callback(hObject, eventdata, handles)
-    
-    %make sure data is loaded
-    if ~isfield(handles,'steam')
-        errordlg('No data available for plotting - load data first')
-    end
-    %code below extracts elements from the main struct array that have the
-    %field "vars" storing time dependant experimental data
-    vars={'steam','coolant','facility','GHFS','MP'};
-    for k=1:numel(vars)
-    field_names=fields(handles.(vars{k}));
-        for i=1:numel(field_names)
-            for j=1:numel(handles.(vars{k}))
-                try
-                time_var.(vars{k})(j).(field_names{i})=handles.(vars{k})(j).(field_names{i}).var;
-                catch
-                end        
-            end
-        end
-    end
-
-    for l=1:numel(handles.file)
-        file_name{l}=[handles.file(l).name];
-    end
-    assignin('base','time_var',time_var);
-    gui_timedependant(time_var,file_name,handles.timing);
-
-
-% --- Executes on button press in distr_pushbutton.
-function distr_pushbutton_Callback(hObject, eventdata, handles)
-    
-    %make sure data is loaded
-    if ~isfield(handles,'steam')
-        errordlg('No data available for plotting - load data first')
-    end
-    
-    for l=1:numel(handles.file)
-        file_name{l}=[handles.file(l).name];
-    end
-    %call distribution function
-    gui_distributions(handles.distributions,file_name);
-
 
 % --- Executes on button press in checkbox_point_labels.
 function checkbox_point_labels_Callback(hObject, eventdata, handles)
@@ -887,11 +850,14 @@ function clear_Callback(hObject, eventdata, handles)
     clc
     
     % clear axes
-    axes(handles.axes1);
+    axes(handles.var_axes);
+    xlabel('');
     yyaxis right
     cla
+    ylabel('');
     yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')
@@ -1018,3 +984,76 @@ function flip_y_axis_Callback(hObject, eventdata, handles)
 % --- Executes on button press in poly_error.
 function poly_error_Callback(hObject, eventdata, handles)
 
+
+% --------------------------------------------------------------------
+function toolbar_distributions_ClickedCallback(hObject, eventdata, handles)
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
+    
+    for l=1:numel(handles.file)
+        file_name{l}=[handles.file(l).name];
+    end
+    %call distribution function
+    gui_distributions(handles.distributions,file_name);
+
+
+% --------------------------------------------------------------------
+function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
+    %code below extracts elements from the main struct array that have the
+    %field "vars" storing time dependant experimental data and forwards it
+    %to another GUI
+    vars={'steam','coolant','facility','GHFS','MP'};
+    field_cntr=1;
+    for k=1:numel(vars)
+    field_names=fields(handles.(vars{k}));
+        for i=1:numel(field_names)
+            for j=1:numel(handles.(vars{k}))
+                if isfield(handles.(vars{k})(j).(field_names{i}),'var')
+                    time_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
+                    time_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
+                    time_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+                end        
+            end
+        end
+    end
+
+    for l=1:numel(handles.file)
+        file_name{l}=[handles.file(l).name];
+    end
+    assignin('base','time_var',time_var);
+    gui_timedependant(time_var,file_name,handles.timing);
+
+
+% --------------------------------------------------------------------
+function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
+        
+        %saving figure is problematic due to two y axes
+        % 1. Ask user for the file name
+        saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+        [~, file_name, ext] = fileparts(saveDataName);
+        
+        % 2. Save .fig file with the name
+        hgsave(handles.var_axes,file_name)
+        
+        % 3. Display a hidden figure and load saved .fig to it
+        f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
+        movegui(f,'center')
+        h=hgload(file_name);
+        %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+        %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+        h.Parent=f;
+        %optionally make visible
+%         f.Visible='on';
+%         f.Name=saveDataName;
+        % 4.save again, to desired format, if it different than fig
+        if ~strcmp(ext,'.fig')
+            delete([file_name,'.fig'])  
+            export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+        end
+        msgbox('Figure saved succesfully as %s ',saveDataName)

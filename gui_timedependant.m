@@ -113,7 +113,7 @@ end
 function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     % This part gets data to be handled
-    file=get(handles.file_popupmenu,'Value');
+    file_choice=get(handles.file_popupmenu,'Value');
     
     % get choice of facility element (steam, coolant, faclity, GHFS etc.) to be plotted
     list_y=get(handles.var_popupmenu,'String');
@@ -124,7 +124,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     list_y_var=get(handles.property_popupmenu,'String');
     val_y_var=get(handles.property_popupmenu,'Value');
     y_param_var=list_y_var{val_y_var};
-    y_dat=handles.data.(y_param)(file).(y_param_var);
+    y_dat=handles.data.(y_param)(file_choice).(y_param_var).var;
 
     % figure out how many data points are to be plotted
     y_amount=numel(y_dat);
@@ -295,25 +295,17 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %define axes
     axes(handles.var_axes);
-    
-    %check which y axis to use for plotting
-    y_axis_flag=get(handles.y_axis_primary,'Value');
-    
-    if y_axis_flag
-        yyaxis left
-    else
-        yyaxis right
-    end
-    
-    
+        
     %check if user wants to hold previous graphs
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -327,6 +319,31 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     else
         hold on
         handles.plotcounter=handles.plotcounter+1;
+    end
+    
+     %check which y axis to use for plotting
+    y_axis_flag=get(handles.y_axis_primary,'Value');
+    
+    if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
+        yyaxis left
+        handles.var_axes.YTickMode='auto';
+    else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
+        yyaxis right
+        handles.var_axes.YTickMode='auto'; 
     end
     
     % plot with nice color and get user defined line style
@@ -367,13 +384,14 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
-
+    
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     handles.graph{handles.plotcounter}=plot(x_dat,y_dat,line_spec);
+    box off
     
     %assign and store a name to the graph
     processing_string=[notch_str,lowpass_str,smooth_str,norm_str,flip_str];
-    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,' ',y_param_var,' ',processing_string];
+    handles.graph_name{handles.plotcounter}=[handles.files{file_choice},' ',y_param,' ',y_param_var,' ',processing_string];
     
     %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -385,6 +403,10 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     elseif handles.plotcounter>0
         set(handles.legend,'Visible','Off')
     end
+    
+    %add label
+    ylabel([y_param_var,'  [',handles.data.(y_param)(file_choice).(y_param_var).unit,']'], 'interpreter', 'none');
+    xlabel('Time [s]', 'interpreter', 'none')
     
     %store data in the figure
     handles.y_dat{handles.plotcounter}=y_dat;
@@ -429,10 +451,13 @@ function clear_pushbutton_Callback(hObject, eventdata, handles)
     
     % clear axes
     axes(handles.var_axes);
+    xlabel('');
     yyaxis right
     cla
+    ylabel('');
     yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')

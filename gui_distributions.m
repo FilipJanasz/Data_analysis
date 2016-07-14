@@ -98,10 +98,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -121,10 +123,26 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
         
@@ -185,6 +203,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
     
+    %PLOTTING PLOTTING PLOTTING
     %depending on user choice, plot along chosen axis, 3D, with or without
     %errorbars
     try
@@ -210,7 +229,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     catch
         errordlg('Plotting error, check matlab window for details')
     end
-
+    box off
+    
     %add legend and create graph name
     handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param];
     handles.legend=legend(handles.graph_name{1:end});
@@ -222,6 +242,10 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     elseif handles.plotcounter>0
         set(handles.legend,'Visible','Off')
     end
+    
+    %label axes
+    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
+    xlabel('Position [mm]', 'interpreter', 'none')
     
     %update list of graphs
     set(handles.graph_list,'String',handles.graph_name)
@@ -250,14 +274,20 @@ end
 % --- Executes on button press in clear_pushbutton.
 function clear_pushbutton_Callback(hObject, eventdata, handles)
     
+    %point to right axes
+    axes=handles.var_axes;
+    
     % clear screen
     clc
     
     % clear axesaxes(handles.var_axes);
-    yyaxis 'right'
+    xlabel('');
+    yyaxis right
     cla
-    yyaxis 'left'
+    ylabel('');
+    yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')
@@ -424,9 +454,11 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         %increase plot counter
         handles.plotcounter=handles.plotcounter+1;
         
+        %PLOTTING PLOTTING PLOTTING
         %plot boundary layer on main graph
         handles.graph{handles.plotcounter}=plot([boundary_layer boundary_layer], ylim,'g');
-
+        box off
+        
         %update variables
         handles.x_dat{handles.plotcounter}=[boundary_layer boundary_layer];
         handles.value_dat{handles.plotcounter}=ylim;
@@ -445,7 +477,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
 
         %update list of graphs
         set(handles.graph_list,'String',handles.graph_name)  
-
+        
         %Plotting processing graphs
         if get(handles.bl_graph,'Value')
             figure

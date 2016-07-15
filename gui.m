@@ -401,7 +401,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
         for cntr=1:numel(handles.file)
             str_label=[handles.file(cntr).name,' ',y_param_var];
             %str_label=handles.file(cntr).name;
-            text(x_dat(cntr),y_dat(cntr),str_label);            
+            text(x_dat(cntr),y_dat(cntr),str_label,'interpreter','none');            
         end   
     end
     
@@ -972,8 +972,12 @@ function toolbar_distributions_ClickedCallback(hObject, eventdata, handles)
     for l=1:numel(handles.file)
         file_name{l}=[handles.file(l).name];
     end
+    
+    %get path to where the processed files are
+    filePath_default=get(handles.file_path_disp,'String');
+   
     %call distribution function
-    gui_distributions(handles.distributions,file_name);
+    gui_distributions(handles.distributions,file_name,filePath_default);
 
 
 % --------------------------------------------------------------------
@@ -1004,17 +1008,26 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
         file_name{l}=[handles.file(l).name];
     end
     assignin('base','time_var',time_var);
-    gui_timedependant(time_var,file_name,handles.timing);
+    
+    %get path to where the processed files are
+    filePath_default=get(handles.file_path_disp,'String');
+    
+    %call new gui
+    gui_timedependant(time_var,file_name,handles.timing,filePath_default);
 
 
 % --------------------------------------------------------------------
 function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         
     %saving figure is problematic due to two y axes
+    % 0. move to file directory, based on default value stored in GUI
+    filePath_default=get(handles.file_path_disp,'String');
+    cd(filePath_default)
+    
     % 1. Ask user for the file name
     saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);
-
+      
     % 2. Save .fig file with the name
     hgsave(handles.var_axes,file_name)
 

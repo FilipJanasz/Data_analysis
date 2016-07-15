@@ -35,6 +35,7 @@ function gui_distributions_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.output = hObject;
     handles.data=varargin{1};
     handles.files=varargin{2};
+    handles.filepath=varargin{3};
     vars=fields(handles.data);
     handles.plotcounter=0;
     %set fields for calibrated option popupmenu
@@ -367,6 +368,9 @@ function line_delete_Callback(hObject, eventdata, handles)
 function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         
     %saving figure is problematic due to two y axes
+    % 0. move to file directory, based on default value stored in GUI    
+    cd(handles.filepath)
+    
     % 1. Ask user for the file name
     saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);

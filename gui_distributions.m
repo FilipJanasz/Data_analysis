@@ -375,15 +375,19 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     hgsave(handles.var_axes,file_name)
 
     % 3. Display a hidden figure and load saved .fig to it
-    f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
+    f=figure('Visible','off');
     movegui(f,'center')
     h=hgload(file_name);
     %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
     %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
-    h.Parent=f;
+    h.Parent=f;   
+    %adjust figure size so it matches the axes
+    f.Units='characters';
+    f.Position=h.Position.*1.2;
     %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
+
     % 4.save again, to desired format, if it different than fig
     if ~strcmp(ext,'.fig')
         delete([file_name,'.fig'])  

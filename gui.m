@@ -57,7 +57,6 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     % varargin   command line arguments to gui (see VARARGIN)
     % Choose default command line output for gui
     handles.output = hObject;
-    handles.userChoice=1;
     handles.plotcounter=0;
     handles.clear_old_flag=0;
     logo=imread('precise_logo.png');
@@ -77,26 +76,6 @@ function varargout = gui_OutputFcn(~, ~, handles)
     % h = findobj('Tag','pushbutton1');
     % varargout{2} = getappdata(h,'result');
 
-% --- Executes on selection change in popupmenu1.
-function popupmenu1_Callback(hObject, ~, handles)
-
-% Determine the selected data set.
-      str = get(hObject,'String');
-      val = get(hObject,'Value');
-      % Set current data to the selected data set.
-      switch str{val};
-      case 'Single folder'
-         handles.userChoice = 1;
-      %case 'Set of folders'
-        % handles.userChoice = 2;        
-      case 'Single file'
-         handles.userChoice = 3;
-      end
-
-      guidata(hObject,handles);
-      
-
-
 % --- Executes during object creation, after setting all properties.
 function popupmenu1_CreateFcn(hObject, ~, ~)
 
@@ -107,10 +86,9 @@ end
 
 % --- Executes on button press in process_btn.
 function process_btn_Callback(hObject, ~, handles)
-%     profile on
+    % profile on
     clear steam coolant facility NC distributions file BC GHFS MP timing
-    userChoice=handles.userChoice;
-
+    
     % based on user choice, acces and process picked files
     clear_flag=0;
     plot_flag=get(handles.plotflag_checkbox,'Value');
@@ -118,7 +96,7 @@ function process_btn_Callback(hObject, ~, handles)
     boundary_layer_options(1)=str2double(get(handles.av_window,'String'));
     boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
     boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(userChoice,plot_flag,st_state_flag,boundary_layer_options,clear_flag);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -167,9 +145,8 @@ function process_btn_Callback(hObject, ~, handles)
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
 %     profile on
-%essentially the same as process, but with different flag
+    %essentially the same as process, but with different flag
     clear steam coolant facility NC distributions file BC GHFS MP timing
-    userChoice=handles.userChoice;
 
     % based on user choice, access and process picked files
     clear_flag=1;
@@ -181,7 +158,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
     boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
     
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(userChoice,plot_flag,st_state_flag,boundary_layer_options,clear_flag);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -1042,18 +1019,33 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     hgsave(handles.var_axes,file_name)
 
     % 3. Display a hidden figure and load saved .fig to it
-    f=figure('Visible','off','Position',[250,200,800,650]); %size adjusted to match the figure
+    f=figure('Visible','off');
     movegui(f,'center')
     h=hgload(file_name);
     %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
     %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
-    h.Parent=f;
+    h.Parent=f;   
+    %adjust figure size so it matches the axes
+    f.Units='characters';
+    f.Position=h.Position.*1.2;
     %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
+
     % 4.save again, to desired format, if it different than fig
     if ~strcmp(ext,'.fig')
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
     end
     msgbox(['Figure saved succesfully as ',saveDataName])
+
+
+% --- Executes on selection change in file_path_disp.
+function file_path_disp_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function file_path_disp_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

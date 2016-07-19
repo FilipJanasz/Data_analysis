@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 11-Jul-2016 16:51:27
+    % Last Modified by GUIDE v2.5 18-Jul-2016 16:50:36
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -35,6 +35,7 @@ function gui_distributions_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.output = hObject;
     handles.data=varargin{1};
     handles.files=varargin{2};
+    handles.filepath=varargin{3};
     vars=fields(handles.data);
     handles.plotcounter=0;
     %set fields for calibrated option popupmenu
@@ -98,10 +99,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -121,10 +124,26 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
         
@@ -136,6 +155,38 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         x_dat=horizontal_pos;
     end
     
+    %check and apply smoothing to the data
+    if get(handles.smooth_enable,'Value')
+        smoothing_type_set=get(handles.smoothing_type,'String');
+        smoothing_type_val=get(handles.smoothing_type,'Value');
+        smoothing_type=smoothing_type_set{smoothing_type_val};
+
+        frame_size=str2double(get(handles.frame_size,'String'));
+
+        %based on user choice apply appropriate smoothing algorithm
+        switch smoothing_type
+            case 'Moving Average'  
+                value_dat=smooth(value_dat,frame_size,'moving');
+            case 'Savitzky-Golay'
+                sgolay_order=str2double(get(handles.sgolay_order,'String'));
+                value_dat=smooth(value_dat,frame_size,'sgolay',sgolay_order);
+            case 'Lowess'
+                value_dat=smooth(value_dat,frame_size,'lowess');
+            case 'Loess'
+                value_dat=smooth(value_dat,frame_size,'loess');
+            case 'RLowess'
+                value_dat=smooth(value_dat,frame_size,'rlowess');
+            case 'RLoess'
+                value_dat=smooth(value_dat,frame_size,'rloess');
+        end
+        
+        %forwad info for legend
+        smooth_str=[' | smooth ',smoothing_type];
+        
+    else
+        smooth_str='';
+    end
+    
     % if Normalize box is checked, normalize graph to between 0 an 1
     if get(handles.normalize, 'Value')
         %find and substract minimum (makes min value in the signal = 0)
@@ -144,6 +195,22 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         %find the new maximum and divide by it (makes the max value in the signal =1
         max_val=max(value_dat);
         value_dat=value_dat./max_val;
+        %forwad info for legend
+        norm_str=' | normalized';
+     
+    else
+        norm_str='';
+    end
+    
+    %check is user wants to plot -y instead of y
+    flip_y_axis=get(handles.flip_y_axis,'Value');
+    
+    if flip_y_axis
+        value_dat=-value_dat;
+        %forwad info for legend
+        flip_str=' | -y';
+    else
+        flip_str='';
     end
     
     % plot with nice color and get user defined line style
@@ -185,6 +252,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
     
+    %PLOTTING PLOTTING PLOTTING
     %depending on user choice, plot along chosen axis, 3D, with or without
     %errorbars
     try
@@ -210,9 +278,11 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     catch
         errordlg('Plotting error, check matlab window for details')
     end
-
+    box off
+    
     %add legend and create graph name
-    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param];
+    processing_string=[smooth_str,norm_str,flip_str];
+    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
     handles.legend=legend(handles.graph_name{1:end});
     
     set(handles.legend,'interpreter','none')
@@ -222,6 +292,10 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     elseif handles.plotcounter>0
         set(handles.legend,'Visible','Off')
     end
+    
+    %label axes
+    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
+    xlabel('Position [mm]', 'interpreter', 'none')
     
     %update list of graphs
     set(handles.graph_list,'String',handles.graph_name)
@@ -250,14 +324,20 @@ end
 % --- Executes on button press in clear_pushbutton.
 function clear_pushbutton_Callback(hObject, eventdata, handles)
     
+    %point to right axes
+    axes=handles.var_axes;
+    
     % clear screen
     clc
     
     % clear axesaxes(handles.var_axes);
-    yyaxis 'right'
+    xlabel('');
+    yyaxis right
     cla
-    yyaxis 'left'
+    ylabel('');
+    yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')
@@ -334,13 +414,40 @@ function line_delete_Callback(hObject, eventdata, handles)
     guidata(hObject, handles);
     
 % --------------------------------------------------------------------
-function uipushtool2_ClickedCallback(hObject, eventdata, handles)
-    figure2=figure;
-    set(figure2, 'Visible', 'off');
-    copyobj(handles.var_axes,figure2);
-    figure_name = uiputfile('figure.emf','Save plot as .emf');
-    % savefig(figure2,figure_name)
-    print(figure2,figure_name,'-dmeta')
+function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
+        
+    %saving figure is problematic due to two y axes
+    % 0. move to file directory, based on default value stored in GUI    
+    cd(handles.filepath)
+    
+    % 1. Ask user for the file name
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    [~, file_name, ext] = fileparts(saveDataName);
+
+    % 2. Save .fig file with the name
+    hgsave(handles.var_axes,file_name)
+
+    % 3. Display a hidden figure and load saved .fig to it
+    f=figure('Visible','off');
+    movegui(f,'center')
+    h=hgload(file_name);
+    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+    h.Parent=f;   
+    %adjust figure size so it matches the axes
+    f.Units='characters';
+    f.Position=h.Position.*1.2;
+    %optionally make visible
+%         f.Visible='on';
+%         f.Name=saveDataName;
+
+    % 4.save again, to desired format, if it different than fig
+    if ~strcmp(ext,'.fig')
+        delete([file_name,'.fig'])  
+        export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    end
+    msgbox(['Figure saved succesfully as ',saveDataName])
+
 
     % --- Executes on selection change in cal_popupmenu.
     function cal_popupmenu_Callback(hObject, eventdata, handles)
@@ -424,9 +531,11 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         %increase plot counter
         handles.plotcounter=handles.plotcounter+1;
         
+        %PLOTTING PLOTTING PLOTTING
         %plot boundary layer on main graph
         handles.graph{handles.plotcounter}=plot([boundary_layer boundary_layer], ylim,'g');
-
+        box off
+        
         %update variables
         handles.x_dat{handles.plotcounter}=[boundary_layer boundary_layer];
         handles.value_dat{handles.plotcounter}=ylim;
@@ -445,7 +554,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
 
         %update list of graphs
         set(handles.graph_list,'String',handles.graph_name)  
-
+        
         %Plotting processing graphs
         if get(handles.bl_graph,'Value')
             figure
@@ -525,70 +634,91 @@ function line_color_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function line_color_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in line_marker.
 function line_marker_Callback(hObject, eventdata, handles)
 
 function line_marker_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in line_style.
 function line_style_Callback(hObject, eventdata, handles)
-
 % --- Executes during object creation, after setting all properties.
 function line_style_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function av_window_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function av_window_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function lim_factor_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function lim_factor_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on button press in bl_graph.
 function bl_graph_Callback(hObject, eventdata, handles)
 
-
-
 function position_lim_Callback(hObject, eventdata, handles)
-% hObject    handle to position_lim (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of position_lim as text
-%        str2double(get(hObject,'String')) returns contents of position_lim as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function position_lim_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to position_lim (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+function frame_size_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function frame_size_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on selection change in smoothing_type.
+function smoothing_type_Callback(hObject, eventdata, handles)
+    
+    smoothing_type_set=get(handles.smoothing_type,'String');
+    smoothing_type_val=get(handles.smoothing_type,'Value');
+    smoothing_type=smoothing_type_set{smoothing_type_val};
+
+    %based on user choice hide or reveal extra buttons
+    switch smoothing_type  
+        case 'Savitzky-Golay'
+            set(handles.text25,'Visible','On')
+            set(handles.sgolay_order,'Visible','On')
+        otherwise
+            set(handles.text25,'Visible','Off')
+            set(handles.sgolay_order,'Visible','Off')
+    end
+
+% --- Executes during object creation, after setting all properties.
+function smoothing_type_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function sgolay_order_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function sgolay_order_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in smooth_enable.
+function smooth_enable_Callback(hObject, eventdata, handles)

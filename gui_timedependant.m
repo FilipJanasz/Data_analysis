@@ -22,7 +22,7 @@ function varargout = gui_timedependant(varargin)
 
     % Edit the above text to modify the response to help gui_timedependant
 
-    % Last Modified by GUIDE v2.5 06-Jul-2016 17:34:06
+    % Last Modified by GUIDE v2.5 14-Jul-2016 17:56:44
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -57,6 +57,7 @@ function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.data=varargin{1};
     handles.files=varargin{2};
     handles.timing=varargin{3};
+    handles.filepath=varargin{4};
     vars=fields(handles.data);
     handles.plotcounter=0;
 
@@ -113,7 +114,7 @@ end
 function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     % This part gets data to be handled
-    file=get(handles.file_popupmenu,'Value');
+    file_choice=get(handles.file_popupmenu,'Value');
     
     % get choice of facility element (steam, coolant, faclity, GHFS etc.) to be plotted
     list_y=get(handles.var_popupmenu,'String');
@@ -124,7 +125,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     list_y_var=get(handles.property_popupmenu,'String');
     val_y_var=get(handles.property_popupmenu,'Value');
     y_param_var=list_y_var{val_y_var};
-    y_dat=handles.data.(y_param)(file).(y_param_var);
+    y_dat=handles.data.(y_param)(file_choice).(y_param_var).var;
 
     % figure out how many data points are to be plotted
     y_amount=numel(y_dat);
@@ -235,6 +236,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         lowpass_str='';
     end
     
+    %check and apply smoothing to the data
     if get(handles.smooth_enable,'Value')
         smoothing_type_set=get(handles.smoothing_type,'String');
         smoothing_type_val=get(handles.smoothing_type,'Value');
@@ -295,25 +297,17 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %define axes
     axes(handles.var_axes);
-    
-    %check which y axis to use for plotting
-    y_axis_flag=get(handles.y_axis_primary,'Value');
-    
-    if y_axis_flag
-        yyaxis left
-    else
-        yyaxis right
-    end
-    
-    
+        
     %check if user wants to hold previous graphs
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -327,6 +321,31 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     else
         hold on
         handles.plotcounter=handles.plotcounter+1;
+    end
+    
+     %check which y axis to use for plotting
+    y_axis_flag=get(handles.y_axis_primary,'Value');
+    
+    if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
+        yyaxis left
+        handles.var_axes.YTickMode='auto';
+    else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
+        yyaxis right
+        handles.var_axes.YTickMode='auto'; 
     end
     
     % plot with nice color and get user defined line style
@@ -362,18 +381,20 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         button = questdlg('You''re about to plot a lot of points with line markers enabled - might be slow. Continue with markers?');
         if strcmp(button,'No')
             line_marker='';
+            set(handles.line_marker,'Value',2)
         end
     end
     
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
-
+    
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     handles.graph{handles.plotcounter}=plot(x_dat,y_dat,line_spec);
+    box off
     
     %assign and store a name to the graph
     processing_string=[notch_str,lowpass_str,smooth_str,norm_str,flip_str];
-    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,' ',y_param_var,' ',processing_string];
+    handles.graph_name{handles.plotcounter}=[handles.files{file_choice},' ',y_param,' ',y_param_var,' ',processing_string];
     
     %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -385,6 +406,10 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     elseif handles.plotcounter>0
         set(handles.legend,'Visible','Off')
     end
+    
+    %add label
+    ylabel([y_param_var,'  [',handles.data.(y_param)(file_choice).(y_param_var).unit,']'], 'interpreter', 'none');
+    xlabel('Time [s]', 'interpreter', 'none')
     
     %store data in the figure
     handles.y_dat{handles.plotcounter}=y_dat;
@@ -429,10 +454,13 @@ function clear_pushbutton_Callback(hObject, eventdata, handles)
     
     % clear axes
     axes(handles.var_axes);
+    xlabel('');
     yyaxis right
     cla
+    ylabel('');
     yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')
@@ -527,17 +555,39 @@ function line_delete_Callback(hObject, eventdata, handles)
     %forward changes in handles
     guidata(hObject, handles);
 
-function uipushtool2_ClickedCallback(hObject, eventdata, handles)
-    figure2=figure;  %Assign new name to figure
-    set(figure2, 'Visible', 'off'); 
-    copyobj(handles.var_axes,figure2); 
-    img_name_raw=handles.files{1};
-    %img_name=img_name_raw(1:end-2);
-    %[figure_name, path_name,] = uiputfile([img_name,'.jpeg'],'Save plot as .jpeg');
-    [figure_name, path_name, filterindex] = uiputfile({'*.bmp';'*.emf';'*.jpeg';'*.pdf';'*.png';'*.svg';'*.tiff';},'Save plot as',img_name);
-    extensions={'-dbmp','-demf','-djpeg','-dpdf','-dpng','-dsvg','-dtiff'};
-    %savefig(figure2,figure_name)
-    print(figure2,[path_name,figure_name],extensions{filterindex})
+function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
+    %saving figure is problematic due to two y axes
+    
+    % 0. move to file directory, based on default value stored in GUI    
+    cd(handles.filepath)
+    
+    % 1. Ask user for the file name
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    [~, file_name, ext] = fileparts(saveDataName);
+    
+    % 2. Save .fig file with the name
+    hgsave(handles.var_axes,file_name)
+
+    % 3. Display a hidden figure and load saved .fig to it
+    f=figure('Visible','off');
+    movegui(f,'center')
+    h=hgload(file_name);
+    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+    h.Parent=f;   
+    %adjust figure size so it matches the axes
+    f.Units='characters';
+    f.Position=h.Position.*1.2;
+    %optionally make visible
+%         f.Visible='on';
+%         f.Name=saveDataName;
+
+    % 4.save again, to desired format, if it different than fig
+    if ~strcmp(ext,'.fig')
+        delete([file_name,'.fig'])  
+        export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    end
+    msgbox(['Figure saved succesfully as ',saveDataName])
 
 % --- Executes on button press in flip_y_axis.
 function flip_y_axis_Callback(hObject, eventdata, handles)

@@ -297,7 +297,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %% Initialize structures
         %fast sensors and MP
         data_holder=struct('var',0,'value',0,'error',0,'unit','na');
-        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_filtered',data_holder);
+        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth_sgolay',data_holder);
         GHFS=struct('GHFS1',data_holder,'GHFS2',data_holder,'GHFS3',data_holder,'GHFS4',data_holder);
         
         %distributions - really long struct
@@ -340,13 +340,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS3.var=cal_steady_data.GHFS3;
             GHFS.GHFS4.var=cal_steady_data.GHFS4;
             
+            % thermocouple cal_steady_data.TCH2_2W is broken
+            % as a workaround, use average between two thermocouples
             GHFS.GHFS1_temp.var=cal_steady_data.TCH1_2W;
-            GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
+%             GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
+            GHFS.GHFS2_temp.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
             GHFS.GHFS3_temp.var=cal_steady_data.TCH3_2W;
             GHFS.GHFS4_temp.var=cal_steady_data.TCH4_2W;
-            
+               
             GHFS.wall_dT_GHFS1.var=cal_steady_data.TCH1_2W-cal_steady_data.TCH1_3W;
-            GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-cal_steady_data.TCH2_3W;
+%             GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-cal_steady_data.TCH2_3W;
+            GHFS.wall_dT_GHFS2.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2-cal_steady_data.TCH2_3W;
             GHFS.wall_dT_GHFS3.var=cal_steady_data.TCH3_2W-cal_steady_data.TCH3_3W;
             GHFS.wall_dT_GHFS4.var=cal_steady_data.TCH4_2W-cal_steady_data.TCH4_3W;
             
@@ -465,18 +469,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             MP.Temp.var=cal_steady_data.MP_TF;
             MP.Temp.value=mean(MP.Temp.var); %[deg C]
       
-            %low pass filter 
-            d = fdesign.lowpass('Fp,Fst,Ap,Ast',0.00001,0.5,0.5,30);
-            Hd = design(d,'butter');
-    %         d = fdesign.lowpass('N,Fc',1,2);
-    %         d = design(d,'equiripple');
-            MP.Temp_filtered.var = filter(Hd,MP.Temp.var);
-            MP.Temp_filtered.val=mean(MP.Temp_filtered.var);
-%             figure
-%             plot(MP.Temp_filtered.var(50:end),'g')
-%             hold on
-%             plot(MP.Temp.var(50:end),'.r')
-%             hold off
+            %smoothing
+            frame_size=5;
+            sgolay_order=1;
+            MP.Temp_smooth_sgolay.var = smooth(MP.Temp.var,frame_size,'sgolay',sgolay_order);
+            MP.Temp_smooth_sgolay.val=mean(MP.Temp_smooth_sgolay.var);
 
             %build a matrix with probe position as first column to enable 
             %proper sorting
@@ -504,7 +501,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
         
             %combine all into one matrix for further processing
-            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_filtered.var MP_direction'];
+            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth_sgolay.var MP_direction'];
 
             %sort by movement direction into separate in two matrices
             MP_matrix=sortrows(MP_matrix,4);
@@ -566,9 +563,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                         %measurements
                         pos_temp=mean(MP_temp_sorted(1:interval(end)));
                         %also for the filtered data
-                        pos_temp_filtered=mean(MP_temp_sorted_filtered(1:interval(end)));
+                        pos_temp_smooth=mean(MP_temp_sorted_filtered(1:interval(end)));
                         %store all for the glorious future
-                        MP_Temp_averaged.(directions{ctr})(n,:)=[processed_pos pos_temp pos_temp_filtered];
+                        MP_Temp_averaged.(directions{ctr})(n,:)=[processed_pos pos_temp pos_temp_smooth];
                         n=n+1;
                     else
                     end
@@ -665,11 +662,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         try
             distributions.GHFS_TC.value.cal=[mean(cal_steady_data.HFS1TC),mean(cal_steady_data.HFS2TC),mean(cal_steady_data.HFS3TC),mean(cal_steady_data.HFS4TC)];
         catch
-            distributions.GHFS_TC.value.non_cal=[mean(cal_steady_data.TCH1_2W),mean(cal_steady_data.TCH2_2W),mean(cal_steady_data.TCH3_2W),mean(cal_steady_data.TCH4_2W)];
+            distributions.GHFS_TC.value.cal=[mean(cal_steady_data.TCH1_2W),mean((cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2),mean(cal_steady_data.TCH3_2W),mean(cal_steady_data.TCH4_2W)];
         end
         
         try
-            distributions.wall_inner.value.cal=[mean(cal_steady_data.TCH1_2W),mean(cal_steady_data.TCH2_2W),mean(cal_steady_data.TCH3_2W),mean(cal_steady_data.TCH4_2W)];
+            distributions.wall_inner.value.cal=distributions.GHFS_TC.value.cal;
             wall_inner_flag=1;
         catch
             wall_inner_flag=0;
@@ -679,7 +676,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
         end
         try
-            distributions.wall_dT.value.cal=[mean(cal_steady_data.TCH1_2W-cal_steady_data.TCH1_3W),mean(cal_steady_data.TCH2_2W-cal_steady_data.TCH2_3W),mean(cal_steady_data.TCH3_2W-cal_steady_data.TCH3_3W),mean(cal_steady_data.TCH4_2W-cal_steady_data.TCH4_3W)];
+            distributions.wall_dT.value.cal=[GHFS.wall_dT_GHFS1.value,GHFS.wall_dT_GHFS2.value,GHFS.wall_dT_GHFS3.value,GHFS.wall_dT_GHFS4.value];
         catch
         end
         %temperature - non calibrated
@@ -932,11 +929,32 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.error=0.1;  % [mm]
             MP.Temp.error=0.1;
-            MP.Temp_filtered.error=0.1;
+            MP.Temp_smooth_sgolay.error=0.1;
             MP.T_boundlayer_forward.error=MP.Pos.error;  %0.1
             MP.T_boundlayer_backward.error=MP.Pos.error; %XXXXXXXXXXXXXXXXXXX  
             MP.T_boundlayer_mean.error=MP.Pos.error;
         end
+        
+        % Distribution errors
+            distributions.GHFS_TC.error=0.05;       
+            distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_backward_temp.error=0.05;
+            distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.MP_forward_temp.error=0.05;
+            distributions.MP_temp_SMOOTH_backward.error=0.05;
+            distributions.MP_temp_SMOOTH_forward.error=0.05;
+            distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+            distributions.centerline_temp.error=0.05;
+            distributions.coolant_temp_0deg.error=0.05;
+            distributions.coolant_temp_180deg.error=0.05;
+            distributions.outer_wall_temp_0deg.error=0.05;
+            distributions.outer_wall_temp_180deg.error=0.05;
+            distributions.wall_dT.unit=0.05;
+            distributions.wall_inner.unit=0.05;
+            distributions.wall_outer.unit=0.05;
          
         %% ADD UNITS
         disp('5. Adding measurments units')
@@ -1032,7 +1050,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.unit='mm';
             MP.Temp.unit=[char(176),'C'];
-            MP.Temp_filtered.unit=[char(176),'C'];
+            MP.Temp_smooth_sgolay.unit=[char(176),'C'];
             MP.T_boundlayer_forward.unit='mm';
             MP.T_boundlayer_backward.unit='mm';
             MP.T_boundlayer_mean.unit='mm';
@@ -1048,7 +1066,26 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         BC.He_molefraction.unit=NC.He_molefraction.unit;  
         BC.N2_molefraction.unit=NC.N2_molefraction.unit;
         
-   
+    % Distribution units
+        distributions.GHFS_TC.unit=[char(176),'C'];
+        distributions.MP_backward_molefr_h2o.unit=1;
+        distributions.MP_backward_partpress_h2o.unit='bar';
+        distributions.MP_backward_temp.unit=[char(176),'C'];
+        distributions.MP_forward_molefr_h2o.unit=1;
+        distributions.MP_forward_partpress_h2o.unit='bar';
+        distributions.MP_forward_temp.unit=[char(176),'C'];
+        distributions.MP_temp_SMOOTH_backward.unit=[char(176),'C'];
+        distributions.MP_temp_SMOOTH_forward.unit=[char(176),'C'];
+        distributions.centerline_molefr_h2o.unit=1;
+        distributions.centerline_partpress_h2o.unit='bar';
+        distributions.centerline_temp.unit=[char(176),'C'];
+        distributions.coolant_temp_0deg.unit=[char(176),'C'];
+        distributions.coolant_temp_180deg.unit=[char(176),'C'];
+        distributions.outer_wall_temp_0deg.unit=[char(176),'C'];
+        distributions.outer_wall_temp_180deg.unit=[char(176),'C'];
+        distributions.wall_dT.unit=[char(176),'C'];
+        distributions.wall_inner.unit=[char(176),'C'];
+        distributions.wall_outer.unit=[char(176),'C'];
     
 %% Sort variables and save
         disp('6. Sorting and storing data in .mat files')

@@ -57,9 +57,9 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     % varargin   command line arguments to gui (see VARARGIN)
     % Choose default command line output for gui
     handles.output = hObject;
-    handles.userChoice=1;
     handles.plotcounter=0;
     handles.clear_old_flag=0;
+    handles.adv_options_flag=0;
     logo=imread('precise_logo.png');
     axes(handles.logo_axes);
     imshow(logo);
@@ -77,26 +77,6 @@ function varargout = gui_OutputFcn(~, ~, handles)
     % h = findobj('Tag','pushbutton1');
     % varargout{2} = getappdata(h,'result');
 
-% --- Executes on selection change in popupmenu1.
-function popupmenu1_Callback(hObject, ~, handles)
-
-% Determine the selected data set.
-      str = get(hObject,'String');
-      val = get(hObject,'Value');
-      % Set current data to the selected data set.
-      switch str{val};
-      case 'Single folder'
-         handles.userChoice = 1;
-      %case 'Set of folders'
-        % handles.userChoice = 2;        
-      case 'Single file'
-         handles.userChoice = 3;
-      end
-
-      guidata(hObject,handles);
-      
-
-
 % --- Executes during object creation, after setting all properties.
 function popupmenu1_CreateFcn(hObject, ~, ~)
 
@@ -107,18 +87,27 @@ end
 
 % --- Executes on button press in process_btn.
 function process_btn_Callback(hObject, ~, handles)
-%     profile on
+    % profile on
     clear steam coolant facility NC distributions file BC GHFS MP timing
-    userChoice=handles.userChoice;
-
+    
     % based on user choice, acces and process picked files
     clear_flag=0;
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
-    boundary_layer_options(1)=str2double(get(handles.av_window,'String'));
-    boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
-    boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(userChoice,plot_flag,st_state_flag,boundary_layer_options,clear_flag);
+    
+    %check if advanced options is enabled
+    if handles.adv_options_flag
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    else
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    end
+    
+    % call function down the line for file processing
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -161,27 +150,39 @@ function process_btn_Callback(hObject, ~, handles)
     set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
+    %update data selector listbox
+    file_list={file(1:end).name};
+    set(handles.plot_exclude,'String',file_list)
+    mark_file=1:1:numel(file_list);
+    set(handles.plot_exclude,'Value',mark_file)
+    
+    %update handles structure
     guidata(hObject, handles)
 %     profile viewer
     
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
 %     profile on
-%essentially the same as process, but with different flag
+    %essentially the same as process, but with different flag
     clear steam coolant facility NC distributions file BC GHFS MP timing
-    userChoice=handles.userChoice;
 
     % based on user choice, access and process picked files
     clear_flag=1;
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
-    % and also get values for estimating boundary layer
-    boundary_layer_options(1)=str2double(get(handles.av_window,'String'));
-    boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
-    boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
+   %check if advanced options is enabled
+    if handles.adv_options_flag
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    else
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    end
     
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(userChoice,plot_flag,st_state_flag,boundary_layer_options,clear_flag);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -224,15 +225,27 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
+    %update data selector listbox
+    file_list={file(1:end).name};
+    set(handles.plot_exclude,'String',file_list)
+    mark_file=1:1:numel(file_list);
+    set(handles.plot_exclude,'Value',mark_file)
+    
+    %update handles structure
     guidata(hObject, handles)
 %     profile viewer
 
-function pushbutton2_Callback(hObject, eventdata, handles)
+function plot_button_Callback(hObject, eventdata, handles)
 %     profile on
     %make sure data is loaded
     if ~isfield(handles,'steam')
         errordlg('No data available for plotting - load data first')
     end
+    
+    % get choice of files to be plotted
+    file_choice=get(handles.plot_exclude,'Value');
+    files_chosen=numel(file_choice);
+
     % get choice of x/y axis phase to be plotted
     list_x=get(handles.popupmenu_x_axis,'String');
     list_y=get(handles.popupmenu_y_axis,'String');
@@ -250,35 +263,36 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     y_param_var=list_y_var{val_y_var};
     
     %allocate
-    points_amount=numel(handles.(x_param));
-    x_dat=ones(1,points_amount);
-    y_dat=ones(1,points_amount);
-    x_err=ones(1,points_amount);
-    y_err=ones(1,points_amount);
+    x_dat=ones(1,files_chosen);
+    y_dat=ones(1,files_chosen);
+    x_err=ones(1,files_chosen);
+    y_err=ones(1,files_chosen);
     
-    %extract data values and error values
-    for cntr=1:points_amount
-        x_dat(cntr)=handles.(x_param)(cntr).(x_param_var).value;
-        y_dat(cntr)=handles.(y_param)(cntr).(y_param_var).value;
-        x_err(cntr)=handles.(x_param)(cntr).(x_param_var).error;
-        y_err(cntr)=handles.(y_param)(cntr).(y_param_var).error;
+    %extract data values and error values, applying file choice filter
+    for cntr=1:files_chosen
+        x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
+        y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
+        x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
+        y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
     end
 
     %get units for the plot
-    x_unit=handles.(x_param)(cntr).(x_param_var).unit;
-    y_unit=handles.(y_param)(cntr).(y_param_var).unit;
+    x_unit=handles.(x_param)(1).(x_param_var).unit;
+    y_unit=handles.(y_param)(1).(y_param_var).unit;
     
     hold_flag=get(handles.hold_checkbox, 'Value');
  
     %point to plotting axes and clear them
-    axes(handles.axes1);
+    axes(handles.var_axes);
         
-    if  hold_flag==0
+    if  ~hold_flag
         hold off
-        yyaxis left
-        cla
+        cla(handles.var_axes)
+        xlabel('');
         yyaxis right
-        cla
+        ylabel('');
+        yyaxis left
+        ylabel('');
         %clear all variables (for same case calling the general clearing
         %function fails to deliver)
         try
@@ -325,10 +339,26 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
     
@@ -375,15 +405,12 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     %plot data according to user preferences
-    handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
     
+    handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
+    box off
     %assign and store a name to the graph
     processing_string=[norm_str,flip_str];
     handles.graph_name{handles.plotcounter}=[x_param_var,' ',y_param_var,' ',processing_string];
-%     hold on
-%      if ~hold_flag
-%        hold off
-%      end
     
      %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -406,10 +433,9 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     %add point labeling
     label_flag=get(handles.checkbox_point_labels, 'Value');
     if label_flag == 1
-        for cntr=1:numel(handles.file)
-            str_label=[handles.file(cntr).name,' ',y_param_var];
-            %str_label=handles.file(cntr).name;
-            text(x_dat(cntr),y_dat(cntr),str_label);            
+        for cntr=1:files_chosen
+            str_label=[handles.file(file_choice(cntr)).name,' ',y_param_var];
+            text(x_dat(cntr),y_dat(cntr),str_label,'interpreter','none');            
         end   
     end
     
@@ -493,7 +519,7 @@ function polyfit_Callback(hObject, ~, handles)
     %update variables
     handles.x_dat{handles.plotcounter}=xlim;    %just so there is something in there
     handles.y_dat{handles.plotcounter}=ylim;    %just so there is something in there
-    handles.graph_name{handles.plotcounter}=[graph,' fit'];
+    handles.graph_name{handles.plotcounter}=[graph,'fit order ',num2str(order)];
     handles.axischoice{handles.plotcounter}=yaxis;
     
     %update legend
@@ -555,28 +581,6 @@ function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
         set(hObject,'BackgroundColor','white');
     end
 
-
-% --- Executes on button press in save_pushbutton.
-function save_pushbutton_Callback(hObject, eventdata, handles)
-    
-    figure2=figure;
-    copyobj(handles.axes1,figure2);
-    set(figure2,'units','centimeters','Position',[1 1 29 21])
-    set(gca,'units','normalized','position',[0.1 0.1 0.8 0.8])
-    set(gca,'fontsize', 20)
-    set(figure2,'Visible', 'on');
-    % gcf
-    % figure2
-    set(figure2,'PaperType','A4')
-    set(figure2,'paperunits','normalized')
-    set(figure2,'paperorientation','landscape')
-    set(figure2,'PaperPositionMode','manual')
-    set(figure2,'PaperPosition',[0.1 0.1 0.9 0.9])
-    figure_name = uiputfile('figure.emf','Save plot as .emf');
-    % savefig(figure2,figure_name)
-    % set(figure2,'paperunits','inches','papersize',[20,30],'paperposition',[0,0,20,30])
-    print(figure2,'-r0',figure_name,'-dmeta')
-
 function edit1_Callback(hObject, eventdata, handles)
 
 function xmin_edit_Callback(hObject, eventdata, handles)
@@ -622,13 +626,13 @@ function rescale_pushbutton_Callback(hObject, eventdata, handles)
     xmax=str2double(get(handles.xmax_edit,'String'));
     ymin=str2double(get(handles.ymin_edit,'String'));
     ymax=str2double(get(handles.ymax_edit,'String'));
-    set(handles.axes1,'xlim',[xmin xmax])
-    set(handles.axes1,'ylim',[ymin ymax])
+    set(handles.var_axes,'xlim',[xmin xmax])
+    set(handles.var_axes,'ylim',[ymin ymax])
 
 
 % --- Executes on button press in fitaxes_pushbutton.
 function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
-    axes(handles.axes1);
+    axes(handles.var_axes);
     axis auto
     x=xlim;
     xmin=num2str(x(1));
@@ -640,7 +644,7 @@ function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.xmax_edit,'String',xmax)
     set(handles.ymin_edit,'String',ymin)
     set(handles.ymax_edit,'String',ymax)
-%         axis(handles.axes1,'mode','auto')
+%         axis(handles.var_axes,'mode','auto')
 
 
 % --- Executes on button press in plotflag_checkbox.
@@ -657,7 +661,7 @@ function yerr_checkbox_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in xmaj_radiobutton.
 function xmaj_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'Xgrid','on')
         set(ax,'GridLineStyle', '-')
@@ -669,7 +673,7 @@ function xmaj_radiobutton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in ymaj_radiobutton.
 function ymaj_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'Ygrid','on')
         set(ax,'GridLineStyle', '-')
@@ -700,7 +704,7 @@ function b_edit_CreateFcn(hObject, eventdata, handles)
 function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
      
     %point to plotting axes and clear them
-    axes(handles.axes1);
+    axes(handles.var_axes);
     
     %update plotcounter
     handles.plotcounter=handles.plotcounter+1;
@@ -709,14 +713,30 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
     if y_axis_flag
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis right
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis left
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=1;
     else
+        % if clause below clears y axis on the opposite axis if hold flag
+        % is off
+        if ~hold_flag
+            yyaxis left
+            handles.var_axes.YTick=[];
+        end
+        % set the desired axes to plot and restore the axis to be visible
         yyaxis right
+        handles.var_axes.YTickMode='auto';
         handles.axischoice{handles.plotcounter}=2;
     end
     
-    axes(handles.axes1);
+    axes(handles.var_axes);
     a=str2double(get(handles.a_edit,'String'));
     b=str2double(get(handles.b_edit,'String'));
     handles.graph{handles.plotcounter}=refline(a,b);
@@ -747,7 +767,7 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
     
 % --- Executes on button press in xmingrid_radiobutton.
 function xmingrid_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'XMinorGrid','on')
         set(ax,'MinorGridLineStyle', ':')
@@ -755,61 +775,15 @@ function xmingrid_radiobutton_Callback(hObject, eventdata, handles)
         set(ax,'XMinorGrid','off')
     end
 
-
 % --- Executes on button press in ymingrid_radiobutton.
 function ymingrid_radiobutton_Callback(hObject, eventdata, handles)
-    ax=handles.axes1;
+    ax=handles.var_axes;
     if (get(hObject,'Value') == get(hObject,'Max'))
         set(ax,'YMinorGrid','on')
         set(ax,'MinorGridLineStyle', ':')
     else
         set(ax,'YMinorGrid','off')
     end
-
-
-% --- Executes on button press in time_pushbutton.
-function time_pushbutton_Callback(hObject, eventdata, handles)
-    
-    %make sure data is loaded
-    if ~isfield(handles,'steam')
-        errordlg('No data available for plotting - load data first')
-    end
-    %code below extracts elements from the main struct array that have the
-    %field "vars" storing time dependant experimental data
-    vars={'steam','coolant','facility','GHFS','MP'};
-    for k=1:numel(vars)
-    field_names=fields(handles.(vars{k}));
-        for i=1:numel(field_names)
-            for j=1:numel(handles.(vars{k}))
-                try
-                time_var.(vars{k})(j).(field_names{i})=handles.(vars{k})(j).(field_names{i}).var;
-                catch
-                end        
-            end
-        end
-    end
-
-    for l=1:numel(handles.file)
-        file_name{l}=[handles.file(l).name];
-    end
-    assignin('base','time_var',time_var);
-    gui_timedependant(time_var,file_name,handles.timing);
-
-
-% --- Executes on button press in distr_pushbutton.
-function distr_pushbutton_Callback(hObject, eventdata, handles)
-    
-    %make sure data is loaded
-    if ~isfield(handles,'steam')
-        errordlg('No data available for plotting - load data first')
-    end
-    
-    for l=1:numel(handles.file)
-        file_name{l}=[handles.file(l).name];
-    end
-    %call distribution function
-    gui_distributions(handles.distributions,file_name);
-
 
 % --- Executes on button press in checkbox_point_labels.
 function checkbox_point_labels_Callback(hObject, eventdata, handles)
@@ -887,11 +861,14 @@ function clear_Callback(hObject, eventdata, handles)
     clc
     
     % clear axes
-    axes(handles.axes1);
+    axes(handles.var_axes);
+    xlabel('');
     yyaxis right
     cla
+    ylabel('');
     yyaxis left
     cla
+    ylabel('');
     
     % delete legend
     if isfield(handles,'legend')
@@ -1018,3 +995,121 @@ function flip_y_axis_Callback(hObject, eventdata, handles)
 % --- Executes on button press in poly_error.
 function poly_error_Callback(hObject, eventdata, handles)
 
+
+% --------------------------------------------------------------------
+function toolbar_distributions_ClickedCallback(hObject, eventdata, handles)
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
+    
+    for l=1:numel(handles.file)
+        file_name{l}=[handles.file(l).name];
+    end
+    
+    %get path to where the processed files are
+    filePath_default=get(handles.file_path_disp,'String');
+   
+    %call distribution function
+    gui_distributions(handles.distributions,file_name,filePath_default);
+
+
+% --------------------------------------------------------------------
+function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
+    %make sure data is loaded
+    if ~isfield(handles,'steam')
+        errordlg('No data available for plotting - load data first')
+    end
+    %code below extracts elements from the main struct array that have the
+    %field "vars" storing time dependant experimental data and forwards it
+    %to another GUI
+    vars={'steam','coolant','facility','GHFS','MP'};
+    field_cntr=1;
+    for k=1:numel(vars)
+    field_names=fields(handles.(vars{k}));
+        for i=1:numel(field_names)
+            for j=1:numel(handles.(vars{k}))
+                if isfield(handles.(vars{k})(j).(field_names{i}),'var')
+                    time_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
+                    time_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
+                    time_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+                end        
+            end
+        end
+    end
+
+    for l=1:numel(handles.file)
+        file_name{l}=[handles.file(l).name];
+    end
+    assignin('base','time_var',time_var);
+    
+    %get path to where the processed files are
+    filePath_default=get(handles.file_path_disp,'String');
+    
+    %call new gui
+    gui_timedependant(time_var,file_name,handles.timing,filePath_default);
+
+
+% --------------------------------------------------------------------
+function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
+        
+    %saving figure is problematic due to two y axes
+    % 0. move to file directory, based on default value stored in GUI
+    filePath_default=get(handles.file_path_disp,'String');
+    cd(filePath_default)
+    
+    % 1. Ask user for the file name
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    [~, file_name, ext] = fileparts(saveDataName);
+      
+    % 2. Save .fig file with the name
+    hgsave(handles.var_axes,file_name)
+
+    % 3. Display a hidden figure and load saved .fig to it
+    f=figure('Visible','off');
+    movegui(f,'center')
+    h=hgload(file_name);
+    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
+    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
+    h.Parent=f;   
+    %adjust figure size so it matches the axes
+    f.Units='characters';
+    f.Position=h.Position.*1.2;
+    %optionally make visible
+%         f.Visible='on';
+%         f.Name=saveDataName;
+
+    % 4.save again, to desired format, if it different than fig
+    if ~strcmp(ext,'.fig')
+        delete([file_name,'.fig'])  
+        export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    end
+    msgbox(['Figure saved succesfully as ',saveDataName])
+
+% --- Executes on selection change in file_path_disp.
+function file_path_disp_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function file_path_disp_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on selection change in plot_exclude.
+function plot_exclude_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function plot_exclude_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on button press in adv_options_btn.
+function adv_options_btn_Callback(hObject, eventdata, handles)
+    handles.adv_options_flag=1;
+    varargout=gui_advanced_options
+    varargout
+    %forward changes in handles
+    guidata(hObject, handles);

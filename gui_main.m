@@ -1,72 +1,27 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(userChoice,plot_flag,st_state_flag,boundary_layer_options,clear_flag)
-       %%  PICK A SINGLE FOLDER FOR PROCCESSING  
-   if userChoice==1
-        %display gui to pick directory
-        directories = uigetdir('Pick a directory');
-        try
-            [file_list, fileCounter]=filter_tdms_files(directories);
-            directories={directories};
-            dir_amount=1;
-            fileCounter={fileCounter};
-            %remove .tdms from the string
-            file_list=strrep(file_list,'.tdms','');
-            file_list={file_list};
-        catch
-            error('Files not chosen, retry and point to files to be processed')
-        end
-        
-    %% PROCESS ALL SUBFOLDERS OF A CHOSEN FOLDER AND ALL FILES WITHIN THEM
-%    elseif userChoice==2
-%         %display gui to pick directory
-%         directoryname = uigetdir('Pick a directory');
-% 
-%         try
-%             %GET ALL FILES FROM DIRECTORY AND SUBFOLDERS
-%             [directories,file_names]=subdir(directoryname);
-%             dir_amount=numel(directories);
-%             for dir_counter=1:dir_amount
-%                 [file_list{dir_counter}, fileCounter{dir_counter}]=filter_tdms_files(directories{dir_counter},file_names{dir_counter});
-%                 if file_list{dir_counter}{1}==1
-%                     file_list(dir_counter)=[];
-%                     directories(dir_counter)=[];
-%                     fileCounter(dir_counter)=[];
-%                 else
-%                     %remove .tdms from the string
-%                     file_list{dir_counter}=strrep(file_list{dir_counter},'.tdms','');
-%                     %sum amount of files from each directory
-%                 end        
-%             end
-%             %update amount of directories in case some of them were removed by the
-%             %loop
-%             dir_amount=numel(directories);
-%         catch
-%             error('Files not chosen, retry and point to files to be processed')
-%         end
-
-
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles)
+   %%  PICK A FOLDER FOR PROCCESSING  
    
-    %% PICK A SINGLE FILE FOR PROCESSING
-    elseif userChoice==3
-
-        % point to a file
-        [file_list,directories,FilterIndex] = uigetfile('*.tdms','Choose .r file to process','MultiSelect','on');
-        try
-            %make sure its a cell array 
-            if ~iscell(file_list)
-                file_list={file_list};
-            end            
-            fileCounter={1};
-            directories={directories};
-            dir_amount=1;
-            %remove .tdms from the string
-            file_list=strrep(file_list,'.tdms','');
-            file_list={file_list};
-        catch
-            error('Files not chosen, retry and point to files to be processed')
-        end
+    % move to file directory, based on default value stored in GUI
+    filePath_default=get(handles.file_path_disp,'String');
+    cd(filePath_default)
+    
+    %display gui to pick directory
+    directories = uigetdir('Pick a directory');
+    try
+        [file_list, fileCounter]=filter_tdms_files(directories);
+        directories={directories};
+        dir_amount=1;
+        fileCounter={fileCounter};
+        %remove .tdms from the string
+        file_list=strrep(file_list,'.tdms','');
+        file_list={file_list};
+    catch
+        error('Files not chosen, retry and point to files to be processed')
     end
 
-
+    %update file path in GUI
+    set(handles.file_path_disp,'String',directories{1});
+    
     %% PROCESS FILES
 
     for dir_counter=1:dir_amount

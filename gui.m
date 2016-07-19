@@ -59,6 +59,7 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     handles.output = hObject;
     handles.plotcounter=0;
     handles.clear_old_flag=0;
+    handles.adv_options_flag=0;
     logo=imread('precise_logo.png');
     axes(handles.logo_axes);
     imshow(logo);
@@ -93,9 +94,19 @@ function process_btn_Callback(hObject, ~, handles)
     clear_flag=0;
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
-    boundary_layer_options(1)=str2double(get(handles.av_window,'String'));
-    boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
-    boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
+    
+    %check if advanced options is enabled
+    if handles.adv_options_flag
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    else
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    end
+    
+    % call function down the line for file processing
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
     %transfer data to handles structure
@@ -139,6 +150,13 @@ function process_btn_Callback(hObject, ~, handles)
     set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
+    %update data selector listbox
+    file_list={file(1:end).name};
+    set(handles.plot_exclude,'String',file_list)
+    mark_file=1:1:numel(file_list);
+    set(handles.plot_exclude,'Value',mark_file)
+    
+    %update handles structure
     guidata(hObject, handles)
 %     profile viewer
     
@@ -153,10 +171,16 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
-    % and also get values for estimating boundary layer
-    boundary_layer_options(1)=str2double(get(handles.av_window,'String'));
-    boundary_layer_options(2)=str2double(get(handles.lim_factor,'String'));
-    boundary_layer_options(3)=str2double(get(handles.position_lim,'String'));
+   %check if advanced options is enabled
+    if handles.adv_options_flag
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    else
+        boundary_layer_options(1)=10;   %avg window in %
+        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
+        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
+    end
     
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
     
@@ -201,15 +225,27 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
+    %update data selector listbox
+    file_list={file(1:end).name};
+    set(handles.plot_exclude,'String',file_list)
+    mark_file=1:1:numel(file_list);
+    set(handles.plot_exclude,'Value',mark_file)
+    
+    %update handles structure
     guidata(hObject, handles)
 %     profile viewer
 
-function pushbutton2_Callback(hObject, eventdata, handles)
+function plot_button_Callback(hObject, eventdata, handles)
 %     profile on
     %make sure data is loaded
     if ~isfield(handles,'steam')
         errordlg('No data available for plotting - load data first')
     end
+    
+    % get choice of files to be plotted
+    file_choice=get(handles.plot_exclude,'Value');
+    files_chosen=numel(file_choice);
+
     % get choice of x/y axis phase to be plotted
     list_x=get(handles.popupmenu_x_axis,'String');
     list_y=get(handles.popupmenu_y_axis,'String');
@@ -227,23 +263,22 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     y_param_var=list_y_var{val_y_var};
     
     %allocate
-    points_amount=numel(handles.(x_param));
-    x_dat=ones(1,points_amount);
-    y_dat=ones(1,points_amount);
-    x_err=ones(1,points_amount);
-    y_err=ones(1,points_amount);
+    x_dat=ones(1,files_chosen);
+    y_dat=ones(1,files_chosen);
+    x_err=ones(1,files_chosen);
+    y_err=ones(1,files_chosen);
     
-    %extract data values and error values
-    for cntr=1:points_amount
-        x_dat(cntr)=handles.(x_param)(cntr).(x_param_var).value;
-        y_dat(cntr)=handles.(y_param)(cntr).(y_param_var).value;
-        x_err(cntr)=handles.(x_param)(cntr).(x_param_var).error;
-        y_err(cntr)=handles.(y_param)(cntr).(y_param_var).error;
+    %extract data values and error values, applying file choice filter
+    for cntr=1:files_chosen
+        x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
+        y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
+        x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
+        y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
     end
 
     %get units for the plot
-    x_unit=handles.(x_param)(cntr).(x_param_var).unit;
-    y_unit=handles.(y_param)(cntr).(y_param_var).unit;
+    x_unit=handles.(x_param)(1).(x_param_var).unit;
+    y_unit=handles.(y_param)(1).(y_param_var).unit;
     
     hold_flag=get(handles.hold_checkbox, 'Value');
  
@@ -398,9 +433,8 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     %add point labeling
     label_flag=get(handles.checkbox_point_labels, 'Value');
     if label_flag == 1
-        for cntr=1:numel(handles.file)
-            str_label=[handles.file(cntr).name,' ',y_param_var];
-            %str_label=handles.file(cntr).name;
+        for cntr=1:files_chosen
+            str_label=[handles.file(file_choice(cntr)).name,' ',y_param_var];
             text(x_dat(cntr),y_dat(cntr),str_label,'interpreter','none');            
         end   
     end
@@ -1052,7 +1086,6 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     end
     msgbox(['Figure saved succesfully as ',saveDataName])
 
-
 % --- Executes on selection change in file_path_disp.
 function file_path_disp_Callback(hObject, eventdata, handles)
 
@@ -1062,3 +1095,21 @@ function file_path_disp_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+% --- Executes on selection change in plot_exclude.
+function plot_exclude_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function plot_exclude_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on button press in adv_options_btn.
+function adv_options_btn_Callback(hObject, eventdata, handles)
+    handles.adv_options_flag=1;
+    varargout=gui_advanced_options
+    varargout
+    %forward changes in handles
+    guidata(hObject, handles);

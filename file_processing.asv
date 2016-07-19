@@ -308,7 +308,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             'MP_forward_temp',data_holder_2,'MP_temp_SMOOTH_backward',data_holder_2,'MP_temp_SMOOTH_forward',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
             'coolant_temp_180deg',data_holder_2,'outer_wall_temp_0deg',data_holder_2,'outer_wall_temp_180deg',data_holder_2,...
-            'wall_dT',data_holder_2,'wall_inner',data_holder_2,'wall_outer',data_holder_2);
+            'wall_dT',data_holder_2,'wall_inner',data_holder_2,'wall_outer',data_holder_2,'tube_dT',data_holder_2);
         
         %% Data processing - time varying values
         disp('3. Calculating process variables from raw data')
@@ -720,7 +720,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             distributions.wall_dT.value.non_cal=[mean(steady_data.TCH1_2W-steady_data.TCH1_3W),mean(steady_data.TCH2_2W-steady_data.TCH2_3W),mean(steady_data.TCH3_2W-steady_data.TCH3_3W),mean(steady_data.TCH4_2W-steady_data.TCH4_3W)];
         catch
         end
-
+        
+        %centerlinde tube dT (steam centerline - coolant temp
         %partial pressure of h2o and mole fraction of h2o - based on callibrated temperature
         %along the tube
         if centerline_flag~=0

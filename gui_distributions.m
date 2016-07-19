@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 14-Jul-2016 18:02:37
+    % Last Modified by GUIDE v2.5 18-Jul-2016 16:50:36
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -155,6 +155,38 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         x_dat=horizontal_pos;
     end
     
+    %check and apply smoothing to the data
+    if get(handles.smooth_enable,'Value')
+        smoothing_type_set=get(handles.smoothing_type,'String');
+        smoothing_type_val=get(handles.smoothing_type,'Value');
+        smoothing_type=smoothing_type_set{smoothing_type_val};
+
+        frame_size=str2double(get(handles.frame_size,'String'));
+
+        %based on user choice apply appropriate smoothing algorithm
+        switch smoothing_type
+            case 'Moving Average'  
+                value_dat=smooth(value_dat,frame_size,'moving');
+            case 'Savitzky-Golay'
+                sgolay_order=str2double(get(handles.sgolay_order,'String'));
+                value_dat=smooth(value_dat,frame_size,'sgolay',sgolay_order);
+            case 'Lowess'
+                value_dat=smooth(value_dat,frame_size,'lowess');
+            case 'Loess'
+                value_dat=smooth(value_dat,frame_size,'loess');
+            case 'RLowess'
+                value_dat=smooth(value_dat,frame_size,'rlowess');
+            case 'RLoess'
+                value_dat=smooth(value_dat,frame_size,'rloess');
+        end
+        
+        %forwad info for legend
+        smooth_str=[' | smooth ',smoothing_type];
+        
+    else
+        smooth_str='';
+    end
+    
     % if Normalize box is checked, normalize graph to between 0 an 1
     if get(handles.normalize, 'Value')
         %find and substract minimum (makes min value in the signal = 0)
@@ -163,6 +195,22 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         %find the new maximum and divide by it (makes the max value in the signal =1
         max_val=max(value_dat);
         value_dat=value_dat./max_val;
+        %forwad info for legend
+        norm_str=' | normalized';
+     
+    else
+        norm_str='';
+    end
+    
+    %check is user wants to plot -y instead of y
+    flip_y_axis=get(handles.flip_y_axis,'Value');
+    
+    if flip_y_axis
+        value_dat=-value_dat;
+        %forwad info for legend
+        flip_str=' | -y';
+    else
+        flip_str='';
     end
     
     % plot with nice color and get user defined line style
@@ -233,7 +281,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     box off
     
     %add legend and create graph name
-    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param];
+    processing_string=[smooth_str,norm_str,flip_str];
+    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
     handles.legend=legend(handles.graph_name{1:end});
     
     set(handles.legend,'interpreter','none')
@@ -585,70 +634,91 @@ function line_color_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function line_color_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in line_marker.
 function line_marker_Callback(hObject, eventdata, handles)
 
 function line_marker_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on selection change in line_style.
 function line_style_Callback(hObject, eventdata, handles)
-
 % --- Executes during object creation, after setting all properties.
 function line_style_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function av_window_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function av_window_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 function lim_factor_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function lim_factor_CreateFcn(hObject, eventdata, handles)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on button press in bl_graph.
 function bl_graph_Callback(hObject, eventdata, handles)
 
-
-
 function position_lim_Callback(hObject, eventdata, handles)
-% hObject    handle to position_lim (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of position_lim as text
-%        str2double(get(hObject,'String')) returns contents of position_lim as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function position_lim_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to position_lim (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+function frame_size_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function frame_size_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on selection change in smoothing_type.
+function smoothing_type_Callback(hObject, eventdata, handles)
+    
+    smoothing_type_set=get(handles.smoothing_type,'String');
+    smoothing_type_val=get(handles.smoothing_type,'Value');
+    smoothing_type=smoothing_type_set{smoothing_type_val};
+
+    %based on user choice hide or reveal extra buttons
+    switch smoothing_type  
+        case 'Savitzky-Golay'
+            set(handles.text25,'Visible','On')
+            set(handles.sgolay_order,'Visible','On')
+        otherwise
+            set(handles.text25,'Visible','Off')
+            set(handles.sgolay_order,'Visible','Off')
+    end
+
+% --- Executes during object creation, after setting all properties.
+function smoothing_type_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function sgolay_order_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function sgolay_order_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in smooth_enable.
+function smooth_enable_Callback(hObject, eventdata, handles)

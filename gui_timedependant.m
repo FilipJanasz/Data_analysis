@@ -236,6 +236,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         lowpass_str='';
     end
     
+    %check and apply smoothing to the data
     if get(handles.smooth_enable,'Value')
         smoothing_type_set=get(handles.smoothing_type,'String');
         smoothing_type_val=get(handles.smoothing_type,'Value');
@@ -380,6 +381,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         button = questdlg('You''re about to plot a lot of points with line markers enabled - might be slow. Continue with markers?');
         if strcmp(button,'No')
             line_marker='';
+            set(handles.line_marker,'Value',2)
         end
     end
     

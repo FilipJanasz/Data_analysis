@@ -1,9 +1,12 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles)
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles)
    %%  PICK A FOLDER FOR PROCCESSING  
    
     % move to file directory, based on default value stored in GUI
     filePath_default=get(handles.file_path_disp,'String');
-    cd(filePath_default)
+    try
+        cd(filePath_default)
+    catch
+    end
     
     %display gui to pick directory
     directories = uigetdir('Pick a directory');
@@ -22,6 +25,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     %update file path in GUI
     set(handles.file_path_disp,'String',directories{1});
     
+    %get options for processing
+    options=textread('adv_options.txt','%s');
+    options=str2double(options(2:2:numel(options)));
+
+    
     %% PROCESS FILES
 
     for dir_counter=1:dir_amount
@@ -36,7 +44,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 disp(['Deleting file  ','processed_steady_data_',file_list{dir_counter}{fc},'.mat'])
             end
             
-            [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(plot_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,boundary_layer_options);
+            [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(plot_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 % below is for debugging
 %            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1]=file_processing(plot_flag,file_list{dir_counter}{fc},directories{dir_counter});
 %            steam(fc)=steam1;

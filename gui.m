@@ -94,20 +94,9 @@ function process_btn_Callback(hObject, ~, handles)
     clear_flag=0;
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
-    
-    %check if advanced options is enabled
-    if handles.adv_options_flag
-        boundary_layer_options(1)=10;   %avg window in %
-        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
-        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
-    else
-        boundary_layer_options(1)=10;   %avg window in %
-        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
-        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
-    end
-    
+      
     % call function down the line for file processing
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -171,18 +160,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
-   %check if advanced options is enabled
-    if handles.adv_options_flag
-        boundary_layer_options(1)=10;   %avg window in %
-        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
-        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
-    else
-        boundary_layer_options(1)=10;   %avg window in %
-        boundary_layer_options(2)=2;    %lim factor (how many std dev are acceptable)
-        boundary_layer_options(3)=20;   %from which position in the tube to calculate (20 - all tube, 10 - half etc)
-    end
-    
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,boundary_layer_options,clear_flag,handles);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -1109,7 +1087,17 @@ end
 % --- Executes on button press in adv_options_btn.
 function adv_options_btn_Callback(hObject, eventdata, handles)
     handles.adv_options_flag=1;
-    varargout=gui_advanced_options
-    varargout
+    %get options for processing
+    options=textread('adv_options.txt','%s');
+    gui_advanced_options(options)
     %forward changes in handles
     guidata(hObject, handles);
+
+% --- Executes on slider movement.
+function slider2_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function slider2_CreateFcn(hObject, eventdata, handles)
+    if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor',[.9 .9 .9]);
+    end

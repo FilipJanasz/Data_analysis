@@ -54,6 +54,28 @@ function gui_advanced_options_OpeningFcn(hObject, eventdata, handles, varargin)
 
     % Choose default command line output for gui_advanced_options
     handles.output = hObject;
+    
+    %get data from file (read in callbacl in gui.m) and set them in this
+    %gui
+    options = varargin{1};
+    %for all the options, assign odd values as field names and even values
+    %as said fields values
+    %field names from the text file have to agree with object handles in
+    %this gui
+    for options_ctr=1:numel(options)/2;
+        odd_ctr=options_ctr*2-1;
+        even_ctr=options_ctr*2;
+        if ~strcmp(options{odd_ctr},'smoothing_type')
+        	set(handles.(options{odd_ctr}),'String',options{even_ctr})
+        else
+            set(handles.(options{odd_ctr}),'Value',str2double(options{even_ctr}))
+            %in case smoothing default is Savitzky - Golay
+            if str2double(options{even_ctr})==2
+                set(handles.text25,'Visible','On')
+                set(handles.sgolay_order,'Visible','On')
+            end
+        end
+    end
 
     % Update handles structure
     guidata(hObject, handles);
@@ -76,45 +98,33 @@ function x_limit_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function x_limit_CreateFcn(hObject, eventdata, handles)
-    varargout{1}=str2double(get(handles.x_limit,'String'));
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 function limiting_factor_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function limiting_factor_CreateFcn(hObject, eventdata, handles)
-    varargout{2}=str2double(get(handles.limiting_factor,'String'));
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 function avg_window_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function avg_window_CreateFcn(hObject, eventdata, handles)
-    varargout{3}=str2double(get(handles.avg_window,'String'));
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 function frame_size_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function frame_size_CreateFcn(hObject, eventdata, handles)
-    varargout{4}=str2double(get(handles.frame_size,'String'));
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 % --- Executes on selection change in smoothing_type.
 function smoothing_type_Callback(hObject, eventdata, handles)
@@ -134,25 +144,36 @@ function smoothing_type_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 
 function smoothing_type_CreateFcn(hObject, eventdata, handles)
-    varargout{5}=get(handles.smoothing_type,'String');
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 function sgolay_order_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function sgolay_order_CreateFcn(hObject, eventdata, handles)
-    varargout{6}=str2double(get(handles.sgolay_order,'String'));
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    % Update handles structure
-    guidata(hObject, handles);
 
 % --- Executes on button press in apply_btn.
 function apply_btn_Callback(hObject, eventdata, handles)
-
-
+    %get updated values
+    options.avg_window=str2double(get(handles.avg_window,'String'));
+    options.limiting_factor=str2double(get(handles.limiting_factor,'String'));
+    options.x_limit=str2double(get(handles.x_limit,'String'));
+    options.frame_size=str2double(get(handles.frame_size,'String'));
+    options.smoothing_type=get(handles.smoothing_type,'Value');
+    options.sgolay_order=str2double(get(handles.sgolay_order,'String'));
+    options_names=fieldnames(options);
+    %open file for writing
+    fileID=fopen('adv_options.txt','wt+');
+    
+    %write to file
+    for n=1:numel(options_names)
+        line_to_write=[options_names{n},' ',num2str(options.(options_names{n}))];
+        fprintf(fileID,'%s\n',line_to_write)    
+    end
+    
+    %close file
+    fclose(fileID);

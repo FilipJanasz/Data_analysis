@@ -3,6 +3,7 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
     % get initial conditions from file
     dir=file.directory;
     try
+        [dir,'\IC.xlsx']
         init_cond=xlsread([dir,'\IC.xlsx'],'B1:B12');
 %         name_init_cond=xlsread([dir,'\IC.xlsx'],'A1:A12');
     catch

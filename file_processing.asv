@@ -1,4 +1,4 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(plot_flag,file_list,directory,st_state_flag,boundary_layer_options)
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(plot_flag,file_list,directory,st_state_flag,options)
     file_msg=['Processing file: ',file_list];
     disp(file_msg)
        
@@ -198,6 +198,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 catch
                     period_MP=0.1;
                 end
+                
+                timing.MP=period_MP;
             end
             try
                 period_slow=Time.Data(2)-Time.Data(1);
@@ -207,7 +209,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             Timestamp_slow=(1:1:numel(Time.Data)).*period_slow;
             
             timing.slow=period_slow;
-            timing.MP=period_MP;
+            
         %% Find steady state in the recorded data
             % big av_window - ignore big oscillations, eliminate areas with global
             % trend
@@ -297,7 +299,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %% Initialize structures
         %fast sensors and MP
         data_holder=struct('var',0,'value',0,'error',0,'unit','na');
-        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth_sgolay',data_holder);
+        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth',data_holder);
         GHFS=struct('GHFS1',data_holder,'GHFS2',data_holder,'GHFS3',data_holder,'GHFS4',data_holder);
         
         %distributions - really long struct
@@ -308,7 +310,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             'MP_forward_temp',data_holder_2,'MP_temp_SMOOTH_backward',data_holder_2,'MP_temp_SMOOTH_forward',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
             'coolant_temp_180deg',data_holder_2,'outer_wall_temp_0deg',data_holder_2,'outer_wall_temp_180deg',data_holder_2,...
-            'wall_dT',data_holder_2,'wall_inner',data_holder_2,'wall_outer',data_holder_2,'tube_dT',data_holder_2);
+            'wall_dT',data_holder_2,'wall_inner',data_holder_2,'wall_outer',data_holder_2);
         
         %% Data processing - time varying values
         disp('3. Calculating process variables from raw data')
@@ -470,10 +472,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             MP.Temp.value=mean(MP.Temp.var); %[deg C]
       
             %smoothing
-            frame_size=5;
+            smoothing_type=options(4)
+            frame_size=options(4)
             sgolay_order=1;
-            MP.Temp_smooth_sgolay.var = smooth(MP.Temp.var,frame_size,'sgolay',sgolay_order);
-            MP.Temp_smooth_sgolay.val=mean(MP.Temp_smooth_sgolay.var);
+            MP.Temp_smooth.var = smooth(MP.Temp.var,frame_size,'sgolay',sgolay_order);
+            MP.Temp_smooth.val=mean(MP.Temp_smooth.var);
 
             %build a matrix with probe position as first column to enable 
             %proper sorting
@@ -501,7 +504,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
         
             %combine all into one matrix for further processing
-            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth_sgolay.var MP_direction'];
+            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MP_direction'];
 
             %sort by movement direction into separate in two matrices
             MP_matrix=sortrows(MP_matrix,4);
@@ -598,9 +601,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %         end
        
         %boundary layer calculation, based on movable probe temperature and position data
-        av_window_Blayer=boundary_layer_options(1);
-        lim_factor_Blayer=boundary_layer_options(2);
-        position_lim=boundary_layer_options(3);
+        av_window_Blayer=options(1);
+        lim_factor_Blayer=options(2);
+        position_lim=options(3);
         
         try
             [MP.T_boundlayer_forward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),av_window_Blayer,lim_factor_Blayer,position_lim);
@@ -720,8 +723,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             distributions.wall_dT.value.non_cal=[mean(steady_data.TCH1_2W-steady_data.TCH1_3W),mean(steady_data.TCH2_2W-steady_data.TCH2_3W),mean(steady_data.TCH3_2W-steady_data.TCH3_3W),mean(steady_data.TCH4_2W-steady_data.TCH4_3W)];
         catch
         end
-        
-        %centerlinde tube dT (steam centerline - coolant temp
+
         %partial pressure of h2o and mole fraction of h2o - based on callibrated temperature
         %along the tube
         if centerline_flag~=0
@@ -930,7 +932,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.error=0.1;  % [mm]
             MP.Temp.error=0.1;
-            MP.Temp_smooth_sgolay.error=0.1;
+            MP.Temp_smooth.error=0.1;
             MP.T_boundlayer_forward.error=MP.Pos.error;  %0.1
             MP.T_boundlayer_backward.error=MP.Pos.error; %XXXXXXXXXXXXXXXXXXX  
             MP.T_boundlayer_mean.error=MP.Pos.error;
@@ -1051,7 +1053,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.unit='mm';
             MP.Temp.unit=[char(176),'C'];
-            MP.Temp_smooth_sgolay.unit=[char(176),'C'];
+            MP.Temp_smooth.unit=[char(176),'C'];
             MP.T_boundlayer_forward.unit='mm';
             MP.T_boundlayer_backward.unit='mm';
             MP.T_boundlayer_mean.unit='mm';

@@ -1,16 +1,15 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(plot_flag,file_list,directory,st_state_flag,boundary_layer_options)
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(plot_flag,file_list,directory,st_state_flag,options)
     file_msg=['Processing file: ',file_list];
     disp(file_msg)
        
-            
 %% Data loading
     cd(directory) 
     %file data of possible mat file that was already processed
     fileName=[directory,'\',file_list,'.tdms'];
     matFileName=[directory,'\',file_list,'.mat'];
-    steady_data_file_name=['steady_data_',file_list];
-    UNsteady_data_file_name=['UNsteady_data_',file_list];
-    processed_data_file_name=['processed_steady_data_',file_list];
+    steadMP.Temp_smooth.vara_file_name=['steadMP.Temp_smooth.vara_',file_list];
+    UNsteadMP.Temp_smooth.vara_file_name=['UNsteadMP.Temp_smooth.vara_',file_list];
+    processed_data_file_name=['processed_steadMP.Temp_smooth.vara_',file_list];
     
     %file data for GHFS data file
     splitdir=strsplit(directory,'DATA');
@@ -34,25 +33,25 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %to load it
         try
             if st_state_flag
-                load([steady_data_file_name,'.mat']);
+                load([steadMP.Temp_smooth.vara_file_name,'.mat']);
                 disp('Proccessed data not found but steady state data found, loading without looking for steady state period and recalculating')
                 disp('Check if "steady state" checkbox is in the right state')  
             else
-                load([UNsteady_data_file_name,'.mat']);
+                load([UNsteadMP.Temp_smooth.vara_file_name,'.mat']);
                 %below is so the rest of the code works fine
-                steady_data=UNsteady_data;
+                steadMP.Temp_smooth.vara=UNsteadMP.Temp_smooth.vara;
                 disp('Proccessed data not found but UNsteady state data found, loading without looking for steady state period and recalculating')
                 disp('Check if "steady state" checkbox is in the right state')
             end
             
             % verify which types of data are available
-            if isfield(steady_data,'GHFS1')
+            if isfield(steadMP.Temp_smooth.vara,'GHFS1')
                 fast_flag=1;
             else
                 fast_flag=0;
             end
 
-            if isfield(steady_data,'MP_Pos')
+            if isfield(steadMP.Temp_smooth.vara,'MP_Pos')
                 MP_flag=1;
             else
                 MP_flag=0;
@@ -178,7 +177,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 eval(command)
             end      
              
-%             clearvars -except data channel_amount plot_flag file_list directory steady_data_file_name processed_data_file_name
+%             clearvars -except data channel_amount plot_flag file_list directory steadMP.Temp_smooth.vara_file_name processed_data_file_name
             channel_list=fieldnames(data);
         %% Data processing - calculate power
 
@@ -198,6 +197,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 catch
                     period_MP=0.1;
                 end
+                
+                timing.MP=period_MP;
             end
             try
                 period_slow=Time.Data(2)-Time.Data(1);
@@ -207,7 +208,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             Timestamp_slow=(1:1:numel(Time.Data)).*period_slow;
             
             timing.slow=period_slow;
-            timing.MP=period_MP;
+            
         %% Find steady state in the recorded data
             % big av_window - ignore big oscillations, eliminate areas with global
             % trend
@@ -245,37 +246,37 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                         %dividing by period makes sure we get the proper
                         %interval of fast data
                         if ~isempty(strfind(channel_list{i},'GHFS')) || (~isempty(strfind(channel_list{i},'MP')) && isempty(strfind(channel_list{i},'MP_')))
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_fast:st_state_end_relative/period_fast);']);
+                            eval(['steadMP.Temp_smooth.vara.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_fast:st_state_end_relative/period_fast);']);
                         elseif ~isempty(strfind(channel_list{i},'MP_TF')) || ~isempty(strfind(channel_list{i},'MP_Pos')) 
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);
+                            eval(['steadMP.Temp_smooth.vara.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);
                         else
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative:st_state_end_relative);']);
+                            eval(['steadMP.Temp_smooth.vara.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative:st_state_end_relative);']);
                         end
                     end
-    %                 st_state_data=steady_data.PA9601;
+    %                 st_state_data=steadMP.Temp_smooth.vara.PA9601;
                     % SECOND PARAMTER FOR STEADY STATE SEARCH
-                    st_state_data=steady_data.TF9501;
+                    st_state_data=steadMP.Temp_smooth.vara.TF9501;
                 end
                 % append power
-                steady_data.power=joule_heating(steady_data.HE9601_I,230);
+                steadMP.Temp_smooth.vara.power=joule_heating(steadMP.Temp_smooth.vara.HE9601_I,230);
                 % append timing
-                steady_data.timing=timing;
+                steadMP.Temp_smooth.vara.timing=timing;
                 cd(directory);
-                save(steady_data_file_name,'steady_data');
+                save(steadMP.Temp_smooth.vara_file_name,'steadMP.Temp_smooth.vara');
             else
                 disp('1. Not looking for steady state - check box not ticked')
                 for i=1:channel_amount
-                     eval(['UNsteady_data.',channel_list{i},'=data.',channel_list{i},';']);
+                     eval(['UNsteadMP.Temp_smooth.vara.',channel_list{i},'=data.',channel_list{i},';']);
                 end
                 % append power
-                UNsteady_data.power=joule_heating(UNsteady_data.HE9601_I,230);
+                UNsteadMP.Temp_smooth.vara.power=joule_heating(UNsteadMP.Temp_smooth.vara.HE9601_I,230);
                 % append timing
-                UNsteady_data.timing=timing;
+                UNsteadMP.Temp_smooth.vara.timing=timing;
                 cd(directory);
-                save(UNsteady_data_file_name,'UNsteady_data');
+                save(UNsteadMP.Temp_smooth.vara_file_name,'UNsteadMP.Temp_smooth.vara');
                 
                 %below is so the rest of the code works fine
-                steady_data=UNsteady_data;
+                steadMP.Temp_smooth.vara=UNsteadMP.Temp_smooth.vara;
             end
          
 
@@ -283,21 +284,21 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     
         %% Apply any calibration data previosly obtained to the raw data (especially thermoelements)
         disp('2. Applying any avaialble calibration look up tables')
-        interp_data=cal_data_interpolate(steady_data);
+        interp_data=cal_data_interpolate(steadMP.Temp_smooth.vara);
         cal_fields=fields(interp_data);
-        cal_steady_data=steady_data;
+        cal_steadMP.Temp_smooth.vara=steadMP.Temp_smooth.vara;
         for cal_cntr=1:numel(cal_fields)
             try
-            cal_steady_data.(cal_fields{cal_cntr})=cal_steady_data.(cal_fields{cal_cntr})+interp_data.(cal_fields{cal_cntr});
+            cal_steadMP.Temp_smooth.vara.(cal_fields{cal_cntr})=cal_steadMP.Temp_smooth.vara.(cal_fields{cal_cntr})+interp_data.(cal_fields{cal_cntr});
             catch
             end
         end
 
-        % assignin('base','cal_steady_data',cal_steady_data);
+        % assignin('base','cal_steadMP.Temp_smooth.vara',cal_steadMP.Temp_smooth.vara);
         %% Initialize structures
         %fast sensors and MP
         data_holder=struct('var',0,'value',0,'error',0,'unit','na');
-        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth_sgolay',data_holder);
+        MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth',data_holder);
         GHFS=struct('GHFS1',data_holder,'GHFS2',data_holder,'GHFS3',data_holder,'GHFS4',data_holder);
         
         %distributions - really long struct
@@ -318,72 +319,72 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         file.directory=directory;
         
         % timing
-        timing=steady_data.timing;
+        timing=steadMP.Temp_smooth.vara.timing;
         
         % coolant side
-        coolant.vflow.var=cal_steady_data.FV3801;  
+        coolant.vflow.var=cal_steadMP.Temp_smooth.vara.FV3801;  
         coolant.velocity.var=coolant.vflow.var/3600/0.008641587;
 %         coolant_water_residence_time=1.5/mean(coolant.velocity.var); % how long does it take coolant water to travel the height of the facility
         % facility height (1.5 m) divide by velocity [m/s]
-        coolant.temp.var=(cal_steady_data.TF9502+cal_steady_data.TF9501)/2;
-        coolant.press.var=cal_steady_data.PA9501;  
-        coolant.temp_inlet.var=cal_steady_data.TF9501;
-        coolant.temp_inlet_TC.var=(cal_steady_data.TF9503+cal_steady_data.TF9504)/2;
-        coolant.temp_outlet.var=cal_steady_data.TF9502;
-        coolant.temp_outlet_TC.var=(cal_steady_data.TF9507+cal_steady_data.TF9508)/2;
+        coolant.temp.var=(cal_steadMP.Temp_smooth.vara.TF9502+cal_steadMP.Temp_smooth.vara.TF9501)/2;
+        coolant.press.var=cal_steadMP.Temp_smooth.vara.PA9501;  
+        coolant.temp_inlet.var=cal_steadMP.Temp_smooth.vara.TF9501;
+        coolant.temp_inlet_TC.var=(cal_steadMP.Temp_smooth.vara.TF9503+cal_steadMP.Temp_smooth.vara.TF9504)/2;
+        coolant.temp_outlet.var=cal_steadMP.Temp_smooth.vara.TF9502;
+        coolant.temp_outlet_TC.var=(cal_steadMP.Temp_smooth.vara.TF9507+cal_steadMP.Temp_smooth.vara.TF9508)/2;
         coolant.dT.var=coolant.temp_outlet.var-coolant.temp_inlet.var;
         
         % GHFS var & MP var
         if  fast_flag==1;
-            GHFS.GHFS1.var=cal_steady_data.GHFS1;
-            GHFS.GHFS2.var=cal_steady_data.GHFS2;
-            GHFS.GHFS3.var=cal_steady_data.GHFS3;
-            GHFS.GHFS4.var=cal_steady_data.GHFS4;
+            GHFS.GHFS1.var=cal_steadMP.Temp_smooth.vara.GHFS1;
+            GHFS.GHFS2.var=cal_steadMP.Temp_smooth.vara.GHFS2;
+            GHFS.GHFS3.var=cal_steadMP.Temp_smooth.vara.GHFS3;
+            GHFS.GHFS4.var=cal_steadMP.Temp_smooth.vara.GHFS4;
             
-            % thermocouple cal_steady_data.TCH2_2W is broken
+            % thermocouple cal_steadMP.Temp_smooth.vara.TCH2_2W is broken
             % as a workaround, use average between two thermocouples
-            GHFS.GHFS1_temp.var=cal_steady_data.TCH1_2W;
-%             GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
-            GHFS.GHFS2_temp.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
-            GHFS.GHFS3_temp.var=cal_steady_data.TCH3_2W;
-            GHFS.GHFS4_temp.var=cal_steady_data.TCH4_2W;
+            GHFS.GHFS1_temp.var=cal_steadMP.Temp_smooth.vara.TCH1_2W;
+%             GHFS.GHFS2_temp.var=cal_steadMP.Temp_smooth.vara.TCH2_2W;
+            GHFS.GHFS2_temp.var=(cal_steadMP.Temp_smooth.vara.TCH1_2W+cal_steadMP.Temp_smooth.vara.TCH3_2W)./2;
+            GHFS.GHFS3_temp.var=cal_steadMP.Temp_smooth.vara.TCH3_2W;
+            GHFS.GHFS4_temp.var=cal_steadMP.Temp_smooth.vara.TCH4_2W;
                
-            GHFS.wall_dT_GHFS1.var=cal_steady_data.TCH1_2W-cal_steady_data.TCH1_3W;
-%             GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-cal_steady_data.TCH2_3W;
-            GHFS.wall_dT_GHFS2.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2-cal_steady_data.TCH2_3W;
-            GHFS.wall_dT_GHFS3.var=cal_steady_data.TCH3_2W-cal_steady_data.TCH3_3W;
-            GHFS.wall_dT_GHFS4.var=cal_steady_data.TCH4_2W-cal_steady_data.TCH4_3W;
+            GHFS.wall_dT_GHFS1.var=cal_steadMP.Temp_smooth.vara.TCH1_2W-cal_steadMP.Temp_smooth.vara.TCH1_3W;
+%             GHFS.wall_dT_GHFS2.var=cal_steadMP.Temp_smooth.vara.TCH2_2W-cal_steadMP.Temp_smooth.vara.TCH2_3W;
+            GHFS.wall_dT_GHFS2.var=(cal_steadMP.Temp_smooth.vara.TCH1_2W+cal_steadMP.Temp_smooth.vara.TCH3_2W)./2-cal_steadMP.Temp_smooth.vara.TCH2_3W;
+            GHFS.wall_dT_GHFS3.var=cal_steadMP.Temp_smooth.vara.TCH3_2W-cal_steadMP.Temp_smooth.vara.TCH3_3W;
+            GHFS.wall_dT_GHFS4.var=cal_steadMP.Temp_smooth.vara.TCH4_2W-cal_steadMP.Temp_smooth.vara.TCH4_3W;
             
             % HEATFLUXES
             % XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             
-            MP.MP1.var=cal_steady_data.MP1;
-            MP.MP2.var=cal_steady_data.MP2;
-            MP.MP3.var=cal_steady_data.MP3;
-            MP.MP4.var=cal_steady_data.MP4;
+            MP.MP1.var=cal_steadMP.Temp_smooth.vara.MP1;
+            MP.MP2.var=cal_steadMP.Temp_smooth.vara.MP2;
+            MP.MP3.var=cal_steadMP.Temp_smooth.vara.MP3;
+            MP.MP4.var=cal_steadMP.Temp_smooth.vara.MP4;
         end
         
         % steam side thermodynamic codnitions - measured
-        steam.press.var=cal_steady_data.PA9601; % [bar]        
-        steam.power.var=cal_steady_data.power;        
-        steam.temp.var=cal_steady_data.TF9602; % [C]  
-        steam.heater_temp.var=cal_steady_data.TW9602; % [C] 
+        steam.press.var=cal_steadMP.Temp_smooth.vara.PA9601; % [bar]        
+        steam.power.var=cal_steadMP.Temp_smooth.vara.power;        
+        steam.temp.var=cal_steadMP.Temp_smooth.vara.TF9602; % [C]  
+        steam.heater_temp.var=cal_steadMP.Temp_smooth.vara.TW9602; % [C] 
         
         % steam - coolant interface - facility
         facility.wall_dT.var=steam.temp.var-coolant.temp.var;   
         
-%         facility.voltage.var=cal_steady_data.HE9601_U;
-        facility.current.var=cal_steady_data.HE9601_I;
+%         facility.voltage.var=cal_steadMP.Temp_smooth.vara.HE9601_U;
+        facility.current.var=cal_steadMP.Temp_smooth.vara.HE9601_I;
         
         %% mean values
         % coolant thermodynamic conditions - measured               
-        coolant.vflow.value=mean(cal_steady_data.FV3801);        
-        coolant.temp.value=(mean(cal_steady_data.TF9502)+mean(cal_steady_data.TF9501))/2;
-        coolant.press.value=mean(cal_steady_data.PA9501);  
-        coolant.temp_inlet.value=mean(cal_steady_data.TF9501);
-        coolant.temp_outlet.value=mean(cal_steady_data.TF9502);
-        coolant.temp_inlet_TC.value=(mean(cal_steady_data.TF9503)+mean(cal_steady_data.TF9504))/2;
-        coolant.temp_outlet_TC.value=(mean(cal_steady_data.TF9507)+mean(cal_steady_data.TF9508))/2;
+        coolant.vflow.value=mean(cal_steadMP.Temp_smooth.vara.FV3801);        
+        coolant.temp.value=(mean(cal_steadMP.Temp_smooth.vara.TF9502)+mean(cal_steadMP.Temp_smooth.vara.TF9501))/2;
+        coolant.press.value=mean(cal_steadMP.Temp_smooth.vara.PA9501);  
+        coolant.temp_inlet.value=mean(cal_steadMP.Temp_smooth.vara.TF9501);
+        coolant.temp_outlet.value=mean(cal_steadMP.Temp_smooth.vara.TF9502);
+        coolant.temp_inlet_TC.value=(mean(cal_steadMP.Temp_smooth.vara.TF9503)+mean(cal_steadMP.Temp_smooth.vara.TF9504))/2;
+        coolant.temp_outlet_TC.value=(mean(cal_steadMP.Temp_smooth.vara.TF9507)+mean(cal_steadMP.Temp_smooth.vara.TF9508))/2;
         
         % coolant properties - calculated (some with IAPWS_IF97)
         coolant.dT.value=coolant.temp_outlet.value-coolant.temp_inlet.value; 
@@ -404,9 +405,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.htc_gnielinski.value=htc_gnielinski(coolant.reynolds.value,coolant.thermcond.value,coolant.prandtl.value,0.0791);
                 
         % steam side thermodynamic codnitions - measured
-        steam.press.value=mean(cal_steady_data.PA9601); % [bar]        
-        steam.power.value=mean(cal_steady_data.power);        
-        steam.temp.value=mean(cal_steady_data.TF9602); % [C] 
+        steam.press.value=mean(cal_steadMP.Temp_smooth.vara.PA9601); % [bar]        
+        steam.power.value=mean(cal_steadMP.Temp_smooth.vara.power);        
+        steam.temp.value=mean(cal_steadMP.Temp_smooth.vara.TF9602); % [C] 
         steam.heater_temp.value=mean(steam.heater_temp.var); % [C] 
 
         % steam properties - calculated (some with IAPWS_IF97)
@@ -459,21 +460,37 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         %% MOVABLE PORT POSITION AND TEMEPRATURE CALCULATION
         if MP_flag %this is not available for all the calculations
-            for rounding_counter=1:numel(cal_steady_data.MP_Pos)
-                MP.Pos.var(rounding_counter,1)=round(cal_steady_data.MP_Pos(rounding_counter)*10);  %rounding to the first digit to the right of the decimal point
+            for rounding_counter=1:numel(cal_steadMP.Temp_smooth.vara.MP_Pos)
+                MP.Pos.var(rounding_counter,1)=round(cal_steadMP.Temp_smooth.vara.MP_Pos(rounding_counter)*10);  %rounding to the first digit to the right of the decimal point
                 MP.Pos.var(rounding_counter,1)=MP.Pos.var(rounding_counter,1)/10;
             end
-%             MP.Pos.var=cal_steady_data.MP_Pos;
+%             MP.Pos.var=cal_steadMP.Temp_smooth.vara.MP_Pos;
             MP.Pos.value=mean(MP.Pos.var); %[mm, wall with fixed probe is 0]
             % MOD THIS ACCORDINGLY TO PROPER CHANNELS
-            MP.Temp.var=cal_steady_data.MP_TF;
+            MP.Temp.var=cal_steadMP.Temp_smooth.vara.MP_TF;
             MP.Temp.value=mean(MP.Temp.var); %[deg C]
       
             %smoothing
-            frame_size=5;
-            sgolay_order=1;
-            MP.Temp_smooth_sgolay.var = smooth(MP.Temp.var,frame_size,'sgolay',sgolay_order);
-            MP.Temp_smooth_sgolay.val=mean(MP.Temp_smooth_sgolay.var);
+            smoothing_type=options(4);
+            frame_size=options(5);
+            sgolay_order=options(6);
+            
+             %based on user choice apply appropriate smoothing algorithm
+            switch smoothing_type
+                case 1  
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'moving');
+                case 2
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'sgolay',sgolay_order);
+                case 3
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'lowess');
+                case 4
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'loess');
+                case 5
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'rlowess');
+                case 6
+                    MP.Temp_smooth.var=smooth(MP.Temp.var,frame_size,'rloess');
+            end
+            MP.Temp_smooth.val=mean(MP.Temp_smooth.var);
 
             %build a matrix with probe position as first column to enable 
             %proper sorting
@@ -501,7 +518,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
         
             %combine all into one matrix for further processing
-            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth_sgolay.var MP_direction'];
+            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MP_direction'];
 
             %sort by movement direction into separate in two matrices
             MP_matrix=sortrows(MP_matrix,4);
@@ -598,9 +615,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %         end
        
         %boundary layer calculation, based on movable probe temperature and position data
-        av_window_Blayer=boundary_layer_options(1);
-        lim_factor_Blayer=boundary_layer_options(2);
-        position_lim=boundary_layer_options(3);
+        av_window_Blayer=options(1);
+        lim_factor_Blayer=options(2);
+        position_lim=options(3);
         
         try
             [MP.T_boundlayer_forward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),av_window_Blayer,lim_factor_Blayer,position_lim);
@@ -642,27 +659,27 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
           
         %centerline
         try
-            distributions.centerline_temp.value.cal=[mean(cal_steady_data.TF9603),mean(cal_steady_data.TF9604),mean(cal_steady_data.TF9605),mean(cal_steady_data.TF9606),mean(cal_steady_data.TF9608),mean(cal_steady_data.TF9610),mean(cal_steady_data.TF9611),mean(cal_steady_data.TF9612),mean(cal_steady_data.TF9613),mean(cal_steady_data.TF9614)];
+            distributions.centerline_temp.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TF9603),mean(cal_steadMP.Temp_smooth.vara.TF9604),mean(cal_steadMP.Temp_smooth.vara.TF9605),mean(cal_steadMP.Temp_smooth.vara.TF9606),mean(cal_steadMP.Temp_smooth.vara.TF9608),mean(cal_steadMP.Temp_smooth.vara.TF9610),mean(cal_steadMP.Temp_smooth.vara.TF9611),mean(cal_steadMP.Temp_smooth.vara.TF9612),mean(cal_steadMP.Temp_smooth.vara.TF9613),mean(cal_steadMP.Temp_smooth.vara.TF9614)];
         catch
             try
-                distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),MP.Temp.value,mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
+                distributions.centerline_temp.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TCH1_1F),MP.Temp.value,mean(cal_steadMP.Temp_smooth.vara.TCH2_1F),mean(cal_steadMP.Temp_smooth.vara.TCH3_1F),mean(cal_steadMP.Temp_smooth.vara.TCH4_1F)];
                 short_flag=0;
             catch
-                distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
+                distributions.centerline_temp.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TCH1_1F),mean(cal_steadMP.Temp_smooth.vara.TCH2_1F),mean(cal_steadMP.Temp_smooth.vara.TCH3_1F),mean(cal_steadMP.Temp_smooth.vara.TCH4_1F)];
                 short_flag=1;
             end
         end
         
         % below, the layout of TC's is the same for old and new files, hence no if structures
-        distributions.coolant_temp_0deg.value.cal=[mean(cal_steady_data.TF9503),mean(cal_steady_data.TF9505),mean(cal_steady_data.TF9507)];
-        distributions.coolant_temp_180deg.value.cal=[mean(cal_steady_data.TF9504),mean(cal_steady_data.TF9506),mean(cal_steady_data.TF9508)];
-        distributions.outer_wall_temp_0deg.value.cal=[mean(cal_steady_data.TW9501),mean(cal_steady_data.TW9503),mean(cal_steady_data.TW9505),mean(cal_steady_data.TW9507),mean(cal_steady_data.TW9509),mean(cal_steady_data.TW9511)];
-        distributions.outer_wall_temp_180deg.value.cal=[mean(cal_steady_data.TW9502),mean(cal_steady_data.TW9504),mean(cal_steady_data.TW9506),mean(cal_steady_data.TW9508),mean(cal_steady_data.TW9510),mean(cal_steady_data.TW9512)];
+        distributions.coolant_temp_0deg.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TF9503),mean(cal_steadMP.Temp_smooth.vara.TF9505),mean(cal_steadMP.Temp_smooth.vara.TF9507)];
+        distributions.coolant_temp_180deg.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TF9504),mean(cal_steadMP.Temp_smooth.vara.TF9506),mean(cal_steadMP.Temp_smooth.vara.TF9508)];
+        distributions.outer_wall_temp_0deg.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TW9501),mean(cal_steadMP.Temp_smooth.vara.TW9503),mean(cal_steadMP.Temp_smooth.vara.TW9505),mean(cal_steadMP.Temp_smooth.vara.TW9507),mean(cal_steadMP.Temp_smooth.vara.TW9509),mean(cal_steadMP.Temp_smooth.vara.TW9511)];
+        distributions.outer_wall_temp_180deg.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TW9502),mean(cal_steadMP.Temp_smooth.vara.TW9504),mean(cal_steadMP.Temp_smooth.vara.TW9506),mean(cal_steadMP.Temp_smooth.vara.TW9508),mean(cal_steadMP.Temp_smooth.vara.TW9510),mean(cal_steadMP.Temp_smooth.vara.TW9512)];
         
         try
-            distributions.GHFS_TC.value.cal=[mean(cal_steady_data.HFS1TC),mean(cal_steady_data.HFS2TC),mean(cal_steady_data.HFS3TC),mean(cal_steady_data.HFS4TC)];
+            distributions.GHFS_TC.value.cal=[mean(cal_steadMP.Temp_smooth.vara.HFS1TC),mean(cal_steadMP.Temp_smooth.vara.HFS2TC),mean(cal_steadMP.Temp_smooth.vara.HFS3TC),mean(cal_steadMP.Temp_smooth.vara.HFS4TC)];
         catch
-            distributions.GHFS_TC.value.cal=[mean(cal_steady_data.TCH1_2W),mean((cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2),mean(cal_steady_data.TCH3_2W),mean(cal_steady_data.TCH4_2W)];
+            distributions.GHFS_TC.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TCH1_2W),mean((cal_steadMP.Temp_smooth.vara.TCH1_2W+cal_steadMP.Temp_smooth.vara.TCH3_2W)./2),mean(cal_steadMP.Temp_smooth.vara.TCH3_2W),mean(cal_steadMP.Temp_smooth.vara.TCH4_2W)];
         end
         
         try
@@ -672,7 +689,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             wall_inner_flag=0;
         end
         try
-            distributions.wall_outer.value.cal=[mean(cal_steady_data.TCH1_3W),mean(cal_steady_data.TCH2_3W),mean(cal_steady_data.TCH3_3W),mean(cal_steady_data.TCH4_3W)];
+            distributions.wall_outer.value.cal=[mean(cal_steadMP.Temp_smooth.vara.TCH1_3W),mean(cal_steadMP.Temp_smooth.vara.TCH2_3W),mean(cal_steadMP.Temp_smooth.vara.TCH3_3W),mean(cal_steadMP.Temp_smooth.vara.TCH4_3W)];
         catch
         end
         try
@@ -691,33 +708,33 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end 
                 
         end
-        distributions.coolant_temp_0deg.value.non_cal=[mean(steady_data.TF9503),mean(steady_data.TF9505),mean(steady_data.TF9507)];
-        distributions.coolant_temp_180deg.value.non_cal=[mean(steady_data.TF9504),mean(steady_data.TF9506),mean(steady_data.TF9508)];
-        distributions.outer_wall_temp_0deg.value.non_cal=[mean(steady_data.TW9501),mean(steady_data.TW9503),mean(steady_data.TW9505),mean(steady_data.TW9507),mean(steady_data.TW9509),mean(steady_data.TW9511)];
-        distributions.outer_wall_temp_180deg.value.non_cal=[mean(steady_data.TW9502),mean(steady_data.TW9504),mean(steady_data.TW9506),mean(steady_data.TW9508),mean(steady_data.TW9510),mean(cal_steady_data.TW9512)];
+        distributions.coolant_temp_0deg.value.non_cal=[mean(steadMP.Temp_smooth.vara.TF9503),mean(steadMP.Temp_smooth.vara.TF9505),mean(steadMP.Temp_smooth.vara.TF9507)];
+        distributions.coolant_temp_180deg.value.non_cal=[mean(steadMP.Temp_smooth.vara.TF9504),mean(steadMP.Temp_smooth.vara.TF9506),mean(steadMP.Temp_smooth.vara.TF9508)];
+        distributions.outer_wall_temp_0deg.value.non_cal=[mean(steadMP.Temp_smooth.vara.TW9501),mean(steadMP.Temp_smooth.vara.TW9503),mean(steadMP.Temp_smooth.vara.TW9505),mean(steadMP.Temp_smooth.vara.TW9507),mean(steadMP.Temp_smooth.vara.TW9509),mean(steadMP.Temp_smooth.vara.TW9511)];
+        distributions.outer_wall_temp_180deg.value.non_cal=[mean(steadMP.Temp_smooth.vara.TW9502),mean(steadMP.Temp_smooth.vara.TW9504),mean(steadMP.Temp_smooth.vara.TW9506),mean(steadMP.Temp_smooth.vara.TW9508),mean(steadMP.Temp_smooth.vara.TW9510),mean(cal_steadMP.Temp_smooth.vara.TW9512)];
         try
-            distributions.centerline_temp.value.non_cal=[mean(steady_data.TCH1_1F),MP.Temp.value,mean(steady_data.TCH2_1F),mean(steady_data.TCH3_1F),mean(steady_data.TCH4_1F)];
+            distributions.centerline_temp.value.non_cal=[mean(steadMP.Temp_smooth.vara.TCH1_1F),MP.Temp.value,mean(steadMP.Temp_smooth.vara.TCH2_1F),mean(steadMP.Temp_smooth.vara.TCH3_1F),mean(steadMP.Temp_smooth.vara.TCH4_1F)];
             centerline_flag=1;
         catch
             centerline_flag=0;
         end
         try
-            distributions.GHFS_TC.value.non_cal=[mean(steady_data.HFS1TC),mean(steady_data.HFS2TC),mean(steady_data.HFS3TC),mean(steady_data.HFS4TC)];
+            distributions.GHFS_TC.value.non_cal=[mean(steadMP.Temp_smooth.vara.HFS1TC),mean(steadMP.Temp_smooth.vara.HFS2TC),mean(steadMP.Temp_smooth.vara.HFS3TC),mean(steadMP.Temp_smooth.vara.HFS4TC)];
             %GHFS_TC_flag=1;
         catch
-            distributions.GHFS_TC.value.non_cal=[mean(steady_data.TCH1_2W),mean(steady_data.TCH2_2W),mean(steady_data.TCH3_2W),mean(steady_data.TCH4_2W)];
+            distributions.GHFS_TC.value.non_cal=[mean(steadMP.Temp_smooth.vara.TCH1_2W),mean(steadMP.Temp_smooth.vara.TCH2_2W),mean(steadMP.Temp_smooth.vara.TCH3_2W),mean(steadMP.Temp_smooth.vara.TCH4_2W)];
             %GHFS_TC_flag=0;
         end
         try
-            distributions.wall_inner.value.non_cal=[mean(steady_data.TCH1_2W),mean(steady_data.TCH2_2W),mean(steady_data.TCH3_2W),mean(steady_data.TCH4_2W)];
+            distributions.wall_inner.value.non_cal=[mean(steadMP.Temp_smooth.vara.TCH1_2W),mean(steadMP.Temp_smooth.vara.TCH2_2W),mean(steadMP.Temp_smooth.vara.TCH3_2W),mean(steadMP.Temp_smooth.vara.TCH4_2W)];
         catch
         end
         try
-            distributions.wall_outer.value.non_cal=[mean(steady_data.TCH1_3W),mean(steady_data.TCH2_3W),mean(steady_data.TCH3_3W),mean(steady_data.TCH4_3W)];
+            distributions.wall_outer.value.non_cal=[mean(steadMP.Temp_smooth.vara.TCH1_3W),mean(steadMP.Temp_smooth.vara.TCH2_3W),mean(steadMP.Temp_smooth.vara.TCH3_3W),mean(steadMP.Temp_smooth.vara.TCH4_3W)];
         catch
         end
         try
-            distributions.wall_dT.value.non_cal=[mean(steady_data.TCH1_2W-steady_data.TCH1_3W),mean(steady_data.TCH2_2W-steady_data.TCH2_3W),mean(steady_data.TCH3_2W-steady_data.TCH3_3W),mean(steady_data.TCH4_2W-steady_data.TCH4_3W)];
+            distributions.wall_dT.value.non_cal=[mean(steadMP.Temp_smooth.vara.TCH1_2W-steadMP.Temp_smooth.vara.TCH1_3W),mean(steadMP.Temp_smooth.vara.TCH2_2W-steadMP.Temp_smooth.vara.TCH2_3W),mean(steadMP.Temp_smooth.vara.TCH3_2W-steadMP.Temp_smooth.vara.TCH3_3W),mean(steadMP.Temp_smooth.vara.TCH4_2W-steadMP.Temp_smooth.vara.TCH4_3W)];
         catch
         end
 
@@ -860,7 +877,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.enthalpy.error =0.005*steam.enthalpy.value; %ooooooooooooooooo
         steam.enthalpy_liquid.error =0.001*steam.enthalpy_liquid.value; %ooooooooooooooooo
         steam.evap_heat.error =0.001*steam.evap_heat.value; %ooooooooooooooooo
-        steam.power.error =error_steam_power(mean(230),mean(cal_steady_data.HE9601_I),steam.power.value);  %XXXXXXXXXXXXXXXXXXX
+        steam.power.error =error_steam_power(mean(230),mean(cal_steadMP.Temp_smooth.vara.HE9601_I),steam.power.value);  %XXXXXXXXXXXXXXXXXXX
         steam.mflow.error =error_mflow_steam(steam.power.value,steam.evap_heat.value,steam.mflow.value,steam.power.error ,steam.evap_heat.error );
         steam.density.error =error_dens(steam.temp.value,steam.press.value,steam.temp.error ,steam.press.error );
         steam.vflow.error =error_volflow_steam(steam.vflow.value,steam.mflow.value,steam.density.value,steam.mflow.error ,steam.density.error );
@@ -929,7 +946,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.error=0.1;  % [mm]
             MP.Temp.error=0.1;
-            MP.Temp_smooth_sgolay.error=0.1;
+            MP.Temp_smooth.error=0.1;
             MP.T_boundlayer_forward.error=MP.Pos.error;  %0.1
             MP.T_boundlayer_backward.error=MP.Pos.error; %XXXXXXXXXXXXXXXXXXX  
             MP.T_boundlayer_mean.error=MP.Pos.error;
@@ -1050,7 +1067,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.unit='mm';
             MP.Temp.unit=[char(176),'C'];
-            MP.Temp_smooth_sgolay.unit=[char(176),'C'];
+            MP.Temp_smooth.unit=[char(176),'C'];
             MP.T_boundlayer_forward.unit='mm';
             MP.T_boundlayer_backward.unit='mm';
             MP.T_boundlayer_mean.unit='mm';

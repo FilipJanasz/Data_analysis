@@ -645,7 +645,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             plot(MP_Temp_averaged.(directions{2})(:,1),MP_Temp_averaged.(directions{2})(:,3),'g-')
 %             hold off
 %         end
-       
+        
+        %make sure that the while loop executes at least once
+        frist_loop_flag=1;
+        
         %boundary layer calculation, based on movable probe temperature and position data
         avg_window=options(1);
         limiting_factor=options(2);

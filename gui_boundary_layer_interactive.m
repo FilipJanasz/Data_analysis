@@ -101,7 +101,11 @@ function gui_boundary_layer_interactive_OpeningFcn(hObject, eventdata, handles, 
     set(handles.avg_window,'String',num2str(varargin{2}))
     set(handles.limiting_factor,'String',num2str(varargin{3}))
     set(handles.x_limit,'String',num2str(varargin{4}))
-            
+    
+    %show extra button
+    if ~handles.first_loop
+        set(handles.yes_and_update_button,'Visible','On')
+    end
     %plot the smoothed and original data
 %     figure
     axes(handles.boundary_layer_axes)

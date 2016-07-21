@@ -1,6 +1,6 @@
 avg_window 10
 limiting_factor 2
 x_limit 20
-frame_size 20
+frame_size 10
 smoothing_type 2
-sgolay_order 1
+sgolay_order 2

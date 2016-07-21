@@ -92,11 +92,11 @@ function process_btn_Callback(hObject, ~, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;
-    interactive_flag=get(handles.interactive_checkbox,'Value');
+    plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
       
     % call function down the line for file processing
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -157,7 +157,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 
     % based on user choice, access and process picked files
     clear_flag=1;
-    plot_flag=get(handles.interactive_checkbox,'Value');
+    plot_flag=get(handles.plotflag_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
@@ -625,8 +625,8 @@ function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
 %         axis(handles.var_axes,'mode','auto')
 
 
-% --- Executes on button press in interactive_checkbox.
-function interactive_checkbox_Callback(hObject, eventdata, handles)
+% --- Executes on button press in plotflag_checkbox.
+function plotflag_checkbox_Callback(hObject, eventdata, handles)
 
 function uipanel5_CreateFcn(hObject, eventdata, handles)
 
@@ -1090,7 +1090,7 @@ function adv_options_btn_Callback(hObject, eventdata, handles)
     %get options for processing
     fid=fopen('adv_options.txt','rt');
     options=textscan(fid,'%s');
-    options=options{1};
+    options
     fclose(fid);
     gui_advanced_options(options)
     %forward changes in handles

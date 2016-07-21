@@ -695,7 +695,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     %update parameters for the next iteration
                     avg_window=new_param.avg_window;
                     limiting_factor=new_param.limiting_factor;
-                    x_limit=new_param.x_limit;
+                    x_lim=new_param.position_lim;
                 end
             end
                 

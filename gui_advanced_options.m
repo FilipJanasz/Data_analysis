@@ -172,7 +172,7 @@ function apply_btn_Callback(hObject, eventdata, handles)
     %write to file
     for n=1:numel(options_names)
         line_to_write=[options_names{n},' ',num2str(options.(options_names{n}))];
-        fprintf(fileID,'%s\n',line_to_write)    
+        fprintf(fileID,'%s\n',line_to_write);  
     end
     
     %close file

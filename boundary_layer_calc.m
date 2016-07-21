@@ -52,7 +52,7 @@ function [boundary_layer,calc_dat_norm,calc_data_norm_lower,calc_data_norm_upper
         while_count=while_count+1;
         
         % get lower and upper bonds for the data
-         calc_data_norm_lower=median(calc_dat_norm)-lim_factor*st_dev_mode;
+        calc_data_norm_lower=median(calc_dat_norm)-lim_factor*st_dev_mode;
         calc_data_norm_upper=median(calc_dat_norm)+lim_factor*st_dev_mode;
 
         % if those values are to low

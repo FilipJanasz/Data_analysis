@@ -3,13 +3,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
    
     % move to file directory, based on default value stored in GUI
     filePath_default=get(handles.file_path_disp,'String');
-    try
-        cd(filePath_default)
-    catch
-    end
+%     try
+%         cd(filePath_default)
+%     catch
+%     end
     
     %display gui to pick directory
-    directories = uigetdir('Pick a directory');
+    directories = uigetdir(filePath_default,'Pick a directory');
     try
         [file_list, fileCounter]=filter_tdms_files(directories);
         directories={directories};

@@ -98,18 +98,23 @@ function gui_boundary_layer_interactive_OpeningFcn(hObject, eventdata, handles, 
     handles.old.avg_window=varargin{2};
     handles.old.limiting_factor=varargin{3};
     handles.old.x_limit=varargin{4};
-    set(handles.avg_window,'Value',varargin{2})
+    set(handles.avg_window,'String',num2str(varargin{2}))
     set(handles.limiting_factor,'String',num2str(varargin{3}))
     set(handles.x_limit,'String',num2str(varargin{4}))
-            
+    
+    %show extra button
+    if ~handles.first_loop
+        set(handles.yes_and_update_button,'Visible','On')
+    end
     %plot the smoothed and original data
 %     figure
     axes(handles.boundary_layer_axes)
     hold on
-
-            plot(x_dat,y_dat,'.')
-            plot([boundary_layer boundary_layer], ylim,'g')
-    legend('Raw data','Smoothed data')
+    plot(handles.MP_forward.pos,handles.MP_forward.temp,'r')
+    plot([handles.MP_forward.blayer handles.MP_forward.blayer], ylim,'r-.')
+    plot(handles.MP_backward.pos,handles.MP_backward.temp,'b')
+    plot([handles.MP_backward.blayer handles.MP_backward.blayer], ylim,'b-.')
+    legend('Profile forward','Boundary layer forward','Profile backward','Boundary layer backward')
     hold off
     
     % Update handles structure
@@ -167,7 +172,7 @@ function yes_and_update_button_Callback(hObject, eventdata, handles)
 function no_button_Callback(hObject, eventdata, handles)
     %read values from gui for next iteration
     handles.user_satisfied = 0;
-    handles.new.avg_window=get(handles.avg_window,'Value');
+    handles.new.avg_window=str2double(get(handles.avg_window,'String'));
     handles.new.limiting_factor=str2double(get(handles.limiting_factor,'String'));
     handles.new.x_limit=str2double(get(handles.x_limit,'String'));
     handles.update_defaults = 0;

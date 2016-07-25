@@ -645,17 +645,19 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             plot(MP_Temp_averaged.(directions{2})(:,1),MP_Temp_averaged.(directions{2})(:,3),'g-')
 %             hold off
 %         end
-       
+        
+        %make sure that the while loop executes at least once
+        frist_loop_flag=1;
+        
         %boundary layer calculation, based on movable probe temperature and position data
         avg_window=options(1);
         limiting_factor=options(2);
         x_limit=options(3);
         
-        while interactive_flag || frist_loop_flag
-            frist_loop_flag=0;
+        while interactive_flag || frist_loop_flag   
         
             try
-                [MP.T_boundlayer_forward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),avg_window,limiting_factor,x_limit);
+                [MP.T_boundlayer_forward.value,fwd_data_norm,fwd_lower,fwd_upper,~,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),avg_window,limiting_factor,x_limit);
                 if MP.T_boundlayer_forward.value < -5
                     MP.T_boundlayer_forward.value=0;
                 end
@@ -665,7 +667,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 MP.T_boundlayer_forward.value=0;
             end
             try
-                [MP.T_boundlayer_backward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.backward(:,2),MP_Temp_averaged.backward(:,1),avg_window,limiting_factor,x_limit);
+                [MP.T_boundlayer_backward.value,bkwd_data_norm,bkwd_lower,bkwd_upper,~,~]=boundary_layer_calc(MP_Temp_averaged.backward(:,2),MP_Temp_averaged.backward(:,1),avg_window,limiting_factor,x_limit);
                 if MP.T_boundlayer_backward.value < -5
                     MP.T_boundlayer_backward.value=0;
                 end
@@ -678,12 +680,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             if interactive_flag        
                 
                 %package data
-                MP_package.forward.pos=MP_Temp_averaged.forward(:,1);
-                MP_package.forward.temp=MP_Temp_averaged.forward(:,2);
-                MP_package.forward.blayer=MP.T_boundlayer_forward.value;
-                MP_package.backward.pos=MP_Temp_averaged.backward(:,1);
-                MP_package.backward.temp=MP_Temp_averaged.backward(:,2);
-                MP_package.backward.blayer=MP.T_boundlayer_backward.value;
+                MP_package.forward.pos=MP_Temp_averaged.forward(:,1);           %position
+                MP_package.forward.norm_temp=fwd_data_norm;                 %normalized temperature data
+                MP_package.forward.lower=fwd_lower;                         %lower boundary of acceptable points deviation
+                MP_package.forward.upper=fwd_upper;                         %upper boundary of acceptable points deviation
+                MP_package.forward.blayer=MP.T_boundlayer_forward.value;    %forward movement boundary layer
+                MP_package.backward.pos=MP_Temp_averaged.backward(:,1);     %position%normalized temperature data
+                MP_package.backward.norm_temp=bkwd_data_norm;               %normalized temperature data
+                MP_package.backward.lower=bkwd_lower;                       %lower boundary of acceptable points deviation
+                MP_package.backward.upper=bkwd_upper;                       %upper boundary of acceptable points deviation
+                MP_package.backward.blayer=MP.T_boundlayer_backward.value;  
                 
                 %show user the results and ask if he likes them or not
                 [user_decision,new_param] = gui_boundary_layer_interactive(MP_package,avg_window,limiting_factor,x_limit,frist_loop_flag);
@@ -695,10 +701,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     %update parameters for the next iteration
                     avg_window=new_param.avg_window;
                     limiting_factor=new_param.limiting_factor;
-                    x_lim=new_param.position_lim;
+                    x_limit=new_param.x_limit;
                 end
             end
-                
+               
+            %change first loop flag to indicate first iteration is done
+            frist_loop_flag=0; 
         end
             
             

@@ -310,7 +310,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         data_holder_2=struct('value',value,'position_y',[],'position_x',[]);
         distributions=struct('GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
             'MP_backward_temp',data_holder_2,'MP_forward_molefr_h2o',data_holder_2,'MP_forward_partpress_h2o',data_holder_2,...
-            'MP_forward_temp',data_holder_2,'MP_temp_SMOOTH_backward',data_holder_2,'MP_temp_SMOOTH_forward',data_holder_2,...
+            'MP_forward_temp',data_holder_2,'MP_backward_temp_smooth',data_holder_2,'MP_forward_temp_smooth',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
             'coolant_temp_180deg',data_holder_2,'outer_wall_temp_0deg',data_holder_2,'outer_wall_temp_180deg',data_holder_2,...
             'wall_dT',data_holder_2,'wall_inner',data_holder_2,'wall_outer',data_holder_2);
@@ -654,11 +654,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         limiting_factor=options(2);
         x_limit=options(3);
         
-        while interactive_flag || frist_loop_flag
-            frist_loop_flag=0;
+        while interactive_flag || frist_loop_flag   
         
             try
-                [MP.T_boundlayer_forward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),avg_window,limiting_factor,x_limit);
+                [MP.T_boundlayer_forward.value,fwd_data_norm,fwd_lower,fwd_upper,x_dat_forward,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),avg_window,limiting_factor,x_limit);
                 if MP.T_boundlayer_forward.value < -5
                     MP.T_boundlayer_forward.value=0;
                 end
@@ -668,7 +667,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 MP.T_boundlayer_forward.value=0;
             end
             try
-                [MP.T_boundlayer_backward.value,~,~,~,~,~]=boundary_layer_calc(MP_Temp_averaged.backward(:,2),MP_Temp_averaged.backward(:,1),avg_window,limiting_factor,x_limit);
+                [MP.T_boundlayer_backward.value,bkwd_data_norm,bkwd_lower,bkwd_upper,x_dat_backward,~]=boundary_layer_calc(MP_Temp_averaged.backward(:,2),MP_Temp_averaged.backward(:,1),avg_window,limiting_factor,x_limit);
                 if MP.T_boundlayer_backward.value < -5
                     MP.T_boundlayer_backward.value=0;
                 end
@@ -681,12 +680,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             if interactive_flag        
                 
                 %package data
-                MP_package.forward.pos=MP_Temp_averaged.forward(:,1);
-                MP_package.forward.temp=MP_Temp_averaged.forward(:,2);
-                MP_package.forward.blayer=MP.T_boundlayer_forward.value;
-                MP_package.backward.pos=MP_Temp_averaged.backward(:,1);
-                MP_package.backward.temp=MP_Temp_averaged.backward(:,2);
-                MP_package.backward.blayer=MP.T_boundlayer_backward.value;
+                MP_package.forward.pos=x_dat_forward;                       %modified position
+                MP_package.forward.norm_temp=fwd_data_norm;                 %normalized temperature data
+                MP_package.forward.lower=fwd_lower;                         %lower boundary of acceptable points deviation
+                MP_package.forward.upper=fwd_upper;                         %upper boundary of acceptable points deviation
+                MP_package.forward.blayer=MP.T_boundlayer_forward.value;    %forward movement boundary layer
+                MP_package.backward.pos=x_dat_backward;                     %modified position
+                MP_package.backward.norm_temp=bkwd_data_norm;               %normalized temperature data
+                MP_package.backward.lower=bkwd_lower;                       %lower boundary of acceptable points deviation
+                MP_package.backward.upper=bkwd_upper;                       %upper boundary of acceptable points deviation
+                MP_package.backward.blayer=MP.T_boundlayer_backward.value;  %backward movement boundary layer 
                 
                 %show user the results and ask if he likes them or not
                 [user_decision,new_param] = gui_boundary_layer_interactive(MP_package,avg_window,limiting_factor,x_limit,frist_loop_flag);
@@ -701,7 +704,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     x_limit=new_param.x_limit;
                 end
             end
-                
+               
+            %change first loop flag to indicate first iteration is done
+            frist_loop_flag=0; 
         end
             
             
@@ -714,11 +719,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %movable probe distributions
             if forward_flag
                 distributions.MP_forward_temp.value.cal=MP_Temp_averaged.forward(:,2);
-                distributions.MP_temp_SMOOTH_forward.value.cal=MP_Temp_averaged.forward(:,3);
+                distributions.MP_forward_temp_smooth.value.cal=MP_Temp_averaged.forward(:,3);
             end
             if backward_flag
                 distributions.MP_backward_temp.value.cal=MP_Temp_averaged.backward(:,2);
-                distributions.MP_temp_SMOOTH_backward.value.cal=MP_Temp_averaged.backward(:,3);
+                distributions.MP_backward_temp_smooth.value.cal=MP_Temp_averaged.backward(:,3);
             end 
             short_flag=0;
         end
@@ -766,11 +771,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             if forward_flag
                 distributions.MP_forward_temp.value.non_cal=MP_Temp_averaged.forward(:,2);
-                distributions.MP_temp_SMOOTH_forward.value.non_cal=MP_Temp_averaged.forward(:,3);
+                distributions.MP_forward_temp_smooth.value.non_cal=MP_Temp_averaged.forward(:,3);
             end
             if backward_flag
                 distributions.MP_backward_temp.value.non_cal=MP_Temp_averaged.backward(:,2);
-                distributions.MP_temp_SMOOTH_backward.value.non_cal=MP_Temp_averaged.backward(:,3); 
+                distributions.MP_backward_temp_smooth.value.non_cal=MP_Temp_averaged.backward(:,3); 
             end 
                 
         end
@@ -830,8 +835,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             distributions.MP_forward_temp.position_y=ones(length(distributions.MP_forward_temp.value.cal),1)*(360+27.5);      
             distributions.MP_backward_temp.position_y=ones(length(distributions.MP_backward_temp.value.cal),1)*(360+27.5);
-            distributions.MP_temp_SMOOTH_forward.position_y=ones(length(distributions.MP_temp_SMOOTH_forward.value.cal),1)*(360+27.5);
-            distributions.MP_temp_SMOOTH_backward.position_y=ones(length(distributions.MP_temp_SMOOTH_backward.value.cal),1)*(360+27.5);
+            distributions.MP_forward_temp_smooth.position_y=ones(length(distributions.MP_forward_temp_smooth.value.cal),1)*(360+27.5);
+            distributions.MP_backward_temp_smooth.position_y=ones(length(distributions.MP_backward_temp_smooth.value.cal),1)*(360+27.5);
             distributions.MP_forward_partpress_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);    
             distributions.MP_backward_partpress_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);
             distributions.MP_forward_molefr_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);    
@@ -866,13 +871,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             if forward_flag
                 distributions.MP_forward_temp.position_x=MP_Temp_averaged.forward(:,1);
-                distributions.MP_temp_SMOOTH_forward.position_x=MP_Temp_averaged.forward(:,1);
+                distributions.MP_forward_temp_smooth.position_x=MP_Temp_averaged.forward(:,1);
                 distributions.MP_forward_partpress_h2o.position_x=MP_Temp_averaged.forward(:,1);
                 distributions.MP_forward_molefr_h2o.position_x=MP_Temp_averaged.forward(:,1);
             end
             if backward_flag
                 distributions.MP_backward_temp.position_x=MP_Temp_averaged.backward(:,1);
-                distributions.MP_temp_SMOOTH_backward.position_x=MP_Temp_averaged.backward(:,1);
+                distributions.MP_backward_temp_smooth.position_x=MP_Temp_averaged.backward(:,1);
                 distributions.MP_backward_partpress_h2o.position_x=MP_Temp_averaged.backward(:,1);
                 distributions.MP_backward_molefr_h2o.position_x=MP_Temp_averaged.backward(:,1);
             end 
@@ -1012,7 +1017,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.error=0.1;  % [mm]
             MP.Temp.error=0.1;
-            MP.Temp_smooth_sgolay.error=0.1;
+            MP.Temp_smooth.error=0.1;
             MP.T_boundlayer_forward.error=MP.Pos.error;  %0.1
             MP.T_boundlayer_backward.error=MP.Pos.error; %XXXXXXXXXXXXXXXXXXX  
             MP.T_boundlayer_mean.error=MP.Pos.error;
@@ -1026,8 +1031,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
             distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
             distributions.MP_forward_temp.error=0.05;
-            distributions.MP_temp_SMOOTH_backward.error=0.05;
-            distributions.MP_temp_SMOOTH_forward.error=0.05;
+            distributions.MP_backward_temp_smooth.error=0.05;
+            distributions.MP_forward_temp_smooth.error=0.05;
             distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
             distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
             distributions.centerline_temp.error=0.05;
@@ -1133,7 +1138,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag
             MP.Pos.unit='mm';
             MP.Temp.unit=[char(176),'C'];
-            MP.Temp_smooth_sgolay.unit=[char(176),'C'];
+            MP.Temp_smooth.unit=[char(176),'C'];
             MP.T_boundlayer_forward.unit='mm';
             MP.T_boundlayer_backward.unit='mm';
             MP.T_boundlayer_mean.unit='mm';
@@ -1157,8 +1162,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.MP_forward_molefr_h2o.unit=1;
         distributions.MP_forward_partpress_h2o.unit='bar';
         distributions.MP_forward_temp.unit=[char(176),'C'];
-        distributions.MP_temp_SMOOTH_backward.unit=[char(176),'C'];
-        distributions.MP_temp_SMOOTH_forward.unit=[char(176),'C'];
+        distributions.MP_backward_temp_smooth.unit=[char(176),'C'];
+        distributions.MP_forward_temp_smooth.unit=[char(176),'C'];
         distributions.centerline_molefr_h2o.unit=1;
         distributions.centerline_partpress_h2o.unit='bar';
         distributions.centerline_temp.unit=[char(176),'C'];

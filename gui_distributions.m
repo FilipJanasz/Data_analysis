@@ -20,8 +20,7 @@ function varargout = gui_distributions(varargin)
     else
         gui_mainfcn(gui_State, varargin{:});
     end
-
-% End initialization code - DO NOT EDIT
+    % End initialization code - DO NOT EDIT
 
 % --- Executes just before gui_distributions is made visible.
 function gui_distributions_OpeningFcn(hObject, eventdata, handles, varargin)

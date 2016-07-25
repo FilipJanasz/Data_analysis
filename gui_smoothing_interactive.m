@@ -22,7 +22,7 @@ function varargout = gui_smoothing_interactive(varargin)
 
     % Edit the above text to modify the response to help gui_smoothing_interactive
 
-    % Last Modified by GUIDE v2.5 21-Jul-2016 15:40:01
+    % Last Modified by GUIDE v2.5 22-Jul-2016 14:38:30
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -116,7 +116,7 @@ function gui_smoothing_interactive_OpeningFcn(hObject, eventdata, handles, varar
     hold on
     plot(handles.MP_temp_var)
     plot(handles.MP_temp_smooth_var)
-    legend('Raw data','Smoothed data')
+    legend('Raw data','Smoothed data','Location','southwest')
     hold off
     
     % Update handles structure
@@ -229,3 +229,10 @@ function sgolay_order_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+
+
+% --------------------------------------------------------------------
+function uitoggletool6_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to uitoggletool6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

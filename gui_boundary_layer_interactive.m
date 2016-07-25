@@ -85,12 +85,17 @@ function gui_boundary_layer_interactive_OpeningFcn(hObject, eventdata, handles, 
     handles.user_satisfied = 1;
     
     % Get input data
-    handles.MP_forward.temp=varargin{1}.forward.temp;
+    handles.MP_forward.temp=varargin{1}.forward.norm_temp;
     handles.MP_forward.pos=varargin{1}.forward.pos;
-    handles.MP_forward.blayer=varargin{1}.forward.blayer;
-    handles.MP_backward.temp=varargin{1}.backward.temp;
+    handles.MP_forward.lower=varargin{1}.forward.lower;
+    handles.MP_forward.upper=varargin{1}.forward.upper;
+    handles.MP_forward.blayer=-varargin{1}.forward.blayer;      %minus is essential
+    
+    handles.MP_backward.temp=varargin{1}.backward.norm_temp;
     handles.MP_backward.pos=varargin{1}.backward.pos;
-    handles.MP_backward.blayer=varargin{1}.backward.blayer;
+    handles.MP_backward.lower=varargin{1}.backward.lower;
+    handles.MP_backward.upper=varargin{1}.backward.upper;
+    handles.MP_backward.blayer=-varargin{1}.backward.blayer;    %minus is essential
     
     handles.first_loop=varargin{5};
     
@@ -109,12 +114,28 @@ function gui_boundary_layer_interactive_OpeningFcn(hObject, eventdata, handles, 
     %plot the smoothed and original data
 %     figure
     axes(handles.boundary_layer_axes)
+    
+    %foward movement boundary layer plot
+    subplot(2,1,1)
     hold on
     plot(handles.MP_forward.pos,handles.MP_forward.temp,'r')
     plot([handles.MP_forward.blayer handles.MP_forward.blayer], ylim,'r-.')
+    y_limits=ylim;
+    plot(xlim,[handles.MP_forward.lower handles.MP_forward.lower],'--k')
+    plot(xlim,[handles.MP_forward.upper handles.MP_forward.upper],'--k')
+    plot(xlim,[median(handles.MP_forward.temp) median(handles.MP_forward.temp)],'m') 
+    legend('Profile forward','Boundary layer forward','Location','southwest')
+    hold off
+    %backward movement boundary layer plot
+    subplot(2,1,2)
+    hold on
     plot(handles.MP_backward.pos,handles.MP_backward.temp,'b')
     plot([handles.MP_backward.blayer handles.MP_backward.blayer], ylim,'b-.')
-    legend('Profile forward','Boundary layer forward','Profile backward','Boundary layer backward')
+    plot(xlim,[handles.MP_backward.lower handles.MP_backward.lower],'--k')
+    plot(xlim,[handles.MP_backward.upper handles.MP_backward.upper],'--k')
+    plot(xlim,[median(handles.MP_backward.temp) median(handles.MP_backward.temp)],'m') 
+    ylim(y_limits);  %match y axes limits of the graph above
+    legend('Profile backward','Boundary layer backward','Location','southwest')
     hold off
     
     % Update handles structure

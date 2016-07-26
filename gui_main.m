@@ -49,7 +49,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 % below is for debugging
-%            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1]=file_processing(plot_flag,file_list{dir_counter}{fc},directories{dir_counter});
+%            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 %            steam(fc)=steam1;
 %            coolant(fc)=coolant1;
 %            facility(fc)=facility1;
@@ -58,7 +58,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %            file(fc)=file1;
 %            BC(fc)=BC1;
 %            GHFS(fc)=GHFS1;
-%            MP(fc)=MP1;
+%            MP1
+%            MP(fc)=MP1
         end
     end
     

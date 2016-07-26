@@ -247,7 +247,7 @@ function plot_button_Callback(hObject, eventdata, handles)
     y_err=ones(1,files_chosen);
     
     %extract data values and error values, applying file choice filter
-    for cntr=1:files_chosen
+    for cntr=1:fil_chosen
         x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
         y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
         x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
@@ -1039,7 +1039,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     cd(filePath_default)
     
     % 1. Ask user for the file name
-    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';'*.emf';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);
       
     % 2. Save .fig file with the name
@@ -1054,7 +1054,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     h.Parent=f;   
     %adjust figure size so it matches the axes
     f.Units='characters';
-    f.Position=h.Position.*1.2;
+%     f.Position=h.Position.*1.2;
     %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
@@ -1064,6 +1064,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
     end
+    delete(f); % clear figure
     msgbox(['Figure saved succesfully as ',saveDataName])
 
 % --- Executes on selection change in file_path_disp.

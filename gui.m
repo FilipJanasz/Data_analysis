@@ -1008,8 +1008,6 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
         for i=1:numel(field_names)
             for j=1:numel(handles.(vars{k}))
                 if isfield(handles.(vars{k})(j).(field_names{i}),'var')
-                    vars{k}
-                    field_names{i}
                     time_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
                     time_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
                     time_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;

@@ -193,7 +193,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %FPGA - fast sensors
             if fast_flag
                 period_fast=(Timestamp.Data(2)-Timestamp.Data(1))/40000000;  % timestamp is in processor ticks, FPGA runs at 40MHz
-                Timestamp_fast=(1:1:numel(Timestamp.Data)).*period_fast;
+%                 Timestamp_fast=(1:1:numel(Timestamp.Data)).*period_fast;
                 timing.fast=period_fast;
             end
             if MP_flag
@@ -209,7 +209,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             catch
                 period_slow=1;
             end
-            Timestamp_slow=(1:1:numel(Time.Data)).*period_slow;
+%             Timestamp_slow=(1:1:numel(Time.Data)).*period_slow;
             
             timing.slow=period_slow;
             
@@ -250,11 +250,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                         %dividing by period makes sure we get the proper
                         %interval of fast data
                         if ~isempty(strfind(channel_list{i},'GHFS')) || (~isempty(strfind(channel_list{i},'MP')) && isempty(strfind(channel_list{i},'MP_')))
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_fast:st_state_end_relative/period_fast);']);
+%                             eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_fast:st_state_end_relative/period_fast);']);
+                            steady_data.(channel_list{i})=data.(channel_list{i})(st_state_start_relative/period_fast:st_state_end_relative/period_fast);
                         elseif ~isempty(strfind(channel_list{i},'MP_TF')) || ~isempty(strfind(channel_list{i},'MP_Pos')) 
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);
+%                             eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);
+                            steady_data.(channel_list{i})=data.(channel_list{i})(st_state_start_relative/period_MP:st_state_end_relative/period_MP);
                         else
-                            eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative:st_state_end_relative);']);
+%                             eval(['steady_data.',channel_list{i},'=data.',channel_list{i},'(st_state_start_relative:st_state_end_relative);']);
+                            steady_data.(channel_list{i})=data.(channel_list{i})(st_state_start_relative:st_state_end_relative);
                         end
                     end
     %                 st_state_data=steady_data.PA9601;

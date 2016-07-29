@@ -92,11 +92,11 @@ function process_btn_Callback(hObject, ~, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;
-    plot_flag=get(handles.plotflag_checkbox,'Value');
+    interactive_flag=get(handles.interactive_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
       
     % call function down the line for file processing
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;
@@ -157,7 +157,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 
     % based on user choice, access and process picked files
     clear_flag=1;
-    plot_flag=get(handles.plotflag_checkbox,'Value');
+    plot_flag=get(handles.interactive_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
@@ -247,7 +247,7 @@ function plot_button_Callback(hObject, eventdata, handles)
     y_err=ones(1,files_chosen);
     
     %extract data values and error values, applying file choice filter
-    for cntr=1:files_chosen
+    for cntr=1:fil_chosen
         x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
         y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
         x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
@@ -625,8 +625,8 @@ function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
 %         axis(handles.var_axes,'mode','auto')
 
 
-% --- Executes on button press in plotflag_checkbox.
-function plotflag_checkbox_Callback(hObject, eventdata, handles)
+% --- Executes on button press in interactive_checkbox.
+function interactive_checkbox_Callback(hObject, eventdata, handles)
 
 function uipanel5_CreateFcn(hObject, eventdata, handles)
 
@@ -1037,7 +1037,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     cd(filePath_default)
     
     % 1. Ask user for the file name
-    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
+    saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';'*.emf';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);
       
     % 2. Save .fig file with the name
@@ -1052,7 +1052,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     h.Parent=f;   
     %adjust figure size so it matches the axes
     f.Units='characters';
-    f.Position=h.Position.*1.2;
+%     f.Position=h.Position.*1.2;
     %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
@@ -1062,6 +1062,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
     end
+    delete(f); % clear figure
     msgbox(['Figure saved succesfully as ',saveDataName])
 
 % --- Executes on selection change in file_path_disp.
@@ -1088,7 +1089,10 @@ end
 function adv_options_btn_Callback(hObject, eventdata, handles)
     handles.adv_options_flag=1;
     %get options for processing
-    options=textread('adv_options.txt','%s');
+    fid=fopen('adv_options.txt','rt');
+    options=textscan(fid,'%s');
+    options=options{1};
+    fclose(fid);
     gui_advanced_options(options)
     %forward changes in handles
     guidata(hObject, handles);

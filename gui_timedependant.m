@@ -22,7 +22,7 @@ function varargout = gui_timedependant(varargin)
 
     % Edit the above text to modify the response to help gui_timedependant
 
-    % Last Modified by GUIDE v2.5 14-Jul-2016 17:56:44
+    % Last Modified by GUIDE v2.5 20-Jul-2016 15:19:00
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -366,6 +366,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     % arrange user defined styling parameters
     if strcmp(line_color,'auto')
         line_color=colorstring(handles.plotcounter);
+%         line_color='';
     end
     
     if strcmp(line_marker,'none')
@@ -1085,3 +1086,60 @@ function sigframe_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+% --- Executes on button press in rescale_pushbutton.
+function rescale_pushbutton_Callback(hObject, eventdata, handles)
+    xmin=str2double(get(handles.xmin_edit,'String'));
+    xmax=str2double(get(handles.xmax_edit,'String'));
+    ymin=str2double(get(handles.ymin_edit,'String'));
+    ymax=str2double(get(handles.ymax_edit,'String'));
+    set(handles.var_axes,'xlim',[xmin xmax])
+    set(handles.var_axes,'ylim',[ymin ymax])
+
+
+% --- Executes on button press in fitaxes_pushbutton.
+function fitaxes_pushbutton_Callback(hObject, eventdata, handles)
+    axes(handles.var_axes);
+    axis auto
+    x=xlim;
+    xmin=num2str(x(1));
+    xmax=num2str(x(2));
+    y=ylim;
+    ymin=num2str(y(1));
+    ymax=num2str(y(2));
+    set(handles.xmin_edit,'String',xmin)
+    set(handles.xmax_edit,'String',xmax)
+    set(handles.ymin_edit,'String',ymin)
+    set(handles.ymax_edit,'String',ymax)
+
+function xmax_edit_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function xmax_edit_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function ymin_edit_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function ymin_edit_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function ymax_edit_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function ymax_edit_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function xmin_edit_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function xmin_edit_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end

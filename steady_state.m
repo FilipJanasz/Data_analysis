@@ -1,4 +1,4 @@
-function [st_state_start,st_state_end]=steady_state(data,av_window,lim_factor,use_mov_av_flag,plot_flag,file_list,process_counter,directory)
+function [st_state_start,st_state_end]=steady_state(data,av_window,lim_factor,use_mov_av_flag,interactive_flag,file_list,process_counter,directory)
 
 %initialize flags
 flag_st=0;
@@ -8,7 +8,7 @@ calc_data=data;
 %perform moving average to smooth the data if flag is marked
 
 if use_mov_av_flag  
-    temp = moving_average(calc_data,av_window);
+    temp=smooth(calc_data,av_window,'moving');
     calc_data=temp;    
 end
 
@@ -165,7 +165,7 @@ end
     end
     cd(graph_dir)
 
-    if plot_flag
+    if interactive_flag
         h = figure;
         set(h, 'Visible', 'on');
     else

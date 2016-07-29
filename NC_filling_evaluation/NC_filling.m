@@ -69,7 +69,19 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         %loop through all the paramaters and calc mole fraction for each
         %combination in a way that on parameter is modified by
         %corresponding error value and the others are kept constant
-        for i=1:length(arg)
+        %preallocate
+        arg_lng=length(arg);
+        h2o_mole_frac_mod_array=zeros(1,arg_lng);
+        N2_mole_frac_mod_array=zeros(1,arg_lng);
+        He_mole_frac_mod_array=zeros(1,arg_lng);
+        dh2o_mole_frac_dx=zeros(1,arg_lng);
+        dN2_mole_frac_dx=zeros(1,arg_lng);
+        dHe_mole_frac_dx=zeros(1,arg_lng);
+        mfrac_h2o_err=zeros(1,arg_lng);
+        mfrac_N2_err=zeros(1,arg_lng);
+        mfrac_He_err=zeros(1,arg_lng);
+        
+        for i=1:arg_lng
             arg_mod=arg;
             if mod(i,2) == 0
                 arg_mod(i)=arg_mod(i)+T_error;

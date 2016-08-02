@@ -42,9 +42,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 disp('Proccessed data not found but steady state data found, loading without looking for steady state period and recalculating')
                 disp('Check if "steady state" checkbox is in the right state')  
             else
-                temp_dat=load([UNsteady_data_file_name,'.mat']);
+                load([UNsteady_data_file_name,'.mat']);
                 %below is so the rest of the code works fine
-                steady_data=temp_dat.UNsteady_data;
+                steady_data=UNsteady_data;
                 disp('Proccessed data not found but UNsteady state data found, loading without looking for steady state period and recalculating')
                 disp('Check if "steady state" checkbox is in the right state')
             end
@@ -273,8 +273,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             else
                 disp('1. Not looking for steady state - check box not ticked')
                 for i=1:channel_amount
-%                      eval(['UNsteady_data.',channel_list{i},'=data.',channel_list{i},';']);
-                    UNsteady_data.(channel_list{i})=data.(channel_list{i});
+                     eval(['UNsteady_data.',channel_list{i},'=data.',channel_list{i},';']);
                 end
                 % append power
                 UNsteady_data.power=joule_heating(UNsteady_data.HE9601_I,230);
@@ -531,11 +530,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %build a matrix with probe position as first column to enable 
             %proper sorting
             %preallocate
-            pos_amount=numel(MP.Pos.var);
-            MP_direction=zeros(1, pos_amount);
-            
-            for pos_counter=1:pos_amount
-                if pos_counter==pos_amount
+            MP_direction=zeros(pos
+            for pos_counter=1:numel(MP.Pos.var)
+                if pos_counter==numel(MP.Pos.var)
                     MP_direction(pos_counter)=MP_direction(pos_counter-1); % for the last point assume the direction is as for the previous one
                 elseif MP.Pos.var(pos_counter+1)>MP.Pos.var(pos_counter)
                     MP_direction(pos_counter)=1;

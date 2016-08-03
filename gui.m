@@ -247,7 +247,7 @@ function plot_button_Callback(hObject, eventdata, handles)
     y_err=ones(1,files_chosen);
     
     %extract data values and error values, applying file choice filter
-    for cntr=1:fil_chosen
+    for cntr=1:files_chosen
         x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
         y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
         x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;

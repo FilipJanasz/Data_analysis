@@ -68,7 +68,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             disp('Check if "steady state" checkbox is in the right state')
             %if the file was already converted before, load .mat file rather than waste
             %time on another conversion
-            %ext function name is convertTDMS - needs some work
             if exist(matFileName,'file')
                 disp('Slow sensors file already converted from .tdms, loading .mat file')
                 load(matFileName)
@@ -145,7 +144,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             all_vars_list=unique(all_vars_list);
             
             %remove non-data positions from the list
-            removal_list={'Process_Data','Root','Untitled','XX','fileFolder','fileName'};
+            removal_list={'Process_Data','Root','Untitled','XX','fileFolder','fileName','Time','Timestamp'};
             removal_amount=numel(removal_list);
             for removal_cnt=1:removal_amount
 %                 all_vars_list(strcmp(all_vars_list, removal_list{removal_cnt})) = [];
@@ -173,13 +172,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             else
 %                 last_channel=find(strcmp('Time',list));
 %             end
-            last_channel=find(strcmp('TW9603',list));
-            list=list(1:last_channel);
+%             last_channel=find(strcmp('TW9603',list));
+%             list=list(1:last_channel)
             channel_amount=length(list);
             data.(list{1})(1)=0; %initialize data variable for the sake of warning messages
             for i=1:channel_amount
                 command=strcat('data.',list{i},'=',list{i},'.Data;');
                 eval(command)
+%                 data.(list{i})=(list{i}).Data;  
             end      
              
 %             clearvars -except data channel_amount plot_flag file_list directory steady_data_file_name processed_data_file_name

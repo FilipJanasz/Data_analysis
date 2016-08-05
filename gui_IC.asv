@@ -1,35 +1,35 @@
-function varargout = gui_timedependant(varargin)
-    % GUI_TIMEDEPENDANT MATLAB code for gui_timedependant.fig
-    %      GUI_TIMEDEPENDANT, by itself, creates a new GUI_TIMEDEPENDANT or raises the existing
+function varargout = gui_IC(varargin)
+    % GUI_IC MATLAB code for gui_IC.fig
+    %      GUI_IC, by itself, creates a new GUI_IC or raises the existing
     %      singleton*.
     %
-    %      H = GUI_TIMEDEPENDANT returns the handle to a new GUI_TIMEDEPENDANT or the handle to
+    %      H = GUI_IC returns the handle to a new GUI_IC or the handle to
     %      the existing singleton*.
     %
-    %      GUI_TIMEDEPENDANT('CALLBACK',hObject,eventData,handles,...) calls the local
-    %      function named CALLBACK in GUI_TIMEDEPENDANT.M with the given input arguments.
+    %      GUI_IC('CALLBACK',hObject,eventData,handles,...) calls the local
+    %      function named CALLBACK in GUI_IC.M with the given input arguments.
     %
-    %      GUI_TIMEDEPENDANT('Property','Value',...) creates a new GUI_TIMEDEPENDANT or raises the
+    %      GUI_IC('Property','Value',...) creates a new GUI_IC or raises the
     %      existing singleton*.  Starting from the left, property value pairs are
-    %      applied to the GUI before gui_timedependant_OpeningFcn gets called.  An
+    %      applied to the GUI before gui_IC_OpeningFcn gets called.  An
     %      unrecognized property name or invalid value makes property application
-    %      stop.  All inputs are passed to gui_timedependant_OpeningFcn via varargin.
+    %      stop.  All inputs are passed to gui_IC_OpeningFcn via varargin.
     %
     %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
     %      instance to run (singleton)".
     %
     % See also: GUIDE, GUIDATA, GUIHANDLES
 
-    % Edit the above text to modify the response to help gui_timedependant
+    % Edit the above text to modify the response to help gui_IC
 
-    % Last Modified by GUIDE v2.5 20-Jul-2016 15:19:00
+    % Last Modified by GUIDE v2.5 05-Aug-2016 15:12:30
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
     gui_State = struct('gui_Name',       mfilename, ...
                        'gui_Singleton',  gui_Singleton, ...
-                       'gui_OpeningFcn', @gui_timedependant_OpeningFcn, ...
-                       'gui_OutputFcn',  @gui_timedependant_OutputFcn, ...
+                       'gui_OpeningFcn', @gui_IC_OpeningFcn, ...
+                       'gui_OutputFcn',  @gui_IC_OutputFcn, ...
                        'gui_LayoutFcn',  [] , ...
                        'gui_Callback',   []);
     if nargin && ischar(varargin{1})
@@ -44,21 +44,20 @@ function varargout = gui_timedependant(varargin)
 
     % End initialization code - DO NOT EDIT
 
-% --- Executes just before gui_timedependant is made visible.
-function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_IC is made visible.
+function gui_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     % This function has no output args, see OutputFcn.
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    % varargin   command line arguments to gui_timedependant (see VARARGIN)
+    % varargin   command line arguments to gui_IC (see VARARGIN)
 
-    % Choose default command line output for gui_timedependant
+    % Choose default command line output for gui_IC
     handles.output = hObject;
     handles.data=varargin{1};
     handles.files=varargin{2};
     handles.timing=varargin{3};
     handles.filepath=varargin{4};
-    vars=fields(handles.data);
     handles.plotcounter=0;
 
     %for storing and clearing curves
@@ -69,6 +68,7 @@ function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.file_popupmenu,'Value',1);
 
     %set first popup menu properly
+    vars=fields(handles.data.(handles.files{1}));
     set(handles.var_popupmenu,'String',vars)
     set(handles.var_popupmenu,'Value',1);
 
@@ -76,24 +76,52 @@ function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.property_popupmenu,'Value',1);
 
     %update variables popupmenus
-    set(handles.property_popupmenu,'String',fieldnames(handles.data.(vars{1})))
+    properties=fields(handles.data.(handles.files{1}).(vars{1}));
+    set(handles.property_popupmenu,'String',properties)
 
     % Update handles structure
     guidata(hObject, handles);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_timedependant_OutputFcn(hObject, eventdata, handles) 
+function varargout = gui_IC_OutputFcn(hObject, eventdata, handles) 
     varargout{1} = handles.output;
+
+% --- Executes on selection change in file_popupmenu.
+function file_popupmenu_Callback(hObject, eventdata, handles)
+    file_list=get(handles.file_popupmenu,'String');
+    file_val=get(handles.file_popupmenu,'Value');
+    file=file_list{file_val};
+    
+    %get vars for a given file
+    vars=fields(handles.data.(file));
+    
+    %the next line is to set the second popupmenu to common value, otherwise it breaks
+    set(handles.var_popupmenu,'Value',1);
+    set(handles.var_popupmenu,'String',fieldnames(handles.data.(file)))
+
+    %the next line is to set the second popupmenu to common value, otherwise it breaks
+    set(handles.property_popupmenu,'Value',1);
+    set(handles.property_popupmenu,'String',fieldnames(handles.data.(file).(vars{1})))
+
+% --- Executes during object creation, after setting all properties.
+function file_popupmenu_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 % --- Executes on selection change in var_popupmenu.
 function var_popupmenu_Callback(hObject, eventdata, handles)
+    file_list=get(handles.file_popupmenu,'String');
+    file_val=get(handles.file_popupmenu,'Value');
+    file=file_list{file_val};
+
     vars_list=get(handles.var_popupmenu,'String');
     vars_val=get(handles.var_popupmenu,'Value');
     vars=vars_list{vars_val};
        
     %the next line is to set the second popupmenu to common value, otherwise it breaks
     set(handles.property_popupmenu,'Value',1);
-    set(handles.property_popupmenu,'String',fieldnames(handles.data.(vars)))
+    set(handles.property_popupmenu,'String',fieldnames(handles.data.(file).(vars)))
 
 % --- Executes during object creation, after setting all properties.
 function var_popupmenu_CreateFcn(hObject, eventdata, handles)
@@ -114,7 +142,10 @@ end
 function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     % This part gets data to be handled
-    file_choice=get(handles.file_popupmenu,'Value');
+    file_list=get(handles.file_popupmenu,'String');
+    file_val=get(handles.file_popupmenu,'Value');
+    file=file_list{file_val};
+%     file_choice=get(handles.file_popupmenu,'Value');
     
     % get choice of facility element (steam, coolant, faclity, GHFS etc.) to be plotted
     list_y=get(handles.var_popupmenu,'String');
@@ -125,7 +156,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     list_y_var=get(handles.property_popupmenu,'String');
     val_y_var=get(handles.property_popupmenu,'Value');
     y_param_var=list_y_var{val_y_var};
-    y_dat=handles.data.(y_param)(file_choice).(y_param_var).var;
+    y_dat=handles.data.(file).(y_param).(y_param_var);
 
     % figure out how many data points are to be plotted
     y_amount=numel(y_dat);
@@ -133,16 +164,15 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     % This part, based on variable name, assign appropriate period
     % (GHFS1, GHFS2, GHFS3, GHFS4, MP1, MP2, MP3, MP4 - fast period)
     % rest slow, but not MP_Pos, MP_Temp, GHFS1_temp etc
-    if (~isempty(strfind(y_param_var,'GHFS')) && (isempty(strfind(y_param_var,'temp')) && isempty(strfind(y_param_var,'wall')))) || ~isempty(strfind(y_param_var,'MP'))
+    if y_param=='general_IC'
         period=handles.timing.fast;
-%         disp('fast')
-%     elseif  ~isempty(strfind(y_param_var,'GHFS')) && (~isempty(strfind(y_param_var,'temp')) && ~isempty(strfind(y_param_var,'wall'))) || ~isempty(strfind(y_param_var,'Pos'))
-    elseif  ~isempty(strfind(y_param,'MP')) && (~isempty(strfind(y_param_var,'Temp')) || ~isempty(strfind(y_param_var,'Pos')))
+
+    elseif  y_param=='general_IC'
         period=handles.timing.MP;
-%         disp('MP')
+
     else
         period=handles.timing.slow;
-%         disp('slow')
+
     end
 
     x_dat=period:period:y_amount*period;
@@ -395,7 +425,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %assign and store a name to the graph
     processing_string=[notch_str,lowpass_str,smooth_str,norm_str,flip_str];
-    handles.graph_name{handles.plotcounter}=[handles.files{file_choice},' ',y_param,' ',y_param_var,' ',processing_string];
+    handles.graph_name{handles.plotcounter}=[file,' ',y_param,' ',y_param_var,' ',processing_string];
     
     %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -409,7 +439,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     end
     
     %add label
-    ylabel([y_param_var,'  [',handles.data.(y_param)(file_choice).(y_param_var).unit,']'], 'interpreter', 'none');
+%     ylabel([y_param_var,'  [',handles.data.(file).(y_param).(y_param_var).unit,']'], 'interpreter', 'none');
     xlabel('Time [s]', 'interpreter', 'none')
     
     %store data in the figure
@@ -437,15 +467,6 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in hold_checkbox.
 function hold_checkbox_Callback(hObject, eventdata, handles)
-
-% --- Executes on selection change in file_popupmenu.
-function file_popupmenu_Callback(hObject, eventdata, handles)
-
-% --- Executes during object creation, after setting all properties.
-function file_popupmenu_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 % --- Executes on button press in clear_pushbutton.
 function clear_pushbutton_Callback(hObject, eventdata, handles)

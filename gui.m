@@ -690,6 +690,9 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
     %check which y axis to use for plotting
     y_axis_flag=get(handles.y_axis_primary,'Value');
     
+    %get user preference
+    hold_flag=get(handles.hold_checkbox, 'Value');
+    
     if y_axis_flag
         % if clause below clears y axis on the opposite axis if hold flag
         % is off
@@ -1002,15 +1005,15 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %field "vars" storing time dependant experimental data and forwards it
     %to another GUI
     vars={'steam','coolant','facility','GHFS','MP'};
-    field_cntr=1;
+
     for k=1:numel(vars)
     field_names=fields(handles.(vars{k}));
         for i=1:numel(field_names)
             for j=1:numel(handles.(vars{k}))
                 if isfield(handles.(vars{k})(j).(field_names{i}),'var')
-                    time_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
-                    time_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
-                    time_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+                    time_dep_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
+                    time_dep_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
+                    time_dep_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
                 end        
             end
         end
@@ -1019,13 +1022,13 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     for l=1:numel(handles.file)
         file_name{l}=[handles.file(l).name];
     end
-    assignin('base','time_var',time_var);
+    assignin('base','time_var',time_dep_var);
     
     %get path to where the processed files are
     filePath_default=get(handles.file_path_disp,'String');
     
     %call new gui
-    gui_timedependant(time_var,file_name,handles.timing,filePath_default);
+    gui_timedependant(time_dep_var,file_name,handles.timing,filePath_default);
 
 
 % --------------------------------------------------------------------
@@ -1105,3 +1108,8 @@ function slider2_CreateFcn(hObject, eventdata, handles)
     if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor',[.9 .9 .9]);
     end
+
+% --------------------------------------------------------------------
+function toolbar_init_ClickedCallback(hObject, eventdata, handles)
+
+init_conditions_viewer(handles.file,handles.timing)

@@ -312,7 +312,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %distributions - really long struct
         value=struct('cal',[],'non_cal',[]);
         data_holder_2=struct('value',value,'position_y',[],'position_x',[]);
-        distributions=struct('GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
+        distributions=struct('NC_length',data_holder_2,'GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
             'MP_backward_temp',data_holder_2,'MP_forward_molefr_h2o',data_holder_2,'MP_forward_partpress_h2o',data_holder_2,...
             'MP_forward_temp',data_holder_2,'MP_backward_temp_smooth',data_holder_2,'MP_forward_temp_smooth',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
@@ -972,32 +972,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %         facility.voltage.error=1;
         facility.current.error=1;
         
-        % NC gases - values and errors
-        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file);
-        NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
-        NC.N2_molefraction_init.error=NC.N2_molefraction.error;
-        NC.He_molefraction_init.error=NC.He_molefraction.error;
-        NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
-        
-        %Boundary conditions - values
-        BC.Wall_dT.value=facility.wall_dT.value;
-        BC.Coolant_flow.value=coolant.mflow.value;
-        BC.Coolant_temp.value=coolant.temp.value;
-        BC.Steam_pressure.value=steam.press.value;
-        BC.NC_molefraction.value=NC.NC_molefraction.value;
-        BC.He_molefraction.value=NC.He_molefraction.value;
-        BC.N2_molefraction.value=NC.N2_molefraction.value;
-
-        %Boundary conditions - errors
-        BC.Wall_dT.error=facility.wall_dT.error;
-        BC.Coolant_flow.error=coolant.mflow.error;
-        BC.Coolant_temp.error=coolant.temp.error;
-        BC.Steam_pressure.error.value=steam.press.error;
-        BC.NC_molefraction.error=NC.NC_molefraction.error;
-        BC.He_molefraction.error=NC.He_molefraction.error;
-        BC.N2_molefraction.error=NC.N2_molefraction.error;  
-
-        % GHFS - errors
+         % GHFS - errors
         if  fast_flag==1
             GHFS.GHFS1.error=0.0002*GHFS.GHFS1.value;
             GHFS.GHFS2.error=0.0003*GHFS.GHFS2.value;
@@ -1031,26 +1006,73 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         end
         
         % Distribution errors
-            distributions.GHFS_TC.error=0.05;       
-            distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_backward_temp.error=0.05;
-            distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_forward_temp.error=0.05;
-            distributions.MP_backward_temp_smooth.error=0.05;
-            distributions.MP_forward_temp_smooth.error=0.05;
-            distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.centerline_temp.error=0.05;
-            distributions.coolant_temp_0deg.error=0.05;
-            distributions.coolant_temp_180deg.error=0.05;
-            distributions.outer_wall_temp_0deg.error=0.05;
-            distributions.outer_wall_temp_180deg.error=0.05;
-            distributions.wall_dT.unit=0.05;
-            distributions.wall_inner.unit=0.05;
-            distributions.wall_outer.unit=0.05;
-         
+        distributions.GHFS_TC.error=0.05;       
+        distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_backward_temp.error=0.05;
+        distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_forward_temp.error=0.05;
+        distributions.MP_backward_temp_smooth.error=0.05;
+        distributions.MP_forward_temp_smooth.error=0.05;
+        distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.centerline_temp.error=0.05;
+        distributions.coolant_temp_0deg.error=0.05;
+        distributions.coolant_temp_180deg.error=0.05;
+        distributions.outer_wall_temp_0deg.error=0.05;
+        distributions.outer_wall_temp_180deg.error=0.05;
+        distributions.wall_dT.error=0.05;
+        distributions.wall_inner.error=0.05;
+        distributions.wall_outer.error=0.05;
+            
+                 
+        %% NC gases ==============================================================================================================
+        %  values and errors
+        
+        % values
+        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_N2_htank.error,NC.moles_He_htank.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file);
+        NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
+        NC.moles_total.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;    
+        % estimate tube length occupied by non mixed (with steam) NC mixture
+        NC.length.value=length_NC(mean(cal_steady_data.TF9614)+273.15,steam.press.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);
+        
+        %errors
+        NC.N2_molefraction_init.error=NC.N2_molefraction.error;
+        NC.He_molefraction_init.error=NC.He_molefraction.error;
+        NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
+        NC.moles_total.error=NC.moles_N2_htank.error+NC.moles_He_htank.error;
+        NC.length.error=error_NC_length(NC.length.value,NC.moles_total.value,mean(cal_steady_data.TF9614)+273.15,steam.press.value*10^5,NC.moles_total.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+        
+        %distributions
+        distributions.NC_length.position_y=[1,1330-NC.length.value*1000-1,1330-NC.length.value*1000,1330];
+        distributions.NC_length.position_x=zeros(numel(distributions.NC_length.position_y),1);
+        distributions.NC_length.value.cal=[0,0,1,1];
+        distributions.NC_length.error=NC.length.error;
+        
+        
+        %% Boundary conditions ==============================================================================================================
+        %  values and errors
+        
+        %Boundary conditions -values
+        BC.Wall_dT.value=facility.wall_dT.value;
+        BC.Coolant_flow.value=coolant.mflow.value;
+        BC.Coolant_temp.value=coolant.temp.value;
+        BC.Steam_pressure.value=steam.press.value;
+        BC.NC_molefraction.value=NC.NC_molefraction.value;
+        BC.He_molefraction.value=NC.He_molefraction.value;
+        BC.N2_molefraction.value=NC.N2_molefraction.value;
+
+        %Boundary conditions - errors
+        BC.Wall_dT.error=facility.wall_dT.error;
+        BC.Coolant_flow.error=coolant.mflow.error;
+        BC.Coolant_temp.error=coolant.temp.error;
+        BC.Steam_pressure.error.value=steam.press.error;
+        BC.NC_molefraction.error=NC.NC_molefraction.error;
+        BC.He_molefraction.error=NC.He_molefraction.error;
+        BC.N2_molefraction.error=NC.N2_molefraction.error;  
+
+       
         %% ADD UNITS
         disp('5. Adding measurments units')
         % coolant thermodynamic conditions - measured               
@@ -1115,9 +1137,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.NC_molefraction.unit='1';
         NC.N2_molefraction_init.unit='1';
         NC.He_molefraction_init.unit='1';
+        NC.moles_N2_htank.unit='1';
+        NC.moles_He_htank.unit='1';
+        NC.moles_total.unit='1';
+        NC.length.unit='1';
         
         if  fast_flag
-    % GHFS units
+        % GHFS units
             GHFS.GHFS1.unit='V';
             GHFS.GHFS2.unit='V';
             GHFS.GHFS3.unit='V';
@@ -1135,7 +1161,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
         
         
-    % Movable probe units   
+        % Movable probe units   
             MP.MP1.unit='V';
             MP.MP2.unit='V';
             MP.MP3.unit='V';
@@ -1181,6 +1207,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.wall_dT.unit=[char(176),'C'];
         distributions.wall_inner.unit=[char(176),'C'];
         distributions.wall_outer.unit=[char(176),'C'];
+        distributions.NC_length.unit=1;
     
 %% Sort variables and save
         disp('6. Sorting and storing data in .mat files')

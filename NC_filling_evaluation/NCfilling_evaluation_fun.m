@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac, He_mole_frac,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag)
+function [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag)
 reset(symengine) %clears symbolic variables
 
     %% PURPOSE OF THIS CODE

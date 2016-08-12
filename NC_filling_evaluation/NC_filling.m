@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init]=NC_filling(p,T,p_error,T_error,file)
+function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file)
     extensive_error_flag=0;
     % get initial conditions from file
     dir=file.directory;
@@ -22,20 +22,23 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)
     disp_flag=1;
-    [h2o_mole_frac, N2_mole_frac, He_mole_frac,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag);
+    [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag);
     
     if ~extensive_error_flag     
-         %calculate maximal possible deviation from p and T, due to p and T
+        %calculate maximal possible deviation from p and T, due to p and T
+        %errors
         arg_mod_p=arg;
         arg_mod_T=arg;
         
+        %create modified input string based on p and T errors (odd
+        %positions are pressures, even positions are temperatures
         for err_cntr=1:numel(arg)/2
             arg_mod_p(err_cntr*2-1)=arg_mod_p(err_cntr*2-1)+p_error;
             arg_mod_T(err_cntr*2)=arg_mod_T(err_cntr*2)+T_error;
         end
         disp_flag=0;
-        [h2o_mole_frac_T, N2_mole_frac_T, He_mole_frac_T]=NCfilling_evaluation_fun(arg_mod_p,disp_flag);
-        [h2o_mole_frac_P, N2_mole_frac_P, He_mole_frac_P]=NCfilling_evaluation_fun(arg_mod_T,disp_flag);
+        [h2o_mole_frac_T, N2_mole_frac_T, He_mole_frac_T,moles_N2_htank_T,moles_He_htank_T]=NCfilling_evaluation_fun(arg_mod_p,disp_flag);
+        [h2o_mole_frac_P, N2_mole_frac_P, He_mole_frac_P,moles_N2_htank_P,moles_He_htank_P]=NCfilling_evaluation_fun(arg_mod_T,disp_flag);
 
         %calculate "derivatives" of mole fractions wrt p and T, as finite
         %differences for each species
@@ -45,22 +48,35 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         dN2_mole_frac_dP=(N2_mole_frac-N2_mole_frac_P)/p_error;
         dHe_mole_frac_dT=(He_mole_frac-He_mole_frac_T)/T_error;
         dHe_mole_frac_dP=(He_mole_frac-He_mole_frac_P)/p_error;
+        dmoles_N2_htank_dT=(moles_N2_htank-moles_N2_htank_T)/T_error;
+        dmoles_N2_htank_dP=(moles_N2_htank-moles_N2_htank_P)/p_error;
+        dmoles_He_htank_dT=(moles_He_htank-moles_He_htank_T)/T_error;
+        dmoles_He_htank_dP=(moles_He_htank-moles_He_htank_P)/p_error;
 
 
         %sum the errors coming from p and T measurements
         %see section (f) from http://www.rit.edu/cos/uphysics/uncertainties/Uncertaintiespart2.html
-        mfrac_p_error=dh2o_mole_frac_dP.*p_error;
-        mfrac_T_error=dh2o_mole_frac_dT.*T_error;
-        h2o_mole_frac_error=sqrt(mfrac_p_error.^2+mfrac_T_error.^2);
+        mfrac_p_error=dh2o_mole_frac_dP*p_error;
+        mfrac_T_error=dh2o_mole_frac_dT*T_error;
+        h2o_mole_frac_error=sqrt(mfrac_p_error^2+mfrac_T_error^2);
         
 
-        mfracN2_p_error=dN2_mole_frac_dP.*p_error;
-        mfracN2_T_error=dN2_mole_frac_dT.*T_error;
-        N2_mole_frac_error=sqrt(mfracN2_p_error.^2+mfracN2_T_error.^2);
+        mfracN2_p_error=dN2_mole_frac_dP*p_error;
+        mfracN2_T_error=dN2_mole_frac_dT*T_error;
+        N2_mole_frac_error=sqrt(mfracN2_p_error^2+mfracN2_T_error^2);
 
-        mfracHe_p_error=dHe_mole_frac_dP.*p_error;
-        mfracHe_T_error=dHe_mole_frac_dT.*T_error;
-        He_mole_frac_error=sqrt(mfracHe_p_error.^2+mfracHe_T_error.^2);
+        mfracHe_p_error=dHe_mole_frac_dP*p_error;
+        mfracHe_T_error=dHe_mole_frac_dT*T_error;
+        He_mole_frac_error=sqrt(mfracHe_p_error^2+mfracHe_T_error^2);
+        
+        moleN2_p_error=dmoles_N2_htank_dP*p_error;
+        moleN2_T_error=dmoles_N2_htank_dT*T_error;
+        moleN2_error=sqrt(moleN2_p_error^2+moleN2_T_error^2);
+        
+        moleHe_p_error=dmoles_He_htank_dP*p_error;
+        moleHe_T_error=dmoles_He_htank_dT*T_error;
+        moleHe_error=sqrt(moleHe_p_error^2+moleHe_T_error^2);
+        %last two missing in extensive mode
     else
         %in extensive error mode, calculate the influence of the initial
         %conditions measurements error additionally to test conditions
@@ -74,12 +90,20 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         h2o_mole_frac_mod_array=zeros(1,arg_lng);
         N2_mole_frac_mod_array=zeros(1,arg_lng);
         He_mole_frac_mod_array=zeros(1,arg_lng);
+        moleN2_mod_array=zeros(1,arg_lng);
+        moleHe_mod_array=zeros(1,arg_lng);
+        
         dh2o_mole_frac_dx=zeros(1,arg_lng);
         dN2_mole_frac_dx=zeros(1,arg_lng);
         dHe_mole_frac_dx=zeros(1,arg_lng);
+        dmoles_N2_htank_dx=zeros(1,arg_lng);
+        dmoles_He_htank_dx=zeros(1,arg_lng);
+        
         mfrac_h2o_err=zeros(1,arg_lng);
         mfrac_N2_err=zeros(1,arg_lng);
         mfrac_He_err=zeros(1,arg_lng);
+        moles_N2_err=zeros(1,arg_lng);
+        moles_He_err=zeros(1,arg_lng);
         
         for i=1:arg_lng
             arg_mod=arg;
@@ -95,17 +119,21 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
             end
             
             % get values of mole fractions for each modified arg array
-            [h2o_mole_frac_mod_array(i), N2_mole_frac_mod_array(i), He_mole_frac_mod_array(i)]=NCfilling_evaluation_fun(arg_mod);
+            [h2o_mole_frac_mod_array(i), N2_mole_frac_mod_array(i), He_mole_frac_mod_array(i),moleN2_mod_array(i),moleHe_mod_array(i)]=NCfilling_evaluation_fun(arg_mod,disp_flag);
             
             %calc "derivatives" for each modified parameter
             dh2o_mole_frac_dx(i)=(h2o_mole_frac-h2o_mole_frac_mod_array(i))/dx;
             dN2_mole_frac_dx(i)=(N2_mole_frac-N2_mole_frac_mod_array(i))/dx;
             dHe_mole_frac_dx(i)=(He_mole_frac-He_mole_frac_mod_array(i))/dx;
+            dmoles_N2_htank_dx(i)=(moles_N2_htank-moleN2_mod_array(i))/dx;
+            dmoles_He_htank_dx(i)=(moles_He_htank-moleHe_mod_array(i))/dx;
             
             %calc error due to each parameter (error of x * dparam/dx)
             mfrac_h2o_err(i)=dh2o_mole_frac_dx(i)*dx;
             mfrac_N2_err(i)=dN2_mole_frac_dx(i)*dx;
             mfrac_He_err(i)=dHe_mole_frac_dx(i)*dx;
+            moles_N2_err(i)=dmoles_N2_htank_dx(i)*dx;
+            moles_He_err(i)=dmoles_He_htank_dx(i)*dx;
         end
         
         %sum the errors coming from every parameter measurement
@@ -116,5 +144,7 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         h2o_mole_frac_error=sqrt(sumsqr(mfrac_h2o_err));
         N2_mole_frac_error=sqrt(sumsqr(mfrac_N2_err));
         He_mole_frac_error=sqrt(sumsqr(mfrac_He_err));
+        moleN2_error=sqrt(sumsqr(moles_N2_err));
+        moleHe_error=sqrt(sumsqr(moles_He_err));
     end
 end

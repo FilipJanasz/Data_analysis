@@ -1,5 +1,7 @@
 function [press_NC_tank, press_NC_tank_He]=NCfilling_estimation_fun(mole_fr_h2o,mole_fr_N2,T_room,test_press,eos)
-reset(symengine)
+	%T in Kelvin
+    %P in bar
+    reset(symengine)
     %% PURPOSE OF THIS CODE
     % Define desired test conditions in PRECISE facility - 
     % total pressure and mass fractions of H2O, N2 and He
@@ -8,33 +10,33 @@ reset(symengine)
 
 
     %% GAS PROPERTIES
-        %molar mass
+    %molar mass
 %         mol_m_air=28.966;
-        mol_m_N2=28.0134;
-        mol_m_He=4;
-        mol_m_h2o=18.02;
+    mol_m_N2=28.0134;
+    mol_m_He=4;
+    mol_m_h2o=18.02;
 
-        mol_m(1)=mol_m_N2;
-        mol_m(2)=mol_m_He;  %put molar masses into one var for Equation Of State
-        mol_m(3)=mol_m_h2o;
+    mol_m(1)=mol_m_N2;
+    mol_m(2)=mol_m_He;  %put molar masses into one var for Equation Of State
+    mol_m(3)=mol_m_h2o;
 
-        %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
-        pc_N2=33.9;
-        pc_He=2.27;
-        pc_h2o=220.6;
+    %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
+    pc_N2=33.9;
+    pc_He=2.27;
+    pc_h2o=220.6;
 
-        pc(1)=pc_N2;
-        pc(2)=pc_He;    %put critical pressure values (pc's) into one var for Equation Of State
-        pc(3)=pc_h2o;
+    pc(1)=pc_N2;
+    pc(2)=pc_He;    %put critical pressure values (pc's) into one var for Equation Of State
+    pc(3)=pc_h2o;
 
-        %critical temperature in K http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
-        Tc_N2=123.21;
-        Tc_He=5.19;
-        Tc_h2o=647.096;
+    %critical temperature in K http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
+    Tc_N2=123.21;
+    Tc_He=5.19;
+    Tc_h2o=647.096;
 
-        Tc(1)=Tc_N2;
-        Tc(2)=Tc_He;    %put Tc's into one var for Equation Of State
-        Tc(3)=Tc_h2o;
+    Tc(1)=Tc_N2;
+    Tc(2)=Tc_He;    %put Tc's into one var for Equation Of State
+    Tc(3)=Tc_h2o;
 
     %gas constant
     R=8.3144621;
@@ -73,20 +75,19 @@ reset(symengine)
 
     % press_total=5;  % [Bar] *******************************************************
     press_part_h2o=test_press*mole_fr(3);
-    Tsat=IAPWS_IF97('Tsat_p',press_part_h2o/10);
-
-
-    
+    Tsat=IAPWS_IF97('Tsat_p',press_part_h2o/10);  
 
     %% check applicability condition (for all mixture components p/pc > T/2*Tc) for Redlich Kwong
 
     RK_app=zeros(1,mixture_components);
     for i=1:mixture_components
         RK_app(i)=test_press/pc(i)/(Tsat/2/Tc(i));
-        if RK_app(i)>1
-             error('Redlich-Kwong equation not applicable - for a mixture component p/pc > T/2*Tc')
+        if RK_app(i)>1 && eos==2;
+             warning('Redlich-Kwong equation not applicable - for a mixture component the condition is not met (p/pc > T/2*Tc), forcing ideal gas equation')
+             eos=1;
         end
     end
+    
     %% Define Redlich-Kwong equation (for three species in heater tank) or ideal gas
     if eos==1
         [press_fun,Vm_fun,T_fun]=ideal_gas(R);

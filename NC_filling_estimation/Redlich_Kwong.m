@@ -39,7 +39,7 @@ a_weighted=sum(a.*mole_fr_a);
 % Redlich-Kwong will be solved either for volume, pressure or temperature
 syms P Vm T
 %define equation
-f=P-R*T/(Vm-b_weighted)+a_weighted/sqrt(T)/(Vm*(Vm+b_weighted));
+f = P==R*T/(Vm-b_weighted)+a_weighted/(sqrt(T)*Vm*(Vm+b_weighted));
 %get expression for pressure as a function of Vm and T
 press_eq=solve(f,P);
 %get expression of Vm as a function of P and T

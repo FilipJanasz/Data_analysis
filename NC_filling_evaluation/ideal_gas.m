@@ -5,7 +5,7 @@ function [press_fun,Vm_fun,T_fun]=ideal_gas(R)
 % equation will be solved either for volume, pressure or temperature
 syms P Vm T
 %define equation
-f(P,Vm)=P*Vm-R*T;
+f = P*Vm==R*T;
 %get expression for pressure as a function of Vm and T
 press_eq=solve(f,P);
 %get expression of Vm as a function of P and T

@@ -6,6 +6,8 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     reset(symengine)
     
     %ideal gas vs redlich kwong equation
+    % 1 - ideal gas
+    % 2 - Redlich Kwong
     eos=2;
     
     %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29

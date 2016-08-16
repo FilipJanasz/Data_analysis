@@ -57,5 +57,5 @@ function [press_fun,Vm_fun,T_fun]=Redlich_Kwong(R,Tc,pc,mole_fr)
     press_fun=matlabFunction(press_eq);
     Vm_fun=matlabFunction(Vm_eq); %Vm gives as a result three values in complex domain - then Vm=real(Vm(1))
 %     T_fun=matlabFunction(T_eq);
-    T_fun=1; %see above about T:eq
+    T_fun=1;
 end

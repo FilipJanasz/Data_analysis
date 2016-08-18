@@ -62,13 +62,12 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     
     %get volume
     volume=NC_moles_total*molar_Vol;
-        
+    if volume>
+    
+    %check if volume is bigger than the tube and if the gas must also enter the heating tank
+    
     %from volume, get length of tube (divide by tube crossection)
     nc_length=volume/(pi*0.01^2);
-    
-    %check if gas volume is not bigger than a tube
-    if nc_length>1.58
-        nc_length=1.58+(volume-1.58*pi*0.01^2)/(pi*(0.0843/2)^2);   %the middle term is the tube volume together with joining secionts, the last part is heater tank crossection
-    end       
+       
     
 end

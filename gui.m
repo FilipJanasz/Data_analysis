@@ -89,6 +89,9 @@ end
 function process_btn_Callback(hObject, ~, handles)
     % profile on
     clear steam coolant facility NC distributions file BC GHFS MP timing
+    handles=rmfield(handles,{'steam','coolant','facility','NC','distributions','file','BC','GHFS','MP','timing'});
+    %update handles structure
+    guidata(hObject, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;

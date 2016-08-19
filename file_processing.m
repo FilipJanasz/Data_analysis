@@ -162,8 +162,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             list=all_vars_list;
             %limit list to only variable data - last channel is TW9603 -
             %this may change and needs adjusting!!!
-            disp('****************************************')
-            disp('last channel for processing marked as TW9603 - verify in data files')
+%             disp('****************************************')
+%             disp('last channel for processing marked as TW9603 - verify in data files')
 
             %find indices of last channel
             
@@ -220,7 +220,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             % find steady state, but only if appropriate checkbox is
             % checked, otherwise, pretend to do it and save all the data in
             % there
-            disp('********************************************** /n')
+            disp('********************************************** ')
             disp('Data processing engaged')
             
             if st_state_flag

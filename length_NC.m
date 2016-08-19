@@ -40,13 +40,14 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     mixture_components=length(mole_fr);
     
     %% check applicability condition (for all mixture components p/pc > T/2*Tc) for Redlich Kwong
-
-    RK_app=zeros(1,mixture_components);
-    for i=1:mixture_components
-        RK_app(i)=test_press/pc(i)/(test_T/2/Tc(i));
-        if RK_app(i)>1 && eos==2;
-             warning('Redlich-Kwong equation not applicable - for a mixture component the condition is not met (p/pc > T/2*Tc), forcing ideal gas equation')
-             eos=1;
+    if eos==2;
+        RK_app=zeros(1,mixture_components);
+        for i=1:mixture_components
+            RK_app(i)=test_press/pc(i)/(test_T/2/Tc(i));
+            if RK_app(i)>1
+                 warning('Redlich-Kwong equation not applicable - for a mixture component the condition is not met (p/pc > T/2*Tc), forcing ideal gas equation')
+                 eos=1;
+            end
         end
     end
     %% Define state equation - Redlich-Kwong equation (for three species in heater tank) or ideal gas

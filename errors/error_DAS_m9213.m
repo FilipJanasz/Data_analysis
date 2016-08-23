@@ -1,4 +1,4 @@
-%% Thermocouple - module 9213, pg 21 and 25, http://www.ni.com/pdf/manuals/374916a.pdf
+%% Thermocouple - module 9213, pg 21 and 25, http://www.ni.com/pdf/manuals/372499b.pdf
 function [DAS_TC_err_abs]=error_DAS_m9213(T)
 % T_voltage=f_TC_temp_to_volt(T)         % convert T into voltage, according to type K TC properties
 % seebeck_K=39;                           % micro volts per celsius

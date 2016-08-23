@@ -1,4 +1,4 @@
-function varargout = gui(varargin)
+function varargout = GHFS_calibration_gui(varargin)
     % profile on
     clc
     % Determine where your m-file's folder is.
@@ -7,33 +7,33 @@ function varargout = gui(varargin)
     addpath(genpath(script_folder));
     cd(script_folder)
 
-    % GUI MATLAB code for gui.fig
-    %      GUI, by itself, creates a new GUI or raises the existing
+    % GHFS_CALIBRATION_GUI MATLAB code for GHFS_calibration_gui.fig
+    %      GHFS_CALIBRATION_GUI, by itself, creates a new GHFS_CALIBRATION_GUI or raises the existing
     %      singleton*.
     %
-    %      H = GUI returns the handle to a new GUI or the handle to
+    %      H = GHFS_CALIBRATION_GUI returns the handle to a new GHFS_CALIBRATION_GUI or the handle to
     %      the existing singleton*.
     %
-    %      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-    %      function named CALLBACK in GUI.M with the given input arguments.
+    %      GHFS_CALIBRATION_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
+    %      function named CALLBACK in GHFS_CALIBRATION_GUI.M with the given input arguments.
     %
-    %      GUI('Property','Value',...) creates a new GUI or raises the
+    %      GHFS_CALIBRATION_GUI('Property','Value',...) creates a new GHFS_CALIBRATION_GUI or raises the
     %      existing singleton*.  Starting from the left, property value pairs are
-    %      applied to the GUI before gui_OpeningFcn gets called.  An
+    %      applied to the GHFS_CALIBRATION_GUI before GHFS_calibration_gui_OpeningFcn gets called.  An
     %      unrecognized property name or invalid value makes property application
-    %      stop.  All inputs are passed to gui_OpeningFcn via varargin.
+    %      stop.  All inputs are passed to GHFS_calibration_gui_OpeningFcn via varargin.
     %
-    %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+    %      *See GHFS_CALIBRATION_GUI Options on GUIDE's Tools menu.  Choose "GHFS_CALIBRATION_GUI allows only one
     %      instance to run (singleton)".
     %
 
-    % Edit the above text to modify the response to help gui
+    % Edit the above text to modify the response to help GHFS_calibration_gui
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
     gui_State = struct('gui_Name',       mfilename, ...
                        'gui_Singleton',  gui_Singleton, ...
-                       'gui_OpeningFcn', @gui_OpeningFcn, ...
-                       'gui_OutputFcn',  @gui_OutputFcn, ...
+                       'gui_OpeningFcn', @GHFS_calibration_gui_OpeningFcn, ...
+                       'gui_OutputFcn',  @GHFS_calibration_gui_OutputFcn, ...
                        'gui_LayoutFcn',  [] , ...
                        'gui_Callback',   []);
     if nargin && ischar(varargin{1})
@@ -45,17 +45,17 @@ function varargout = gui(varargin)
     else
         gui_mainfcn(gui_State, varargin{:});
     end
-    % cd('D:\Data\Data_analysis');
+    
     % End initialization code - DO NOT EDIT
 
-% --- Executes just before gui is made visible.
-function gui_OpeningFcn(hObject, ~, handles, varargin)
+% --- Executes just before GHFS_calibration_gui is made visible.
+function GHFS_calibration_gui_OpeningFcn(hObject, ~, handles, varargin)
     % This function has no output args, see OutputFcn.
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    % varargin   command line arguments to gui (see VARARGIN)
-    % Choose default command line output for gui
+    % varargin   command line arguments to GHFS_calibration_gui (see VARARGIN)
+    % Choose default command line output for GHFS_calibration_gui
     handles.output = hObject;
     handles.plotcounter=0;
     handles.clear_old_flag=0;
@@ -66,11 +66,11 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     % Update handles structure
     guidata(hObject, handles);
 % profile viewer
-    % UIWAIT makes gui wait for user response (see UIRESUME)
+    % UIWAIT makes GHFS_calibration_gui wait for user response (see UIRESUME)
     % uiwait(handles.figure1);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_OutputFcn(~, ~, handles) 
+function varargout = GHFS_calibration_gui_OutputFcn(~, ~, handles) 
 
     % Get default command line output from handles structure
     % varargout{1} = handles.output;
@@ -88,46 +88,31 @@ end
 % --- Executes on button press in process_btn.
 function process_btn_Callback(hObject, ~, handles)
     % profile on
-    clear steam coolant facility NC distributions file BC GHFS MP timing
+    clear data
 
     %update handles structure
     guidata(hObject, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;
-    interactive_flag=get(handles.interactive_checkbox,'Value');
-    st_state_flag=get(handles.st_state,'Value');
-      
+    filePath_default=get(handles.file_path_disp,'String'); 
+    
     % call function down the line for file processing
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
+    [file,data]=GHFS_calib_main(clear_flag,filePath_default);
     
     %transfer data to handles structure
-    handles.steam=steam;
-    handles.coolant=coolant;
-    handles.facility=facility;
-    handles.NC=NC;
+    handles.data=data;
     handles.file=file;
-    handles.BC=BC;
-    handles.GHFS=GHFS;
-    handles.MP=MP;
-    handles.timing=timing;
-    handles.distributions=distributions;
-   
+  
     % push the data to main workspace, just in case
-    assignin('base','steam',handles.steam)
-    assignin('base','coolant',handles.coolant)
-    assignin('base','facility',handles.facility)
+    assignin('base','data',handles.data)
     assignin('base','file',handles.file)
-    assignin('base','distributions',handles.distributions)
-    assignin('base','NC',handles.NC)
-    assignin('base','BC',handles.BC)
-    assignin('base','GHFS',handles.GHFS)
-    assignin('base','MP',handles.MP)
-    assignin('base','timing',handles.timing)
-
+    
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
-    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+%     vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+    vars=fields(data);
+    vars=vars';
 
     set(handles.popupmenu_x_axis,'String',vars)
     set(handles.popupmenu_y_axis,'String',vars)
@@ -135,12 +120,6 @@ function process_btn_Callback(hObject, ~, handles)
     %two lines below reset popupmenu values to first object on the list
     set(handles.popupmenu_x_axis,'Value',1);
     set(handles.popupmenu_y_axis,'Value',1);
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'Value',1);
-
-    %update variables popupmenus
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
     file_list={file(1:end).name};
@@ -160,38 +139,21 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 
     % based on user choice, access and process picked files
     clear_flag=1;
-    plot_flag=get(handles.interactive_checkbox,'Value');
-    st_state_flag=get(handles.st_state,'Value');
+    filePath_default=get(handles.file_path_disp,'String'); 
     
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
+    % call function down the line for file processing
+    [file,data]=GHFS_calib_main(clear_flag,filePath_default);
     
     %transfer data to handles structure
-    handles.steam=steam;
-    handles.coolant=coolant;
-    handles.facility=facility;
-    handles.NC=NC;
-    handles.file=file;
-    handles.BC=BC;
-    handles.GHFS=GHFS;
-    handles.MP=MP;
-    handles.timing=timing;
-    handles.distributions=distributions;
-   
+    handles.data=data;
+  
     % push the data to main workspace, just in case
-    assignin('base','steam',handles.steam)
-    assignin('base','coolant',handles.coolant)
-    assignin('base','facility',handles.facility)
-    assignin('base','file',handles.file)
-    assignin('base','distributions',handles.distributions)
-    assignin('base','NC',handles.NC)
-    assignin('base','BC',handles.BC)
-    assignin('base','GHFS',handles.GHFS)
-    assignin('base','MP',handles.MP)
-    assignin('base','timing',handles.timing)
+    assignin('base','data',handles.data)
 
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
-    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+%     vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+    vars=fields(data);
 
     set(handles.popupmenu_x_axis,'String',vars)
     set(handles.popupmenu_y_axis,'String',vars)
@@ -199,13 +161,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     %two lines below reset popupmenu values to first object on the list
     set(handles.popupmenu_x_axis,'Value',1);
     set(handles.popupmenu_y_axis,'Value',1);
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'Value',1);
 
-    %update variables popupmenus
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
-    
     %update data selector listbox
     file_list={file(1:end).name};
     set(handles.plot_exclude,'String',file_list)
@@ -219,7 +175,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 function plot_button_Callback(hObject, eventdata, handles)
 %     profile on
     %make sure data is loaded
-    if ~isfield(handles,'steam')
+    if ~isfield(handles,'data')
         errordlg('No data available for plotting - load data first')
     end
     
@@ -232,17 +188,9 @@ function plot_button_Callback(hObject, eventdata, handles)
     list_y=get(handles.popupmenu_y_axis,'String');
     val_x=get(handles.popupmenu_x_axis,'Value');
     val_y=get(handles.popupmenu_y_axis,'Value');
-    x_param=list_x{val_x};
-    y_param=list_y{val_y};        
-    
-    % get choice of what parameter of each phase is to be plotted
-    list_x_var=get(handles.popupmenu_x_axis_var,'String');
-    list_y_var=get(handles.popupmenu_y_axis_var,'String');
-    val_x_var=get(handles.popupmenu_x_axis_var,'Value');
-    val_y_var=get(handles.popupmenu_y_axis_var,'Value');
-    x_param_var=list_x_var{val_x_var};
-    y_param_var=list_y_var{val_y_var};
-    
+    x_param_var=list_x{val_x};
+    y_param_var=list_y{val_y};        
+      
     %allocate
     x_dat=ones(1,files_chosen);
     y_dat=ones(1,files_chosen);
@@ -251,15 +199,15 @@ function plot_button_Callback(hObject, eventdata, handles)
     
     %extract data values and error values, applying file choice filter
     for cntr=1:files_chosen
-        x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
-        y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
-        x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
-        y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
+        x_dat(cntr)=handles.data(file_choice(cntr)).(x_param_var).value;
+        y_dat(cntr)=handles.data(file_choice(cntr)).(y_param_var).value;
+        x_err(cntr)=handles.data(file_choice(cntr)).(x_param_var).error;
+        y_err(cntr)=handles.data(file_choice(cntr)).(y_param_var).error;
     end
 
     %get units for the plot
-    x_unit=handles.(x_param)(1).(x_param_var).unit;
-    y_unit=handles.(y_param)(1).(y_param_var).unit;
+    x_unit=handles.data(1).(x_param_var).unit;
+    y_unit=handles.data(1).(y_param_var).unit;
     
     hold_flag=get(handles.hold_checkbox, 'Value');
  
@@ -408,8 +356,8 @@ function plot_button_Callback(hObject, eventdata, handles)
     
 %     xlabel([x_param,' ',x_param_var,' [',x_unit,']'], 'interpreter', 'none','fontsize',20)
 %     ylabel([y_param,' ',y_param_var,' [',y_unit,']'], 'interpreter', 'none','fontsize',20)
-    xlabel([x_param,' ',x_param_var,' [',x_unit,']'], 'interpreter', 'none')
-    ylabel([y_param,' ',y_param_var,' [',y_unit,']'], 'interpreter', 'none')
+    xlabel([x_param_var,' [',x_unit,']'], 'interpreter', 'none')
+    ylabel([y_param_var,' [',y_unit,']'], 'interpreter', 'none')
     
     %add point labeling
     label_flag=get(handles.checkbox_point_labels, 'Value');
@@ -432,30 +380,6 @@ function plot_button_Callback(hObject, eventdata, handles)
     guidata(hObject, handles)
 %  profile viewer
 
-% --- Executes on selection change in popupmenu_x_axis_var.
-function popupmenu_x_axis_var_Callback(~, ~, ~)
-
-
-
-% --- Executes during object creation, after setting all properties.
-function popupmenu_x_axis_var_CreateFcn(hObject, ~, ~)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on selection change in popupmenu_y_axis_var.
-function popupmenu_y_axis_var_Callback(~, ~, ~)
-
-
-
-% --- Executes during object creation, after setting all properties.
-function popupmenu_y_axis_var_CreateFcn(hObject, ~, ~)
-
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 % --- Executes on button press in polyfit.
 function polyfit_Callback(hObject, ~, handles)
@@ -513,7 +437,7 @@ function polyfit_Callback(hObject, ~, handles)
         set(handles.legend,'Visible','Off')
     end
     
-    %update GUI
+    %update GHFS_CALIBRATION_GUI
     set(handles.graph_list,'String',handles.graph_name)
         
     %forward changes
@@ -533,9 +457,6 @@ function popupmenu_x_axis_Callback(hObject, eventdata, handles)
     vars_val=get(handles.popupmenu_x_axis,'Value');
     vars=vars_list{vars_val};
        
-    %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars)));
     
 % --- Executes during object creation, after setting all properties.
 function popupmenu_x_axis_CreateFcn(hObject, eventdata, handles)
@@ -551,9 +472,6 @@ function popupmenu_y_axis_Callback(hObject, eventdata, handles)
     vars_val=get(handles.popupmenu_y_axis,'Value');
     vars=vars_list{vars_val};  
     
-    %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.popupmenu_y_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars)));
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
@@ -742,7 +660,7 @@ function plotrfln_pushbutton_Callback(hObject, eventdata, handles)
         set(handles.legend,'Visible','Off')
     end
     
-    %update GUI
+    %update GHFS_CALIBRATION_GUI
     set(handles.graph_list,'String',handles.graph_name)
     set(handles.graph_list,'Value', handles.plotcounter)
         
@@ -859,7 +777,7 @@ function clear_Callback(hObject, eventdata, handles)
         delete(handles.legend)
     end
     
-    %reset GUI elements
+    %reset GHFS_CALIBRATION_GUI elements
     set(handles.graph_list,'String','NA')
     set(handles.graph_list,'Value', 1) 
     
@@ -921,7 +839,7 @@ function line_delete_Callback(hObject, eventdata, handles)
             set(handles.legend,'Visible','Off')
         end
 
-        %update GUI
+        %update GHFS_CALIBRATION_GUI
         set(handles.graph_list,'String',handles.graph_name)
         set(handles.graph_list,'Value', handles.plotcounter)
             
@@ -983,7 +901,7 @@ function poly_error_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function toolbar_distributions_ClickedCallback(hObject, eventdata, handles)
     %make sure data is loaded
-    if ~isfield(handles,'steam')
+    if ~isfield(handles,'data')
         errordlg('No data available for plotting - load data first')
     end
     
@@ -1001,12 +919,12 @@ function toolbar_distributions_ClickedCallback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %make sure data is loaded
-    if ~isfield(handles,'steam')
+    if ~isfield(handles,'data')
         errordlg('No data available for plotting - load data first')
     end
     %code below extracts elements from the main struct array that have the
     %field "vars" storing time dependant experimental data and forwards it
-    %to another GUI
+    %to another GHFS_CALIBRATION_GUI
     vars={'steam','coolant','facility','GHFS','MP'};
 
     for k=1:numel(vars)
@@ -1030,7 +948,7 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %get path to where the processed files are
     filePath_default=get(handles.file_path_disp,'String');
     
-    %call new gui
+    %call new GHFS_calibration_gui
     gui_timedependant(time_dep_var,file_name,handles.timing,filePath_default);
 
 
@@ -1038,7 +956,7 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
 function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
         
     %saving figure is problematic due to two y axes
-    % 0. move to file directory, based on default value stored in GUI
+    % 0. move to file directory, based on default value stored in GHFS_CALIBRATION_GUI
     filePath_default=get(handles.file_path_disp,'String');
     cd(filePath_default)
     
@@ -1090,18 +1008,6 @@ function plot_exclude_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-% --- Executes on button press in adv_options_btn.
-function adv_options_btn_Callback(hObject, eventdata, handles)
-    handles.adv_options_flag=1;
-    %get options for processing
-    fid=fopen('adv_options.txt','rt');
-    options=textscan(fid,'%s');
-    options=options{1};
-    fclose(fid);
-    gui_advanced_options(options)
-    %forward changes in handles
-    guidata(hObject, handles);
 
 % --- Executes on slider movement.
 function slider2_Callback(hObject, eventdata, handles)

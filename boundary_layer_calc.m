@@ -18,9 +18,10 @@ function [boundary_layer,calc_dat_norm,calc_data_norm_lower,calc_data_norm_upper
     
     %calculate standart deviation for every point, based on neighbourhood
     %described by av_window
+    
     for i=2:numel(calc_dat)
-        set_st=i-av_window/2;
-        set_end=i+av_window/2;
+        set_st=floor(i-av_window/2);
+        set_end=floor(i+av_window/2);
 
         %if there's not enough points on left or right of the point
         if set_st<1

@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac, He_mole_frac,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag)
+function [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag)
 reset(symengine) %clears symbolic variables
 
     %% PURPOSE OF THIS CODE
@@ -44,13 +44,9 @@ reset(symengine) %clears symbolic variables
         R=8.3144621;
 
     %% GEOMTERY
-        vol_heaterTank=0.00419;
-        vol_NCtank=0.005;
-        vol_waterTank=0.003;
-
-        vol(1)=vol_heaterTank;
-        vol(2)=vol_NCtank;
-        vol(3)=vol_waterTank;
+        vol.heaterTank=0.00419;
+        vol.NCtank=0.005;
+        vol.waterTank=0.003;
 
     %% EOS choice
         % 1 - ideal gas
@@ -102,8 +98,8 @@ reset(symengine) %clears symbolic variables
 %             [press_fun_N2,Vm_fun_N2,T_fun_N2]=Redlich_Kwong(R,Tc_N2,pc_N2,1);
         end
 
-        molar_vol_Htank_vac=Vm_fun_N2(P_Htank_vac*100000,T_Htank_vac);
-        moles_N2_Htank_vac=vol(1)/real(molar_vol_Htank_vac(1));
+        molar_vol_Htank_vac=Vm_fun_N2(P_Htank_vac*10^5,T_Htank_vac);   % times 10^5 to convert bar to Pa
+        moles_N2_Htank_vac=vol.heaterTank/real(molar_vol_Htank_vac(1));
 
     %% Calculation 2 Vacuum in NC tank
 
@@ -111,13 +107,13 @@ reset(symengine) %clears symbolic variables
     % (same composition)
     if ~P_NCtank_full==0
         molar_vol_NCtank_N2=Vm_fun_N2(P_NCtank_vac*100000,T_NCtank_vac);
-        moles_N2_NCtank_vac=vol(2)/real(molar_vol_NCtank_N2(1));
+        moles_N2_NCtank_vac=vol.NCtank/real(molar_vol_NCtank_N2(1));
     end
 
     %% Calculation 3 Water filled to heater tank
 
     % make an initial guess about mole fraction of steam in gas mixture
-        moles_h2o_Htank_filling=P_Htank_h2o*100000*vol(1)/R/T_Htank_h2o-moles_N2_Htank_vac;
+        moles_h2o_Htank_filling=P_Htank_h2o*100000*vol.heaterTank/R/T_Htank_h2o-moles_N2_Htank_vac;
         mole_fr_h2o_Htank=moles_h2o_Htank_filling/(moles_h2o_Htank_filling+moles_N2_Htank_vac);
 
 
@@ -137,7 +133,7 @@ reset(symengine) %clears symbolic variables
                 [~,Vm_fun,~]=Redlich_Kwong(R,Tc([1,3]),pc([1,3]),mole_fr_array);
 %                 [press_fun,Vm_fun,T_fun]=Redlich_Kwong(R,Tc([1,3]),pc([1,3]),mole_fr_array);
                 molar_vol_Htank_filling=Vm_fun(P_Htank_h2o*100000,T_Htank_h2o);
-                moles_h2o_Htank_filling_temp=vol(1)/real(molar_vol_Htank_filling(1))-moles_N2_Htank_vac;
+                moles_h2o_Htank_filling_temp=vol.heaterTank/real(molar_vol_Htank_filling(1))-moles_N2_Htank_vac;
                 mole_fr_h2o_Htank=moles_h2o_Htank_filling_temp/(moles_h2o_Htank_filling_temp+moles_N2_Htank_vac);
                 condition=abs(moles_h2o_Htank_filling_temp-moles_h2o_Htank_filling)/moles_h2o_Htank_filling_temp;
                 moles_h2o_Htank_filling=moles_h2o_Htank_filling_temp;
@@ -148,13 +144,13 @@ reset(symengine) %clears symbolic variables
         end
 
         %CHECK values
-        T_Htank_h2o_IAPWS_sat=IAPWS_IF97('Tsat_p',P_Htank_h2o*mole_fr_h2o_Htank/10)
+        T_Htank_h2o_IAPWS_sat=IAPWS_IF97('Tsat_p',P_Htank_h2o*mole_fr_h2o_Htank/10);
         if disp_flag==1
 %             T_Htank_h2o_IAPWS_sat_nodajdustment=IAPWS_IF97('Tsat_p',P_Htank_h2o/10)
 %             T_Htank_h2o
 %             T_Htank_h2o_IAPWS_sat
         end
-        if T_Htank_h2o>T_Htank_h2o_IAPWS_sat
+        if abs(T_Htank_h2o-T_Htank_h2o_IAPWS_sat)>0.1
             if disp_flag==1
                 disp('Step 3 error - measured T larger than T sat from tables. Adjusting T')
                 disp('No calculations involved - just steam tables, so check initial conditions file but leave code alone')
@@ -164,14 +160,14 @@ reset(symengine) %clears symbolic variables
                 disp(T_Htank_h2o)
             end
             T_Htank_h2o=T_Htank_h2o_IAPWS_sat;
-            moles_h2o_Htank_filling=P_Htank_h2o*100000*vol(1)/R/T_Htank_h2o-moles_N2_Htank_vac;
+            moles_h2o_Htank_filling=P_Htank_h2o*100000*vol.heaterTank/R/T_Htank_h2o-moles_N2_Htank_vac;
             mole_fr_h2o_Htank=moles_h2o_Htank_filling/(moles_h2o_Htank_filling+moles_N2_Htank_vac);
         end
         %after the heater tank is separated from water tank, parts of the
         %moles of water and gas are left in the latter, thus while fraction
         %remains the same, absolute amount changes
-        %  (vol(1)-vol(3))/vol(1) - water from vol(3) is stransferred to vol(1)
-        moles_h2o_Htank_filling=moles_h2o_Htank_filling*(vol(1)-vol(3))/vol(1);
+        %  (vol.heaterTank-vol.waterTank)/vol.heaterTank - water from vol.waterTank is stransferred to vol.heaterTank
+        moles_h2o_Htank_filling=moles_h2o_Htank_filling*(vol.heaterTank-vol.waterTank)/vol.heaterTank;
         moles_N2_Htank_filling=moles_h2o_Htank_filling/(mole_fr_h2o_Htank)*(1-mole_fr_h2o_Htank); 
 
    
@@ -181,9 +177,9 @@ reset(symengine) %clears symbolic variables
         % pure helium + initial nitrogen, reuse EOS from Calculation 1
 
 %         molar_vol_NCtank=Vm_fun_N2(P_NCtank_He*100000,T_NCtank_He);
-%         moles_He_NCtank=vol(2)/real(molar_vol_NCtank(1))-moles_N2_NCtank_vac;
+%         moles_He_NCtank=vol.NCtank/real(molar_vol_NCtank(1))-moles_N2_NCtank_vac;
         molar_vol_NCtank_step_4=Vm_fun_N2(P_NCtank_He*100000,T_NCtank_He);
-        moles_He_NCtank=vol(2)/real(molar_vol_NCtank_step_4(1))-moles_N2_NCtank_vac;
+        moles_He_NCtank=vol.NCtank/real(molar_vol_NCtank_step_4(1))-moles_N2_NCtank_vac;
         mole_fr_He_NCtank=moles_He_NCtank/(moles_He_NCtank+moles_N2_NCtank_vac);
 
 
@@ -191,8 +187,8 @@ reset(symengine) %clears symbolic variables
 
     % make an initial guess about mole fraction of N2 in NC gas mixture
         molar_vol_NCtank_step_5=Vm_fun_N2(P_NCtank_full*100000,T_NCtank_full);
-        moles_N2_NCtank=vol(2)/real(molar_vol_NCtank_step_5(1))-moles_He_NCtank;
-        mole_fr_N2_NCtank=moles_N2_NCtank/(moles_He_NCtank+moles_N2_NCtank);
+        moles_N2_NCtank=vol.NCtank/real(molar_vol_NCtank_step_5(1))-moles_He_NCtank;
+%         mole_fr_N2_NCtank=moles_N2_NCtank/(moles_He_NCtank+moles_N2_NCtank); % apparently unused, keep in the code though
 
         % check what equation of state was chosen and act accordingly
         if eos==1
@@ -209,11 +205,17 @@ reset(symengine) %clears symbolic variables
                 [~,Vm_fun,~]=Redlich_Kwong(R,Tc([1,2]),pc([1,2]),mole_fr_array);
 %                     [press_fun,Vm_fun,T_fun]=Redlich_Kwong(R,Tc([1,2]),pc([1,2]),mole_fr_array);
                 molar_vol_NC_tank=Vm_fun(P_NCtank_full*100000,T_NCtank_full);
-                moles_He_NCtank_temp=vol(2)/real(molar_vol_NC_tank(1))-moles_N2_NCtank;
-                mole_fr_He_NCtank=moles_He_NCtank_temp/(moles_He_NCtank_temp+moles_N2_NCtank);
-                condition=abs(moles_He_NCtank_temp-moles_He_NCtank)/moles_He_NCtank_temp;
-                moles_He_NCtank=moles_He_NCtank_temp;
-                if condition<0.0001
+                moles_He_NCtank_temp=vol.NCtank/real(molar_vol_NC_tank(1))-moles_N2_NCtank;
+                %make sure there actually is any He filled into the tank
+                if moles_He_NCtank ~= 0
+                    mole_fr_He_NCtank=moles_He_NCtank_temp/(moles_He_NCtank_temp+moles_N2_NCtank);
+                    condition=abs(moles_He_NCtank_temp-moles_He_NCtank)/moles_He_NCtank_temp;
+                    moles_He_NCtank=moles_He_NCtank_temp;
+                else %and if not, break the loop - otherwise it goes on forever
+                    mole_fr_He_NCtank=0;
+                    condition=0;
+                end
+                if condition<0.0001 
                     flag=1;
                 end
             end
@@ -232,7 +234,8 @@ reset(symengine) %clears symbolic variables
     %if we have 0 NC filled from NC tank, skip this step
     
         moles_h2o_htank=moles_h2o_Htank_filling;
-        moles_total=P_htank_full*100000*(vol(1)-vol(3))/R/T_htank_full;
+        moles_total=P_htank_full*100000*(vol.heaterTank-vol.waterTank)/R/T_htank_full;
+    
     %perform NC filling calculation only if this is not a PURE STEAM test
     %that's what the below if clause does
     if P_NCtank_full==0
@@ -243,21 +246,22 @@ reset(symengine) %clears symbolic variables
         He_mole_frac_init=0;
     else
         flag=0;
+
         while flag==0
+%             
             moles_NC=moles_total-moles_h2o_htank-moles_N2_Htank_filling;
             moles_N2_htank=moles_N2_Htank_filling+moles_NC*(1-mole_fr_He_NCtank);
             moles_He_htank=moles_NC*mole_fr_He_NCtank;
             mole_fr_h2o_htank_full=moles_h2o_htank/moles_total;
             part_press_h2o=P_htank_full*mole_fr_h2o_htank_full;
             Tsat_h2o=IAPWS_IF97('Tsat_p',part_press_h2o/10);
-            if disp_flag==1
-%                 Tsat_h2o
-%                 T_htank_full
-            end
-            %check if initial guess is OK
-            if Tsat_h2o<T_htank_full
+
+            %check if initial guess is OK - if the while loop below would
+            %start with Tsat_h2o smalle than T_htank_full, it breaks
+            if Tsat_h2o<T_htank_full  
                 if disp_flag==1
                     disp('Step 6 error - measured T larger than T sat. Adjusting T')
+%                     disp(['Step 6 iteration number: ',step6_counter])
                     disp('calculated Tsat_full:')
                     disp(Tsat_h2o)
                     disp('Measured T_full: ')
@@ -267,15 +271,11 @@ reset(symengine) %clears symbolic variables
             end
 
 
-        %define fraction by which steam is condensing at each iteration (start with 0.5)
+            %define fraction by which steam is condensing at each iteration (start with 0.5)
             cond_frac=0.1;
-            residual=0.001;
-
-            while abs(Tsat_h2o-T_htank_full)>residual
-                
-                %step 1 condense cond_frac portion of steam and update relevant temp
-                %values
-
+            %the while loop condenses surplus of steam to reach
+            %thermodynamic balance
+            while abs(Tsat_h2o-T_htank_full)>0.1
                 moles_total_temp=moles_total-moles_h2o_htank*cond_frac;
                 moles_h2o_htank_temp=moles_h2o_htank*(1-cond_frac);
                 mole_fr_h2o_htank_full_temp=moles_h2o_htank_temp/moles_total_temp;
@@ -283,16 +283,18 @@ reset(symengine) %clears symbolic variables
                 Tsat_h2o_temp=IAPWS_IF97('Tsat_p',part_press_h2o_temp/10);
                 
                 if Tsat_h2o_temp>=T_htank_full
+%                     disp('bigger')
                     moles_total=moles_total_temp;
                     moles_h2o_htank=moles_h2o_htank_temp;
                     mole_fr_h2o_htank_full=mole_fr_h2o_htank_full_temp;
                     Tsat_h2o=Tsat_h2o_temp;
-                %step 3b in case our temperature fallen too low, go a step back - reduce cond_frac
+                %in case our temperature fallen too low, go a step back - reduce cond_frac
                 %by half and recalculate T_sat_temp with values from previous step,
                 %thus the loop will repeat current iteration with lower cond_frac
                 elseif Tsat_h2o_temp<T_htank_full
+%                     disp('smaller')
                     cond_frac=0.5*cond_frac;
-            %         molar_Vol=(vol(1)-vol(3))/moles_amount;
+            %         molar_Vol=(vol.heaterTank-vol.waterTank)/moles_amount;
             %         press_temp=press_fun(T_temp,molar_Vol)/100000;
             %         T_sat_temp=IAPWS_IF97('Tsat_p',press_temp/10*mole_fr(3));        
                 end
@@ -303,18 +305,21 @@ reset(symengine) %clears symbolic variables
                 flag=1;
             elseif eos==2
                 %with a good estimate of h2o molar fraction we can now check
-                %total mole estimation with Redklich Kwong equation
+                %total mole estimation with Redlich Kwong equation
                 mole_fr_N2_htank_full=moles_N2_htank/moles_total;
                 mole_fr_He_htank_full=moles_He_htank/moles_total;
+                %redlich kwong needs to be redefined each time to account
+                %for appropriate mixture of gases
                 mole_fr_array=[mole_fr_N2_htank_full,mole_fr_He_htank_full,mole_fr_h2o_htank_full];
                 [~,Vm_fun,~]=Redlich_Kwong(R,Tc,pc,mole_fr_array);
 %                 [press_fun,Vm_fun,T_fun]=Redlich_Kwong(R,Tc,pc,mole_fr_array);
                 molar_vol_htank=Vm_fun(P_htank_full*100000,T_htank_full);
                 %here, we check if Redlich Kwong and inital guess give the same
                 %result, if not, we go back to the beginning of the while loop
-                moles_total_temp=(vol(1)-vol(3))/real(molar_vol_htank(1));
+                %with updated molar values
+                moles_total_temp=(vol.heaterTank-vol.waterTank)/real(molar_vol_htank(1));
                 condition=abs(moles_total_temp-moles_total)/moles_total_temp;
-                if condition>0.00001
+                if condition>0.001
                     moles_total=moles_total_temp;
                 else
                     flag=1;
@@ -333,7 +338,7 @@ reset(symengine) %clears symbolic variables
 
     %initial guess with ideal gas
 %     moles_total
-    moles_evaporated=P_Htank_test*100000*(vol(1)-vol(3))/R/T_Htank_test-moles_total;
+    moles_evaporated=P_Htank_test*100000*(vol.heaterTank-vol.waterTank)/R/T_Htank_test-moles_total;
     moles_h2o_test=moles_evaporated+moles_h2o_htank;
     h2o_mole_frac=moles_h2o_test/(moles_h2o_test+moles_total);
     N2_mole_frac=moles_N2_htank/(moles_h2o_test+moles_total);

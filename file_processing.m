@@ -29,7 +29,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     
     % if the file was already recalculated from .tdms and steady state was
     % found and mean values were calculated, save time and load it directly
-    disp('*********************************************')   
+    
     try 
         load([processed_data_file_name,'.mat']);
         disp('Processed data found, loading without recalculation')
@@ -68,7 +68,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             disp('Check if "steady state" checkbox is in the right state')
             %if the file was already converted before, load .mat file rather than waste
             %time on another conversion
-            %ext function name is convertTDMS - needs some work
             if exist(matFileName,'file')
                 disp('Slow sensors file already converted from .tdms, loading .mat file')
                 load(matFileName)
@@ -145,7 +144,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             all_vars_list=unique(all_vars_list);
             
             %remove non-data positions from the list
-            removal_list={'Process_Data','Root','Untitled','XX','fileFolder','fileName'};
+            removal_list={'Process_Data','Root','Untitled','XX','fileFolder','fileName','Time','Timestamp'};
             removal_amount=numel(removal_list);
             for removal_cnt=1:removal_amount
 %                 all_vars_list(strcmp(all_vars_list, removal_list{removal_cnt})) = [];
@@ -163,8 +162,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             list=all_vars_list;
             %limit list to only variable data - last channel is TW9603 -
             %this may change and needs adjusting!!!
-            disp('****************************************')
-            disp('last channel for processing marked as TW9603 - verify in data files')
+%             disp('****************************************')
+%             disp('last channel for processing marked as TW9603 - verify in data files')
 
             %find indices of last channel
             
@@ -173,13 +172,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             else
 %                 last_channel=find(strcmp('Time',list));
 %             end
-            last_channel=find(strcmp('TW9603',list));
-            list=list(1:last_channel);
+%             last_channel=find(strcmp('TW9603',list));
+%             list=list(1:last_channel)
             channel_amount=length(list);
             data.(list{1})(1)=0; %initialize data variable for the sake of warning messages
             for i=1:channel_amount
                 command=strcat('data.',list{i},'=',list{i},'.Data;');
                 eval(command)
+%                 data.(list{i})=(list{i}).Data;  
             end      
              
 %             clearvars -except data channel_amount plot_flag file_list directory steady_data_file_name processed_data_file_name
@@ -220,7 +220,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             % find steady state, but only if appropriate checkbox is
             % checked, otherwise, pretend to do it and save all the data in
             % there
-            disp('********************************************** /n')
+            disp('********************************************** ')
             disp('Data processing engaged')
             
             if st_state_flag
@@ -307,12 +307,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %fast sensors and MP
         data_holder=struct('var',0,'value',0,'error',0,'unit','na');
         MP=struct('MP1',data_holder,'MP2',data_holder,'MP3',data_holder,'MP4',data_holder,'Pos',data_holder,'Temp',data_holder,'Temp_smooth_sgolay',data_holder);
-        GHFS=struct('GHFS1',data_holder,'GHFS2',data_holder,'GHFS3',data_holder,'GHFS4',data_holder);
+        GHFS=struct('GHFS1',data_holder,'GHFS1_raw',data_holder,'GHFS1_temp',data_holder,'GHFS2',data_holder,'GHFS2_raw',data_holder,'GHFS2_temp',data_holder,'GHFS3',data_holder,'GHFS3_raw',data_holder,'GHFS3_temp',data_holder,'GHFS4',data_holder,'GHFS4_raw',data_holder,'GHFS4_temp',data_holder,'wall_dT_GHFS1',data_holder,'wall_dT_GHFS2',data_holder,'wall_dT_GHFS3',data_holder,'wall_dT_GHFS4',data_holder,'wall_heatflux_GHFS1',data_holder,'wall_heatflux_GHFS2',data_holder,'wall_heatflux_GHFS3',data_holder,'wall_heatflux_GHFS4',data_holder);
         
         %distributions - really long struct
         value=struct('cal',[],'non_cal',[]);
         data_holder_2=struct('value',value,'position_y',[],'position_x',[]);
-        distributions=struct('GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
+        distributions=struct('NC_length',data_holder_2,'GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
             'MP_backward_temp',data_holder_2,'MP_forward_molefr_h2o',data_holder_2,'MP_forward_partpress_h2o',data_holder_2,...
             'MP_forward_temp',data_holder_2,'MP_backward_temp_smooth',data_holder_2,'MP_forward_temp_smooth',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
@@ -344,28 +344,55 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         % GHFS var & MP var
         if  fast_flag==1;
-            GHFS.GHFS1.var=cal_steady_data.GHFS1;
-            GHFS.GHFS2.var=cal_steady_data.GHFS2;
-            GHFS.GHFS3.var=cal_steady_data.GHFS3;
-            GHFS.GHFS4.var=cal_steady_data.GHFS4;
+                        
+            GHFS.GHFS1_raw.var=cal_steady_data.GHFS1+0.01735;
+            GHFS.GHFS2_raw.var=cal_steady_data.GHFS2-0.14407;
+            GHFS.GHFS3_raw.var=cal_steady_data.GHFS3+0.28317;
+            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4-0.20995;
             
             % thermocouple cal_steady_data.TCH2_2W is broken
             % as a workaround, use average between two thermocouples
             GHFS.GHFS1_temp.var=cal_steady_data.TCH1_2W;
-%             GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
-            GHFS.GHFS2_temp.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
+            GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
+%             GHFS.GHFS2_temp.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;  % one TC is broken, this is a work around that might fail
             GHFS.GHFS3_temp.var=cal_steady_data.TCH3_2W;
             GHFS.GHFS4_temp.var=cal_steady_data.TCH4_2W;
                
             GHFS.wall_dT_GHFS1.var=cal_steady_data.TCH1_2W-cal_steady_data.TCH1_3W;
-%             GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-cal_steady_data.TCH2_3W;
-            GHFS.wall_dT_GHFS2.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2-cal_steady_data.TCH2_3W;
+            GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-(cal_steady_data.TCH1_3W+cal_steady_data.TCH3_3W)./2;
+%             GHFS.wall_dT_GHFS2.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2-cal_steady_data.TCH2_3W; % one TC is broken, this is a work around that might fail
             GHFS.wall_dT_GHFS3.var=cal_steady_data.TCH3_2W-cal_steady_data.TCH3_3W;
             GHFS.wall_dT_GHFS4.var=cal_steady_data.TCH4_2W-cal_steady_data.TCH4_3W;
             
             % HEATFLUXES
-            % XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            % from GHFS
             
+            %measured by microscope + image recognition
+            GHFS.GHFS1.area=84.78; % mm^2
+            GHFS.GHFS2.area=85.54; % mm^2
+            GHFS.GHFS3.area=82.34; % mm^2
+            GHFS.GHFS4.area=84.31; % mm^2
+            
+            %based on amplifier tests
+            GHFS.GHFS1.amplification=10000; % 
+            GHFS.GHFS2.amplification=10000; % 
+            GHFS.GHFS3.amplification=10000; % 
+            GHFS.GHFS4.amplification=10000; % 
+            
+            GHFS_string={'GHFS1','GHFS2','GHFS3','GHFS4'}; %contains names of all sensors in facility
+            %call function with appropriate data and recalculate heat flux from meaured voltage
+            for ghfs_cntr=1:numel(GHFS_string)
+                GHFS.(GHFS_string{ghfs_cntr}).var=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification);
+            end
+            
+            % from dT (0.003 is distance between thermocouples in mm)
+            GHFS_wall_htc=2*15/(0.023*log(0.03/0.023));
+            GHFS.wall_heatflux_GHFS1.var=GHFS.wall_dT_GHFS1.var.*GHFS_wall_htc;
+            GHFS.wall_heatflux_GHFS2.var=GHFS.wall_dT_GHFS2.var.*GHFS_wall_htc;
+            GHFS.wall_heatflux_GHFS3.var=GHFS.wall_dT_GHFS3.var.*GHFS_wall_htc;
+            GHFS.wall_heatflux_GHFS4.var=GHFS.wall_dT_GHFS4.var.*GHFS_wall_htc;
+            
+            %movable probe
             MP.MP1.var=cal_steady_data.MP1;
             MP.MP2.var=cal_steady_data.MP2;
             MP.MP3.var=cal_steady_data.MP3;
@@ -441,11 +468,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %Fast sensors
         if  fast_flag==1;
             
-            % GHFS
-            GHFS.GHFS1.value=mean(GHFS.GHFS1.var);
-            GHFS.GHFS2.value=mean(GHFS.GHFS2.var);
-            GHFS.GHFS3.value=mean(GHFS.GHFS3.var);
-            GHFS.GHFS4.value=mean(GHFS.GHFS4.var);
+            % GHFS  replace with looooop
+            GHFS.GHFS1_raw.value=mean(GHFS.GHFS1_raw.var);
+            GHFS.GHFS2_raw.value=mean(GHFS.GHFS2_raw.var);
+            GHFS.GHFS3_raw.value=mean(GHFS.GHFS3_raw.var);
+            GHFS.GHFS4_raw.value=mean(GHFS.GHFS4_raw.var);
             
             GHFS.GHFS1_temp.value=mean(GHFS.GHFS1_temp.var);
             GHFS.GHFS2_temp.value=mean(GHFS.GHFS2_temp.var);
@@ -456,6 +483,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_dT_GHFS2.value=mean(GHFS.wall_dT_GHFS2.var);
             GHFS.wall_dT_GHFS3.value=mean(GHFS.wall_dT_GHFS3.var);
             GHFS.wall_dT_GHFS4.value=mean(GHFS.wall_dT_GHFS4.var);
+            
+            GHFS.GHFS1.value=mean(GHFS.GHFS1.var);
+            GHFS.GHFS2.value=mean(GHFS.GHFS2.var);
+            GHFS.GHFS3.value=mean(GHFS.GHFS3.var);
+            GHFS.GHFS4.value=mean(GHFS.GHFS4.var);
+            
+            GHFS.wall_heatflux_GHFS1.value=mean(GHFS.wall_heatflux_GHFS1.var);
+            GHFS.wall_heatflux_GHFS2.value=mean(GHFS.wall_heatflux_GHFS2.var);
+            GHFS.wall_heatflux_GHFS3.value=mean(GHFS.wall_heatflux_GHFS3.var);
+            GHFS.wall_heatflux_GHFS4.value=mean(GHFS.wall_heatflux_GHFS4.var);
 
 
             % Movable probe - electrodes
@@ -816,7 +853,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
         end
 
-        %partial pressure of h2o and mole fraction of h2o - based on callibrated temperature
+        %partial pressure of h2o and mole fraction of h2o - based on calibrated temperature
         %along the tube
         if centerline_flag~=0
             for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
@@ -963,46 +1000,21 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
          
         %facility - calculated values only
         facility.wall_dT.error=error_dT(steam.temp.error);
-        facility.heat_losses.error =sqrt(steam.power.error^2+coolant.power.error^2);
-        facility.heat_losses_TC.error =sqrt(steam.power.error^2+coolant.power_TC.error^2);
+        facility.heat_losses.error=sqrt(steam.power.error^2+coolant.power.error^2);
+        facility.heat_losses_TC.error=sqrt(steam.power.error^2+coolant.power_TC.error^2);
         facility.dT_losses.error=sqrt((sqrt(facility.heat_losses.error^2+coolant.power.error^2)/(facility.heat_losses.value+coolant.power.value))^2+(coolant.mflow.error/coolant.mflow.value)^2+(coolant.spec_heat.error/coolant.spec_heat.value)^2)*facility.dT_losses.value;
-        facility.wall_htc.error =0.001*facility.wall_htc.value;%ooooooooooooooooo
-        facility.wall_heatflux_dT.error =error_wall_heatflux(facility.wall_heatflux_dT.value,facility.wall_htc.value,facility.wall_dT.value,facility.wall_htc.error ,facility.wall_dT.error );
-        facility.wall_heatflow_dT.error =error_wall_heatflow(facility.wall_heatflow_dT.value,facility.wall_heatflux_dT.value,facility.wall_heatflux_dT.error );
+        facility.wall_htc.error=0.001*facility.wall_htc.value;%ooooooooooooooooo
+        facility.wall_heatflux_dT.error=error_wall_heatflux(facility.wall_heatflux_dT.value,facility.wall_htc.value,facility.wall_dT.value,facility.wall_htc.error ,facility.wall_dT.error );
+        facility.wall_heatflow_dT.error=error_wall_heatflow(facility.wall_heatflow_dT.value,facility.wall_heatflux_dT.value,facility.wall_heatflux_dT.error );
 %         facility.voltage.error=1;
         facility.current.error=1;
         
-        % NC gases - values and errors
-        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file);
-        NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
-        NC.N2_molefraction_init.error=NC.N2_molefraction.error;
-        NC.He_molefraction_init.error=NC.He_molefraction.error;
-        NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
-        
-        %Boundary conditions - values
-        BC.Wall_dT.value=facility.wall_dT.value;
-        BC.Coolant_flow.value=coolant.mflow.value;
-        BC.Coolant_temp.value=coolant.temp.value;
-        BC.Steam_pressure.value=steam.press.value;
-        BC.NC_molefraction.value=NC.NC_molefraction.value;
-        BC.He_molefraction.value=NC.He_molefraction.value;
-        BC.N2_molefraction.value=NC.N2_molefraction.value;
-
-        %Boundary conditions - errors
-        BC.Wall_dT.error=facility.wall_dT.error;
-        BC.Coolant_flow.error=coolant.mflow.error;
-        BC.Coolant_temp.error=coolant.temp.error;
-        BC.Steam_pressure.error.value=steam.press.error;
-        BC.NC_molefraction.error=NC.NC_molefraction.error;
-        BC.He_molefraction.error=NC.He_molefraction.error;
-        BC.N2_molefraction.error=NC.N2_molefraction.error;  
-
-        % GHFS - errors
+         % GHFS - errors
         if  fast_flag==1
-            GHFS.GHFS1.error=0.0002*GHFS.GHFS1.value;
-            GHFS.GHFS2.error=0.0003*GHFS.GHFS2.value;
-            GHFS.GHFS3.error=0.0003*GHFS.GHFS3.value;
-            GHFS.GHFS4.error=0.0003*GHFS.GHFS4.value;
+            [GHFS.GHFS1_raw.error,~]=error_DAS_m9215(GHFS.GHFS1_raw.value);
+            [GHFS.GHFS2_raw.error,~]=error_DAS_m9215(GHFS.GHFS2_raw.value);
+            [GHFS.GHFS3_raw.error,~]=error_DAS_m9215(GHFS.GHFS3_raw.value);
+            [GHFS.GHFS4_raw.error,~]=error_DAS_m9215(GHFS.GHFS4_raw.value);
             
             GHFS.GHFS1_temp.error=0.05;
             GHFS.GHFS2_temp.error=0.05;
@@ -1013,6 +1025,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_dT_GHFS2.error=error_dT(GHFS.GHFS2_temp.error);
             GHFS.wall_dT_GHFS3.error=error_dT(GHFS.GHFS3_temp.error);
             GHFS.wall_dT_GHFS4.error=error_dT(GHFS.GHFS4_temp.error);
+            
+            GHFS.GHFS1.error=error_GHFS(GHFS.GHFS1.value,GHFS.GHFS1_raw.value);
+            GHFS.GHFS2.error=error_GHFS(GHFS.GHFS2.value,GHFS.GHFS2_raw.value);
+            GHFS.GHFS3.error=error_GHFS(GHFS.GHFS3.value,GHFS.GHFS3_raw.value);
+            GHFS.GHFS4.error=error_GHFS(GHFS.GHFS4.value,GHFS.GHFS4_raw.value);
+            
+            GHFS.wall_heatflux_GHFS1.error=facility.wall_heatflux_dT.error;
+            GHFS.wall_heatflux_GHFS2.error=facility.wall_heatflux_dT.error;
+            GHFS.wall_heatflux_GHFS3.error=facility.wall_heatflux_dT.error;
+            GHFS.wall_heatflux_GHFS4.error=facility.wall_heatflux_dT.error;
 
             % MP - errors
             MP.MP1.error=0.002*MP.MP1.value;
@@ -1031,26 +1053,73 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         end
         
         % Distribution errors
-            distributions.GHFS_TC.error=0.05;       
-            distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_backward_temp.error=0.05;
-            distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.MP_forward_temp.error=0.05;
-            distributions.MP_backward_temp_smooth.error=0.05;
-            distributions.MP_forward_temp_smooth.error=0.05;
-            distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
-            distributions.centerline_temp.error=0.05;
-            distributions.coolant_temp_0deg.error=0.05;
-            distributions.coolant_temp_180deg.error=0.05;
-            distributions.outer_wall_temp_0deg.error=0.05;
-            distributions.outer_wall_temp_180deg.error=0.05;
-            distributions.wall_dT.unit=0.05;
-            distributions.wall_inner.unit=0.05;
-            distributions.wall_outer.unit=0.05;
-         
+        distributions.GHFS_TC.error=0.05;       
+        distributions.MP_backward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_backward_partpress_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_backward_temp.error=0.05;
+        distributions.MP_forward_molefr_h2o.error=1; %XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_forward_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.MP_forward_temp.error=0.05;
+        distributions.MP_backward_temp_smooth.error=0.05;
+        distributions.MP_forward_temp_smooth.error=0.05;
+        distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.centerline_temp.error=0.05;
+        distributions.coolant_temp_0deg.error=0.05;
+        distributions.coolant_temp_180deg.error=0.05;
+        distributions.outer_wall_temp_0deg.error=0.05;
+        distributions.outer_wall_temp_180deg.error=0.05;
+        distributions.wall_dT.error=0.05;
+        distributions.wall_inner.error=0.05;
+        distributions.wall_outer.error=0.05;
+            
+                 
+        %% NC gases ==============================================================================================================
+        %  values and errors
+        
+        % values
+        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_N2_htank.error,NC.moles_He_htank.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file);
+        NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
+        NC.moles_total.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;    
+        % estimate tube length occupied by non mixed (with steam) NC mixture
+        NC.length.value=length_NC(mean(cal_steady_data.TF9603)+273.15,steam.press.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);
+        
+        %errors
+        NC.N2_molefraction_init.error=NC.N2_molefraction.error;
+        NC.He_molefraction_init.error=NC.He_molefraction.error;
+        NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
+        NC.moles_total.error=NC.moles_N2_htank.error+NC.moles_He_htank.error;
+        NC.length.error=error_NC_length(NC.length.value,NC.moles_total.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+        
+        %distributions
+        distributions.NC_length.position_y=[1,1330-NC.length.value*1000-1,1330-NC.length.value*1000,1330];
+        distributions.NC_length.position_x=zeros(numel(distributions.NC_length.position_y),1);
+        distributions.NC_length.value.cal=[0,0,1,1];
+        distributions.NC_length.error=NC.length.error;
+        
+        
+        %% Boundary conditions ==============================================================================================================
+        %  values and errors
+        
+        %Boundary conditions -values
+        BC.Wall_dT.value=facility.wall_dT.value;
+        BC.Coolant_flow.value=coolant.mflow.value;
+        BC.Coolant_temp.value=coolant.temp.value;
+        BC.Steam_pressure.value=steam.press.value;
+        BC.NC_molefraction.value=NC.NC_molefraction.value;
+        BC.He_molefraction.value=NC.He_molefraction.value;
+        BC.N2_molefraction.value=NC.N2_molefraction.value;
+
+        %Boundary conditions - errors
+        BC.Wall_dT.error=facility.wall_dT.error;
+        BC.Coolant_flow.error=coolant.mflow.error;
+        BC.Coolant_temp.error=coolant.temp.error;
+        BC.Steam_pressure.error.value=steam.press.error;
+        BC.NC_molefraction.error=NC.NC_molefraction.error;
+        BC.He_molefraction.error=NC.He_molefraction.error;
+        BC.N2_molefraction.error=NC.N2_molefraction.error;  
+
+       
         %% ADD UNITS
         disp('5. Adding measurments units')
         % coolant thermodynamic conditions - measured               
@@ -1115,13 +1184,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.NC_molefraction.unit='1';
         NC.N2_molefraction_init.unit='1';
         NC.He_molefraction_init.unit='1';
+        NC.moles_N2_htank.unit='1';
+        NC.moles_He_htank.unit='1';
+        NC.moles_total.unit='1';
+        NC.length.unit='1';
         
         if  fast_flag
-    % GHFS units
-            GHFS.GHFS1.unit='V';
-            GHFS.GHFS2.unit='V';
-            GHFS.GHFS3.unit='V';
-            GHFS.GHFS4.unit='V';
+        % GHFS units
+            GHFS.GHFS1_raw.unit='V';
+            GHFS.GHFS2_raw.unit='V';
+            GHFS.GHFS3_raw.unit='V';
+            GHFS.GHFS4_raw.unit='V';
             
             GHFS.GHFS1_temp.unit=[char(176),'C'];
             GHFS.GHFS2_temp.unit=[char(176),'C'];
@@ -1133,9 +1206,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_dT_GHFS3.unit=[char(176),'C'];
             GHFS.wall_dT_GHFS4.unit=[char(176),'C'];
             
+            GHFS.GHFS1.unit='W/m2';
+            GHFS.GHFS2.unit='W/m2';
+            GHFS.GHFS3.unit='W/m2';
+            GHFS.GHFS4.unit='W/m2';
+            
+            GHFS.wall_heatflux_GHFS1.unit='W/m2';
+            GHFS.wall_heatflux_GHFS2.unit='W/m2';
+            GHFS.wall_heatflux_GHFS3.unit='W/m2';
+            GHFS.wall_heatflux_GHFS4.unit='W/m2';
         
-        
-    % Movable probe units   
+        % Movable probe units   
             MP.MP1.unit='V';
             MP.MP2.unit='V';
             MP.MP3.unit='V';
@@ -1181,6 +1262,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.wall_dT.unit=[char(176),'C'];
         distributions.wall_inner.unit=[char(176),'C'];
         distributions.wall_outer.unit=[char(176),'C'];
+        distributions.NC_length.unit=1;
     
 %% Sort variables and save
         disp('6. Sorting and storing data in .mat files')

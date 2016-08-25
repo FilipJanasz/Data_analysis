@@ -11,7 +11,7 @@ function [file,data]=GHFS_calib_main(clear_flag,filePath_default)
         %remove .tdms from the string
         file_list=strrep(file_list,'.tdms','');
         file_list={file_list};
-    catch
+    catch ME
         error('Files not chosen, retry and point to files to be processed')
     end
         

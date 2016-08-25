@@ -1,21 +1,21 @@
-function file,data=GHFS_processing_fun(file_list,directory)
+function [file,data_GHFS]=GHFS_processing_fun(file_list,directory)
     file_msg=['Processing file: ',file_list];
     disp(file_msg)
     
                      
-%% Data loading
-    %file data of possible mat file that was already processed
+%% data_GHFS loading
+    %file data_GHFS of possible mat file that was already processed
     fileName=[directory,'\',file_list,'.tdms'];
     matFileName=[directory,'\',file_list,'.mat'];
-    processed_data_file_name=[directory,'\','processed_data_',file_list];
+    processed_data_GHFS_file_name=[directory,'\','processed_data_GHFS_',file_list];
     
-    disp('1. Loading data')
+    disp('1. Loading data_GHFS')
     try 
-        load([processed_data_file_name,'.mat']);
-        disp('Processed data found, loading without recalculation')
+        load([processed_data_GHFS_file_name,'.mat']);
+        disp('Processed data_GHFS found, loading without recalculation')
     catch
         
-        disp('Proccessed data not available, recalculating')
+        disp('Proccessed data_GHFS not available, recalculating')
         %if the file was already converted before, load .mat file rather than waste
         %time on another conversion
         if exist(matFileName,'file')
@@ -34,74 +34,88 @@ function file,data=GHFS_processing_fun(file_list,directory)
         %remove redundant fields
         vars_list=unique(vars_list);
 
-        %remove non-data positions from the list
-        removal_list={'Process_Data','Root','Untitled','XX','fileFolder','fileName','Time','Timestamp'};
+        %remove non-data_GHFS positions from the list
+        removal_list={'Process_data_GHFS','Root','Untitled','XX','fileFolder','fileName','Time','Timestamp'};
         removal_amount=numel(removal_list);
         for removal_cnt=1:removal_amount
             I = ismember(vars_list, removal_list{removal_cnt});
             vars_list(I) = [];
         end
 
-        %% Organize data
+        %% Organize data_GHFS
       
         channel_amount=length(vars_list);
-        temp.(vars_list{1})(1)=0; %initialize data variable for the sake of warning messages
+        temp.(vars_list{1})(1)=0; %initialize data_GHFS variable for the sake of warning messages
         for i=1:channel_amount
-            command=strcat('temp.',vars_list{i},'=',vars_list{i},'.Data;');
+            command=strcat('temp.',vars_list{i},'=',vars_list{i},'.data_GHFS;');
             eval(command)
-%                 data.(list{i})=(list{i}).Data;  
+%                 data_GHFS.(list{i})=(list{i}).data_GHFS;  
         end      
         
-        %% Data processing - time varying values
-        disp('2. Calculating process variables from raw data')
+        %% data_GHFS processing - time varying values
+        disp('2. Calculating process variables from raw data_GHFS')
         
-        %transfer data to final struct
+        % file parameters
+        file.name=file_list;
+        file.directory=directory;
+        
+        %transfer data_GHFS to final struct
         for variable=vars_list;
             curr_var=variable{1};
-            data.(curr_var).var=temp.(curr_var);
+            data_GHFS.(curr_var).var=temp.(curr_var);
         end
         
         %calculate fluxes
         %from power
         tube_inner_area=pi*0.021/2*0.12;
         
-        data.power.var=data.Current.var.*data.Voltage.var;
-        data.hfx_power.var=data.power.var./tube_inner_area;
+        try
+            data_GHFS.Joule_power.var=data_GHFS.Current.var.*data_GHFS.Voltage.var;      % W
+            data_GHFS.hfx_Joule_power.var=round(data_GHFS.Joule_power.var./tube_inner_area);     % W/m2
+            data_GHFS.GHFS_sensitivity_Joule_power.var=data_GHFS.GHFS.var./((84/1000000).*data_GHFS.hfx_Joule_power.var); %  V/W  (84/1000000 sensor area in m^2)
+        catch
+            disp('No current/voltage data_GHFS available')
+        end
         
         %radiation
         emissivity=0.78;
-        steafan_boltzman_constant=5.6703*10^(-8);
+        stefan_boltzman_constant=5.6703*10^(-8);
         radiating_area=0.00527788;
         
-        data.rad_power.var=emissivity*steafan_boltzman_constant.*((data.T1F.var+273.15).^4-(data.T2W.var+273.15).^4).*radiating_area;
-        data.hfx_rad.var=data.rad_power.var./tube_inner_area;
+        data_GHFS.rad_power.var=emissivity*stefan_boltzman_constant.*((data_GHFS.T1F.var+273.15).^4-(data_GHFS.T2W.var+273.15).^4).*radiating_area; % W
+        data_GHFS.hfx_rad.var=data_GHFS.rad_power.var./tube_inner_area;       % W/m2
+        data_GHFS.GHFS_sensitivity_rad.var=data_GHFS.GHFS.var./((84/1000000).*data_GHFS.hfx_rad.var);  % V/W
         
         
         %from dT
         wall_htc=2*15/(0.021*log(0.03/0.021));
         
-        data.wall_dT.var=data.T3W.var-data.T2W.var;
-        data.hfx_dT.var=data.wall_dT.var.*wall_htc;
+        data_GHFS.wall_dT.var=abs(data_GHFS.T3W.var-data_GHFS.T2W.var);         % W
+        data_GHFS.hfx_dT.var=data_GHFS.wall_dT.var.*wall_htc;         % W/m2
+        data_GHFS.GHFS_sensitivity_dT.var=data_GHFS.GHFS.var./((84/1000000).*data_GHFS.hfx_dT.var);  % V/W
         
         
         %calculate means
-        processed_vars_list=fields(data);
+        processed_vars_list=fields(data_GHFS);
         processed_vars_list=processed_vars_list';
+        
         for proc_variable=processed_vars_list
             curr_var=proc_variable{1};
-            data.(curr_var).value=mean(data.(curr_var).var);
-            data.(curr_var).error=0.005.*data.(curr_var).value;  %temp
+            data_GHFS.(curr_var).value=mean(data_GHFS.(curr_var).var);            % add mean values to each struct
+            data_GHFS.(curr_var).error=0.005.*data_GHFS.(curr_var).value;         % temporary - add error
+            data_GHFS.(curr_var).unit='dupa';                                % temporary - add unit
         end
         
     
         %% Sort variables and save
-        disp('3. Sorting and storing data in .mat files')
+        disp('3. Sorting and storing data_GHFS in .mat files')
         
         %sorting
-        data=orderfields(data);
+        data_GHFS=orderfields(data_GHFS);
+        file=orderfields(file);
 
         %saving
-        save(processed_data_file_name,'data');
+        save(processed_data_GHFS_file_name,'file','data_GHFS');
 
     end
 disp('Processing finished, ready for a new file')

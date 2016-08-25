@@ -4,8 +4,11 @@ function varargout = GHFS_calibration_gui(varargin)
     % Determine where your m-file's folder is.
     script_folder = fileparts(which(mfilename)); 
     % Add that folder plus all subfolders to the path.
-    addpath(genpath(script_folder));
+%     addpath(genpath(script_folder));
     cd(script_folder)
+    cd ..
+    mainfold=cd;
+    addpath(mainfold);
 
     % GHFS_CALIBRATION_GUI MATLAB code for GHFS_calibration_gui.fig
     %      GHFS_CALIBRATION_GUI, by itself, creates a new GHFS_CALIBRATION_GUI or raises the existing
@@ -105,8 +108,8 @@ function process_btn_Callback(hObject, ~, handles)
     handles.file=file;
   
     % push the data to main workspace, just in case
-    assignin('base','data',handles.data)
-    assignin('base','file',handles.file)
+    assignin('base','GHFS_data',handles.data)
+    assignin('base','GHFS_file',handles.file)
     
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
@@ -146,9 +149,11 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     
     %transfer data to handles structure
     handles.data=data;
-  
+    handles.file=file;
+    
     % push the data to main workspace, just in case
-    assignin('base','data',handles.data)
+    assignin('base','GHFS_data',handles.data)
+    assignin('base','GHFS_file',handles.file)
 
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
@@ -414,11 +419,17 @@ function polyfit_Callback(hObject, ~, handles)
         end
         hold on
         if poly_err_flag
-            handles.graph{handles.plotcounter}=polyplot(x_dat,y_dat,order,'r','error','b--','linewidth',.3);
+            [handles.graph{handles.plotcounter},p,~]=polyplot(x_dat,y_dat,order,'r','error','b--','linewidth',.3);
         else
-            handles.graph{handles.plotcounter}=polyplot(x_dat,y_dat,order,'r');
+            [handles.graph{handles.plotcounter},p,~]=polyplot(x_dat,y_dat,order,'r');
         end
         hold off
+    end
+    
+    %display fit equation
+    str_label=char(vpa(poly2sym(p),3));
+    if get(handles.poly_equation,'Value')
+        text(x_dat(1),y_dat(1),str_label,'interpreter','none');
     end
     
     %update variables
@@ -925,7 +936,7 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %code below extracts elements from the main struct array that have the
     %field "vars" storing time dependant experimental data and forwards it
     %to another GHFS_CALIBRATION_GUI
-    vars={'steam','coolant','facility','GHFS','MP'};
+    vars={'data'};
 
     for k=1:numel(vars)
     field_names=fields(handles.(vars{k}));
@@ -947,6 +958,11 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     
     %get path to where the processed files are
     filePath_default=get(handles.file_path_disp,'String');
+    
+    %since for those files no timing was recorded, and data aq rate was 1Hz
+    handles.timing.fast=1;
+    handles.timing.slow=1;
+    handles.timing.MP=1;
     
     %call new GHFS_calibration_gui
     gui_timedependant(time_dep_var,file_name,handles.timing,filePath_default);
@@ -1022,3 +1038,7 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 function toolbar_init_ClickedCallback(hObject, eventdata, handles)
 
 init_conditions_viewer(handles.file,handles.timing)
+
+% --- Executes on button press in poly_equation.
+function poly_equation_Callback(hObject, eventdata, handles)
+

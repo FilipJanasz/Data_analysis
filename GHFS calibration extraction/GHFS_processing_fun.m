@@ -69,33 +69,41 @@ function [file,data]=GHFS_processing_fun(file_list,directory)
         %from power
         tube_inner_area=pi*0.021/2*0.12;
         
-        data.power.var=data.Current.var.*data.Voltage.var;
-        data.hfx_power.var=data.power.var./tube_inner_area;
+        try
+            data.Joule_power.var=data.Current.var.*data.Voltage.var;      % W
+            data.hfx_Joule_power.var=round(data.Joule_power.var./tube_inner_area);     % W/m2
+            data.GHFS_sensitivity_Joule_power.var=data.GHFS.var./((84/1000000).*data.hfx_Joule_power.var); %  V/W  (84/1000000 sensor area in m^2)
+        catch
+            disp('No current/voltage data available')
+        end
         
         %radiation
         emissivity=0.78;
-        steafan_boltzman_constant=5.6703*10^(-8);
+        stefan_boltzman_constant=5.6703*10^(-8);
         radiating_area=0.00527788;
         
-        data.rad_power.var=emissivity*steafan_boltzman_constant.*((data.T1F.var+273.15).^4-(data.T2W.var+273.15).^4).*radiating_area;
-        data.hfx_rad.var=data.rad_power.var./tube_inner_area;
+        data.rad_power.var=emissivity*stefan_boltzman_constant.*((data.T1F.var+273.15).^4-(data.T2W.var+273.15).^4).*radiating_area; % W
+        data.hfx_rad.var=data.rad_power.var./tube_inner_area;       % W/m2
+        data.GHFS_sensitivity_rad.var=data.GHFS.var./((84/1000000).*data.hfx_rad.var);  % V/W
         
         
         %from dT
         wall_htc=2*15/(0.021*log(0.03/0.021));
         
-        data.wall_dT.var=data.T3W.var-data.T2W.var;
-        data.hfx_dT.var=data.wall_dT.var.*wall_htc;
+        data.wall_dT.var=abs(data.T3W.var-data.T2W.var);         % W
+        data.hfx_dT.var=data.wall_dT.var.*wall_htc;         % W/m2
+        data.GHFS_sensitivity_dT.var=data.GHFS.var./((84/1000000).*data.hfx_dT.var);  % V/W
         
         
         %calculate means
         processed_vars_list=fields(data);
         processed_vars_list=processed_vars_list';
+        
         for proc_variable=processed_vars_list
             curr_var=proc_variable{1};
-            data.(curr_var).value=mean(data.(curr_var).var);
-            data.(curr_var).error=0.005.*data.(curr_var).value;  %temp
-            data.(curr_var).unit='dupa';  %temp
+            data.(curr_var).value=mean(data.(curr_var).var);            % add mean values to each struct
+            data.(curr_var).error=0.005.*data.(curr_var).value;         % temporary - add error
+            data.(curr_var).unit='dupa';                                % temporary - add unit
         end
         
     

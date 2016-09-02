@@ -1,5 +1,5 @@
 function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(interactive_flag,file_list,directory,st_state_flag,options)
-    file_msg=['Processing file: ',file_list];
+    file_msg=['Loading file: ',file_list];
     disp(file_msg)
     
     if interactive_flag
@@ -345,10 +345,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         % GHFS var & MP var
         if  fast_flag==1;
                         
-            GHFS.GHFS1_raw.var=cal_steady_data.GHFS1+0.01735;
-            GHFS.GHFS2_raw.var=cal_steady_data.GHFS2-0.14407;
-            GHFS.GHFS3_raw.var=cal_steady_data.GHFS3+0.28317;
-            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4-0.20995;
+            GHFS.GHFS1_raw.var=cal_steady_data.GHFS1;
+            GHFS.GHFS2_raw.var=cal_steady_data.GHFS2;
+            GHFS.GHFS3_raw.var=cal_steady_data.GHFS3;
+            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4;
+            
+            GHFS_offset=[0.01735 -0.14407 0.28317 -0.20995];
             
             % thermocouple cal_steady_data.TCH2_2W is broken
             % as a workaround, use average between two thermocouples
@@ -382,7 +384,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS_string={'GHFS1','GHFS2','GHFS3','GHFS4'}; %contains names of all sensors in facility
             %call function with appropriate data and recalculate heat flux from meaured voltage
             for ghfs_cntr=1:numel(GHFS_string)
-                GHFS.(GHFS_string{ghfs_cntr}).var=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification);
+                GHFS.(GHFS_string{ghfs_cntr}).var=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification,GHFS_offset(ghfs_cntr));
             end
             
             % from dT (0.003 is distance between thermocouples in mm)

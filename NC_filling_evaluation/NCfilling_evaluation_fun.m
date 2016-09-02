@@ -25,14 +25,14 @@ reset(symengine) %clears symbolic variables
         %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
         pc_N2=33.9;
         pc_He=2.27;
-        pc_h2o=220.6;
+        pc_h2o=220.58;
 
         pc(1)=pc_N2;
         pc(2)=pc_He;    %put pc's into one var for Equation Of State
         pc(3)=pc_h2o;
 
         %critical temperature in K http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
-        Tc_N2=123.21;
+        Tc_N2=126.2;
         Tc_He=5.19;
         Tc_h2o=647.096;
 
@@ -129,7 +129,7 @@ reset(symengine) %clears symbolic variables
             % again and so on
 
             while flag==0
-                mole_fr_array=[1-mole_fr_h2o_Htank,mole_fr_h2o_Htank];
+                mole_fr_array=[1-mole_fr_h2o_Htank,mole_fr_h2o_Htank];  % first term is NC mole fraction
                 [~,Vm_fun,~]=Redlich_Kwong(R,Tc([1,3]),pc([1,3]),mole_fr_array);
 %                 [press_fun,Vm_fun,T_fun]=Redlich_Kwong(R,Tc([1,3]),pc([1,3]),mole_fr_array);
                 molar_vol_Htank_filling=Vm_fun(P_Htank_h2o*100000,T_Htank_h2o);
@@ -143,13 +143,13 @@ reset(symengine) %clears symbolic variables
             end
         end
 
-        %CHECK values
-        T_Htank_h2o_IAPWS_sat=IAPWS_IF97('Tsat_p',P_Htank_h2o*mole_fr_h2o_Htank/10);
-        if disp_flag==1
+        %CHECK measured and calculated temp values
+        T_Htank_h2o_IAPWS_sat=IAPWS_IF97('Tsat_p',P_Htank_h2o*mole_fr_h2o_Htank/10);  %divide by 10 to convert bar to MPa
+%         if disp_flag==1
 %             T_Htank_h2o_IAPWS_sat_nodajdustment=IAPWS_IF97('Tsat_p',P_Htank_h2o/10)
 %             T_Htank_h2o
 %             T_Htank_h2o_IAPWS_sat
-        end
+%         end
         if abs(T_Htank_h2o-T_Htank_h2o_IAPWS_sat)>0.1
             if disp_flag==1
                 disp('Step 3 error - measured T larger than T sat from tables. Adjusting T')
@@ -167,8 +167,9 @@ reset(symengine) %clears symbolic variables
         %moles of water and gas are left in the latter, thus while fraction
         %remains the same, absolute amount changes
         %  (vol.heaterTank-vol.waterTank)/vol.heaterTank - water from vol.waterTank is stransferred to vol.heaterTank
-        moles_h2o_Htank_filling=moles_h2o_Htank_filling*(vol.heaterTank-vol.waterTank)/vol.heaterTank;
-        moles_N2_Htank_filling=moles_h2o_Htank_filling/(mole_fr_h2o_Htank)*(1-mole_fr_h2o_Htank); 
+        volume_ratio=(vol.heaterTank-vol.waterTank)/vol.heaterTank;    
+        moles_h2o_Htank_filling=moles_h2o_Htank_filling*volume_ratio;
+        moles_N2_Htank_filling=moles_N2_Htank_vac*volume_ratio;
 
    
     %do steps 4 and 5 only if it is not a pure steam test

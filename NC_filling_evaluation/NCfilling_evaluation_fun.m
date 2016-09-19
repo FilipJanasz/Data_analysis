@@ -184,7 +184,7 @@ reset(symengine) %clears symbolic variables
         mole_fr_He_NCtank=moles_He_NCtank/(moles_He_NCtank+moles_N2_NCtank_vac);
 
 
-    %% Caculation 5 Second NC component (N2) filled in NC tank
+    % Caculation 5 Second NC componenfat (N2) filled in NC tank
 
     % make an initial guess about mole fraction of N2 in NC gas mixture
         molar_vol_NCtank_step_5=Vm_fun_N2(P_NCtank_full*100000,T_NCtank_full);

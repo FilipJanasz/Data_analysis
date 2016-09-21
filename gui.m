@@ -1116,3 +1116,12 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 function toolbar_init_ClickedCallback(hObject, eventdata, handles)
 
 init_conditions_viewer(handles.file,handles.timing)
+
+
+% --------------------------------------------------------------------
+function relap_ClickedCallback(hObject, eventdata, handles)
+addpath('D:\Data\Relap5\2016ClosedTubeSimulator')
+RelapGUI;
+% hObject    handle to relap (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

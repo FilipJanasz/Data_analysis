@@ -4,7 +4,7 @@ function varargout = gui(varargin)
     % Determine where your m-file's folder is.
     script_folder = fileparts(which(mfilename)); 
     % Add that folder plus all subfolders to the path.
-    addpath(genpath(script_folder));
+    addpath(genpath(script_folder)); 
     cd(script_folder)
 
     % GUI MATLAB code for gui.fig

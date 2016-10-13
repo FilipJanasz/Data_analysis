@@ -407,6 +407,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.temp.var=cal_steady_data.TF9602; % [C]  
         steam.heater_temp.var=cal_steady_data.TW9602; % [C] 
         
+        % steam side thermocouples - centerline
+        steam.TF9603.var=cal_steady_data.TF9603;
+        steam.TF9604.var=cal_steady_data.TF9604;
+        steam.TF9605.var=cal_steady_data.TF9605;
+        steam.TF9606.var=cal_steady_data.TF9606;
+        steam.TF9607.var=(cal_steady_data.TF9606+cal_steady_data.TF9608)./2;
+        steam.TF9608.var=cal_steady_data.TF9608;
+        steam.TF9609.var=cal_steady_data.TF9609;
+        steam.TF9610.var=cal_steady_data.TF9610;
+        steam.TF9611.var=cal_steady_data.TF9611;
+        steam.TF9612.var=cal_steady_data.TF9612;
+        steam.TF9613.var=cal_steady_data.TF9613;
+        steam.TF9614.var=cal_steady_data.TF9614;
+        
         % steam - coolant interface - facility
         facility.wall_dT.var=steam.temp.var-coolant.temp.var;   
         
@@ -446,6 +460,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.power.value=mean(cal_steady_data.power);        
         steam.temp.value=mean(cal_steady_data.TF9602); % [C] 
         steam.heater_temp.value=mean(steam.heater_temp.var); % [C] 
+        
+        %steam side thermocouples - centerline
+        steam.TF9603.value=mean(steam.TF9603.var);
+        steam.TF9604.value=mean(steam.TF9604.var);
+        steam.TF9605.value=mean(steam.TF9605.var);
+        steam.TF9606.value=mean(steam.TF9606.var);
+        steam.TF9607.value=mean(steam.TF9607.var);
+        steam.TF9608.value=mean(steam.TF9608.var);
+        steam.TF9609.value=mean(steam.TF9609.var);
+        steam.TF9610.value=mean(steam.TF9610.var);
+        steam.TF9611.value=mean(steam.TF9611.var);
+        steam.TF9612.value=mean(steam.TF9612.var);
+        steam.TF9613.value=mean(steam.TF9613.var);
+        steam.TF9614.value=mean(steam.TF9614.var);
 
         % steam properties - calculated (some with IAPWS_IF97)
         steam.boiling_point.value=IAPWS_IF97('Tsat_p',steam.press.value/10)-273.15; 
@@ -565,7 +593,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 frist_loop_flag=0;                
             end
             
-            MP.Temp_smooth.val=mean(MP.Temp_smooth.var);
+            MP.Temp_smooth.value=mean(MP.Temp_smooth.var);
 
             %build a matrix with probe position as first column to enable 
             %proper sorting
@@ -776,7 +804,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
           
         %centerline
         try
-            distributions.centerline_temp.value.cal=[mean(cal_steady_data.TF9603),mean(cal_steady_data.TF9604),mean(cal_steady_data.TF9605),mean(cal_steady_data.TF9606),mean(cal_steady_data.TF9608),mean(cal_steady_data.TF9610),mean(cal_steady_data.TF9611),mean(cal_steady_data.TF9612),mean(cal_steady_data.TF9613),mean(cal_steady_data.TF9614)];
+            distributions.centerline_temp.value.cal=[mean(cal_steady_data.TF9603),mean(cal_steady_data.TF9604),mean(cal_steady_data.TF9605),mean(cal_steady_data.TF9606),(mean(cal_steady_data.TF9606)+mean(cal_steady_data.TF9608))/2,mean(cal_steady_data.TF9608),mean(cal_steady_data.TF9610),mean(cal_steady_data.TF9611),mean(cal_steady_data.TF9612),mean(cal_steady_data.TF9613),mean(cal_steady_data.TF9614)];
         catch
             try
                 distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),MP.Temp.value,mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
@@ -989,6 +1017,21 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.temp.error=error_PT100;
         steam.heater_temp.error=error_PT100;
         
+        %steam thermocouple centerline
+         %steam side thermocouples - centerline
+        TCerror=0.1;
+        steam.TF9603.error=TCerror;
+        steam.TF9604.error=TCerror;
+        steam.TF9605.error=TCerror;
+        steam.TF9606.error=TCerror;
+        steam.TF9607.error=TCerror;
+        steam.TF9608.error=TCerror;
+        steam.TF9609.error=TCerror;
+        steam.TF9610.error=TCerror;
+        steam.TF9611.error=TCerror;
+        steam.TF9612.error=TCerror;
+        steam.TF9613.error=TCerror;
+        
         %steam - recalculated values        
         steam.boiling_point.error =0.001*steam.boiling_point.value; %ooooooooooooooooo
         steam.enthalpy.error =0.005*steam.enthalpy.value; %ooooooooooooooooo
@@ -1157,6 +1200,19 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.power.unit='W';       
         steam.temp.unit=[char(176),'C']; 
         steam.heater_temp.unit=[char(176),'C']; 
+        
+        %steam side thermocouples centerline
+        steam.TF9603.unit=[char(176),'C']; 
+        steam.TF9604.unit=[char(176),'C']; 
+        steam.TF9605.unit=[char(176),'C']; 
+        steam.TF9606.unit=[char(176),'C']; 
+        steam.TF9607.unit=[char(176),'C']; 
+        steam.TF9608.unit=[char(176),'C']; 
+        steam.TF9609.unit=[char(176),'C']; 
+        steam.TF9610.unit=[char(176),'C']; 
+        steam.TF9611.unit=[char(176),'C']; 
+        steam.TF9612.unit=[char(176),'C']; 
+        steam.TF9613.unit=[char(176),'C']; 
 
         % steam properties - calculated (some with IAPWS_IF97)
         steam.boiling_point.unit=[char(176),'C']; 
@@ -1265,9 +1321,32 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.wall_inner.unit=[char(176),'C'];
         distributions.wall_outer.unit=[char(176),'C'];
         distributions.NC_length.unit=1;
-    
+
+%% calculate standard deviations for steam cooland facility
+        disp('6. Calculating standard deviations')
+        paramList={'steam','coolant','facility','GHFS','MP'};
+        
+        %for the listed parameters, look through their fields,
+        %identify if those fields contain subfield .var
+        %and if yes, based on the time-varying values
+        %calculate standard deviation, and store in new subfield .std
+        for procCtr=1:numel(paramList)
+            currParam=paramList{procCtr};
+            vars=fieldnames(eval(currParam));
+
+            for varCtr=1:numel(vars)
+                currVar=vars{varCtr};
+                subFields=fieldnames(eval([currParam,'.',currVar]));
+                if any(ismember(subFields,'var'))
+                   eval([currParam,'.',currVar,'.std=std(',currParam,'.',currVar,'.var);'])
+                end
+            end
+        end
+        
+        %add st dev to distributions
+        distributions.centerline_temp.std=[steam.TF9603.std,steam.TF9604.std,steam.TF9605.std,steam.TF9606.std,steam.TF9607.std,steam.TF9608.std,steam.TF9609.std,steam.TF9610.std,steam.TF9611.std,steam.TF9612.std,steam.TF9613.std];
 %% Sort variables and save
-        disp('6. Sorting and storing data in .mat files')
+        disp('7. Sorting and storing data in .mat files')
         
         %sorting
         coolant=orderfields(coolant);
@@ -1294,7 +1373,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %         end
         
         % print a table with input data for RELAP5
-        disp('7. Creating input files for ClosedTubeSimulator2015')
+        disp('8. Creating input files for ClosedTubeSimulator2015')
         try
             RELAP{1,1}='Pps';
             RELAP{2,1}='NC';
@@ -1343,6 +1422,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
         end
     end
+    
 disp('Processing finished, ready for a new file')
 disp('*****************************************')
 

@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 18-Jul-2016 16:50:36
+    % Last Modified by GUIDE v2.5 11-Oct-2016 16:35:19
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -79,11 +79,20 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     val_cal=get(handles.cal_popupmenu,'Value');
     calibration_mode=list_cal{val_cal};
 
-    % get choice of x phase to be plotted
+    % get choice of phase to be plotted
     list_y=get(handles.var_popupmenu,'String');
     val_y=get(handles.var_popupmenu,'Value');
     y_param=list_y{val_y}; 
     value_dat=handles.data(file).(y_param).value.(calibration_mode);
+    %add standard deviations if desired
+    st_dev_flag=get(handles.stdev_checkbox, 'Value');
+    try
+            y_st_dev(cntr)=handles.data(file).(y_param).std;
+            st_dev_available=1;
+    catch
+            st_dev_available=0;
+    end
+    % get positions
     vertical_pos=handles.data(file).(y_param).position_y;
     horizontal_pos=handles.data(file).(y_param).position_x;
       
@@ -278,6 +287,21 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         errordlg('Plotting error, check matlab window for details')
     end
     box off
+    
+    % add standard deviations if desired
+    if st_dev_flag && st_dev_available
+        hold on
+%         handles.graph{handles.plotcounter+1}=plot(x_dat,y_st_dev,'.-g');
+%         handles.graph{handles.plotcounter+2}=plot(x_dat,y_st_dev_max,'.-g');
+        plot(x_dat,y_dat-y_st_dev,'.-g');
+        plot(x_dat,y_dat+y_st_dev,'.-b');
+        
+        if ~hold_flag
+            hold off
+        end
+    elseif st_dev_flag && ~st_dev_available
+        msgbox('Standard deviation data not available for the chosen variables / files - omitting')
+    end
     
     %add legend and create graph name
     processing_string=[smooth_str,norm_str,flip_str];
@@ -778,3 +802,8 @@ function xmin_edit_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+
+
+% --- Executes on button press in stdev_checkbox.
+function stdev_checkbox_Callback(hObject, eventdata, handles)
+

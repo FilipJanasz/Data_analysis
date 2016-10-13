@@ -248,13 +248,20 @@ function plot_button_Callback(hObject, eventdata, handles)
     y_dat=ones(1,files_chosen);
     x_err=ones(1,files_chosen);
     y_err=ones(1,files_chosen);
+    y_st_dev=ones(1,files_chosen);
     
-    %extract data values and error values, applying file choice filter
+    %extract data values, error values abd st_dev values, if applicable applying file choice filter
     for cntr=1:files_chosen
         x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
         y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
         x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
         y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
+        try
+            y_st_dev(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).std;
+            st_dev_available=1;
+        catch
+            st_dev_available=0;
+        end
     end
 
     %get units for the plot
@@ -389,9 +396,29 @@ function plot_button_Callback(hObject, eventdata, handles)
     
     handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
     box off
+    
+    %add standard deviations if desired
+    st_dev_flag=get(handles.stdev_checkbox, 'Value');
+    if st_dev_flag && st_dev_available
+        hold on
+%         handles.graph{handles.plotcounter+1}=plot(x_dat,y_st_dev,'.-g');
+%         handles.graph{handles.plotcounter+2}=plot(x_dat,y_st_dev_max,'.-g');
+        plot(x_dat,y_dat-y_st_dev,'.-g');
+        plot(x_dat,y_dat+y_st_dev,'.-b');
+        
+        if ~hold_flag
+            hold off
+        end
+    elseif st_dev_flag && ~st_dev_available
+        msgbox('Standard deviation data not available for the chosen variables / files - omitting')
+    end
     %assign and store a name to the graph
     processing_string=[norm_str,flip_str];
     handles.graph_name{handles.plotcounter}=[x_param_var,' ',y_param_var,' ',processing_string];
+%     if st_dev_flag && st_dev_available
+%         handles.graph_name{handles.plotcounter+1}=[x_param_var,' ',y_param_var,' std min'];
+%         handles.graph_name{handles.plotcounter+1}=[x_param_var,' ',y_param_var,' std max'];
+%     end
     
      %add legend
     handles.legend=legend(handles.graph_name{1:end});
@@ -423,10 +450,19 @@ function plot_button_Callback(hObject, eventdata, handles)
     %store data in the figure
     handles.y_dat{handles.plotcounter}=y_dat;
     handles.x_dat{handles.plotcounter}=x_dat;
+%     if st_dev_flag && st_dev_available
+%         handles.y_dat{handles.plotcounter+1}=y_dat;
+%         handles.x_dat{handles.plotcounter+1}=x_dat;
+%         handles.y_dat{handles.plotcounter+2}=y_dat;
+%         handles.x_dat{handles.plotcounter+2}=x_dat;
+%     end
     
     %update data info
     set(handles.graph_list,'String',handles.graph_name)
     set(handles.graph_list,'Value', handles.plotcounter)
+%     if st_dev_flag && st_dev_available
+%         handles.plotcounter=handles.plotcounter+2;
+%     end
         
     
     guidata(hObject, handles)
@@ -1114,14 +1150,14 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function toolbar_init_ClickedCallback(hObject, eventdata, handles)
-
-init_conditions_viewer(handles.file,handles.timing)
+    init_conditions_viewer(handles.file,handles.timing)
 
 
 % --------------------------------------------------------------------
 function relap_ClickedCallback(hObject, eventdata, handles)
-addpath('D:\Data\Relap5\2016ClosedTubeSimulator')
-RelapGUI;
-% hObject    handle to relap (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+    addpath('D:\Data\Relap5\2016ClosedTubeSimulator')
+    RelapGUI;
+
+% --- Executes on button press in stdev_checkbox.
+function stdev_checkbox_Callback(hObject, eventdata, handles)
+

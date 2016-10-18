@@ -296,15 +296,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
 %         plot(x_dat,value_dat-y_st_dev,'.-g');
 %         plot(x_dat,value_dat+y_st_dev,'.-b');
         for std_ctr=1:numel(y_st_dev)
-            %plot vertical line with a span od 2 * st dev
-            h=line([x_dat(std_ctr),x_dat(std_ctr)],[value_dat(std_ctr)-y_st_dev(std_ctr),value_dat(std_ctr)+y_st_dev(std_ctr)]);
-            h.LineWidth=1;
-            %add horizontal line ends
-            lineLength=4;
-            h_horz1=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)-y_st_dev(std_ctr),value_dat(std_ctr)-y_st_dev(std_ctr)]);
-            h_horz2=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)+y_st_dev(std_ctr),value_dat(std_ctr)+y_st_dev(std_ctr)]);
-            h_horz1.LineWidth=1;
-            h_horz2.LineWidth=1;        
+             line([x_dat,x_dat],   
         end
         
         if ~hold_flag

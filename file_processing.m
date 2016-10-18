@@ -414,7 +414,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.TF9606.var=cal_steady_data.TF9606;
         steam.TF9607.var=(cal_steady_data.TF9606+cal_steady_data.TF9608)./2;
         steam.TF9608.var=cal_steady_data.TF9608;
-        steam.TF9609.var=cal_steady_data.TF9609;
+        steam.TF9609.var=(cal_steady_data.TF9608+cal_steady_data.TF9610)./2;
         steam.TF9610.var=cal_steady_data.TF9610;
         steam.TF9611.var=cal_steady_data.TF9611;
         steam.TF9612.var=cal_steady_data.TF9612;
@@ -804,14 +804,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
           
         %centerline
         try
-            distributions.centerline_temp.value.cal=[mean(cal_steady_data.TF9603),mean(cal_steady_data.TF9604),mean(cal_steady_data.TF9605),mean(cal_steady_data.TF9606),(mean(cal_steady_data.TF9606)+mean(cal_steady_data.TF9608))/2,mean(cal_steady_data.TF9608),mean(cal_steady_data.TF9610),mean(cal_steady_data.TF9611),mean(cal_steady_data.TF9612),mean(cal_steady_data.TF9613),mean(cal_steady_data.TF9614)];
+            distributions.centerline_temp.value.cal=[steam.TF9603.value,steam.TF9604.value,steam.TF9605.value,steam.TF9606.value,steam.TF9607.value,steam.TF9608.value,steam.TF9609.value,steam.TF9610.value,steam.TF9611.value,steam.TF9612.value,steam.TF9613.value,steam.TF9614.value];
+            centerline_flag=1;
         catch
             try
                 distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),MP.Temp.value,mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
                 short_flag=0;
+                centerline_flag=1;
             catch
                 distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
                 short_flag=1;
+                centerline_flag=1;
             end
         end
         
@@ -858,10 +861,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.outer_wall_temp_0deg.value.non_cal=[mean(steady_data.TW9501),mean(steady_data.TW9503),mean(steady_data.TW9505),mean(steady_data.TW9507),mean(steady_data.TW9509),mean(steady_data.TW9511)];
         distributions.outer_wall_temp_180deg.value.non_cal=[mean(steady_data.TW9502),mean(steady_data.TW9504),mean(steady_data.TW9506),mean(steady_data.TW9508),mean(steady_data.TW9510),mean(cal_steady_data.TW9512)];
         try
-            distributions.centerline_temp.value.non_cal=[mean(steady_data.TCH1_1F),MP.Temp.value,mean(steady_data.TCH2_1F),mean(steady_data.TCH3_1F),mean(steady_data.TCH4_1F)];
-            centerline_flag=1;
+            distributions.centerline_temp.value.non_cal=[mean(steady_data.TCH1_1F),MP.Temp.value,mean(steady_data.TCH2_1F),mean(steady_data.TCH3_1F),mean(steady_data.TCH4_1F)];     
         catch
-            centerline_flag=0;
+           
         end
         try
             distributions.GHFS_TC.value.non_cal=[mean(steady_data.HFS1TC),mean(steady_data.HFS2TC),mean(steady_data.HFS3TC),mean(steady_data.HFS4TC)];
@@ -917,7 +919,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             distributions.MP_backward_molefr_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);
             
             %centerline geometry
-            distributions.centerline_temp.position_y=[220 320 420 520 670 820 920 1020 1120 1220];
+            distributions.centerline_temp.position_y=[220 320 420 520 620 670 720 820 920 1020 1120 1220];
             distributions.GHFS_TC.position_y=[220 420 670 920];  %position of sensors in mm
         else
             if short_flag
@@ -1031,6 +1033,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.TF9611.error=TCerror;
         steam.TF9612.error=TCerror;
         steam.TF9613.error=TCerror;
+        steam.TF9614.error=TCerror;
         
         %steam - recalculated values        
         steam.boiling_point.error =0.001*steam.boiling_point.value; %ooooooooooooooooo
@@ -1213,6 +1216,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.TF9611.unit=[char(176),'C']; 
         steam.TF9612.unit=[char(176),'C']; 
         steam.TF9613.unit=[char(176),'C']; 
+        steam.TF9614.unit=[char(176),'C']; 
 
         % steam properties - calculated (some with IAPWS_IF97)
         steam.boiling_point.unit=[char(176),'C']; 
@@ -1344,7 +1348,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         end
         
         %add st dev to distributions
-        distributions.centerline_temp.std=[steam.TF9603.std,steam.TF9604.std,steam.TF9605.std,steam.TF9606.std,steam.TF9607.std,steam.TF9608.std,steam.TF9609.std,steam.TF9610.std,steam.TF9611.std,steam.TF9612.std,steam.TF9613.std];
+        distributions.centerline_temp.std=[steam.TF9603.std,steam.TF9604.std,steam.TF9605.std,steam.TF9606.std,steam.TF9607.std,steam.TF9608.std,steam.TF9609.std,steam.TF9610.std,steam.TF9611.std,steam.TF9612.std,steam.TF9613.std,steam.TF9614.std];
 %% Sort variables and save
         disp('7. Sorting and storing data in .mat files')
         

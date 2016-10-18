@@ -403,19 +403,8 @@ function plot_button_Callback(hObject, eventdata, handles)
         hold on
 %         handles.graph{handles.plotcounter+1}=plot(x_dat,y_st_dev,'.-g');
 %         handles.graph{handles.plotcounter+2}=plot(x_dat,y_st_dev_max,'.-g');
-%         plot(x_dat,y_dat-y_st_dev,'.-g');
-%         plot(x_dat,y_dat+y_st_dev,'.-b');
-        for std_ctr=1:numel(y_st_dev)
-            %plot vertical line with a span od 2 * st dev
-            h=line([x_dat(std_ctr),x_dat(std_ctr)],[y_dat(std_ctr)-y_st_dev(std_ctr),y_dat(std_ctr)+y_st_dev(std_ctr)]);
-            h.LineWidth=1;
-            %add horizontal line ends
-%             lineLength=4;
-%             h_horz1=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[y_dat(std_ctr)-y_st_dev(std_ctr),y_dat(std_ctr)-y_st_dev(std_ctr)]);
-%             h_horz2=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[y_dat(std_ctr)+y_st_dev(std_ctr),y_dat(std_ctr)+y_st_dev(std_ctr)]);
-%             h_horz1.LineWidth=1;
-%             h_horz2.LineWidth=1;        
-        end
+        plot(x_dat,y_dat-y_st_dev,'.-g');
+        plot(x_dat,y_dat+y_st_dev,'.-b');
         
         if ~hold_flag
             hold off
@@ -1061,9 +1050,11 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
         for i=1:numel(field_names)
             for j=1:numel(handles.(vars{k}))
                 if isfield(handles.(vars{k})(j).(field_names{i}),'var')
+
                     time_dep_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
                     time_dep_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
                     time_dep_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+
                 end        
             end
         end

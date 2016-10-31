@@ -9,10 +9,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %     end
     
     %display gui to pick directory
-    directories = uigetdir(filePath_default,'Pick a directory');
+    dirChoice = uigetdir(filePath_default,'Pick a directory');
+    newDefaultDir = dirChoice;
+    dirChoice=[dirChoice,'\DATA'];
     try
-        [file_list, fileCounter]=filter_tdms_files(directories);
-        directories={directories};
+        [file_list, fileCounter]=filter_tdms_files(dirChoice);
+        dirChoice={dirChoice};
         dir_amount=1;
         fileCounter={fileCounter};
         %remove .tdms from the string
@@ -23,7 +25,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     end
 
     %update file path in GUI
-    set(handles.file_path_disp,'String',directories{1});
+    set(handles.file_path_disp,'String',newDefaultDir);
     
     %get options for processing
     fid=fopen('adv_options.txt','rt');
@@ -42,14 +44,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %if reprocessing
             if clear_flag==1
                 disp('Reprocessing - deleting old "processed" files')
-                file_to_del_name=[directories{dir_counter},'\','processed_steady_data_',file_list{dir_counter}{fc},'.mat'];   
+                file_to_del_name=[dirChoice{dir_counter},'\','processed_steady_data_',file_list{dir_counter}{fc},'.mat'];   
                 delete(file_to_del_name)
                 disp(['Deleting file  ','processed_steady_data_',file_list{dir_counter}{fc},'.mat'])
             end
             
-            [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
+            [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},dirChoice{dir_counter},st_state_flag,options);
 % below is for debugging
-%            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
+%            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1, timing1]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 %            steam(fc)=steam1;
 %            coolant(fc)=coolant1;
 %            facility(fc)=facility1;
@@ -58,8 +60,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %            file(fc)=file1;
 %            BC(fc)=BC1;
 %            GHFS(fc)=GHFS1;
-%            MP1
-%            MP(fc)=MP1
+%            MP(fc)=MP1;
+%            timing1
+%            timing(fc)=timing1;
         end
     end
     

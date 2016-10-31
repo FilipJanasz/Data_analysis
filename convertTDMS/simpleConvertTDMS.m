@@ -91,9 +91,7 @@ for fnum=1:numel(inFileName)  % Loop through cells of filename
     tdmsFileName=inFileName{fnum};
     
     %Perform Conversion
-    %FILIP
-    %[convertedData,dataOb.convertVer,d.chanNames,d.groupNames,dataOb.ci]=convertTDMS(0,tdmsFileName);
-    [convertedData]=convertTDMS(0,tdmsFileName);
+    [convertedData,dataOb.convertVer,d.chanNames,d.groupNames,dataOb.ci]=convertTDMS(0,tdmsFileName);
     
     
     %Build more obvious struture of data form file
@@ -119,8 +117,7 @@ for fnum=1:numel(inFileName)  % Loop through cells of filename
         
         
         dataOb.(safeChannelName{cnum}).Data=convertedData.Data.MeasuredData(cnum).Data;
-        %Filip
-        %dataOb.(safeChannelName{cnum}).Total_Samples=convertedData.Data.MeasuredData(cnum).Total_Samples;
+        dataOb.(safeChannelName{cnum}).Total_Samples=convertedData.Data.MeasuredData(cnum).Total_Samples;
         
         %Convert the properties
         prop=convertedData.Data.MeasuredData(cnum).Property;

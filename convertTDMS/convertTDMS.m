@@ -1,4 +1,4 @@
-function [ConvertedData,ChanNames,ci]=convertTDMS(varargin)
+function [ConvertedData,ConvertVer,ChanNames,GroupNames,ci]=convertTDMS(varargin)
 %Function to load LabView TDMS data file(s) into variables in the MATLAB workspace.
 %An *.MAT file can also be created.  If called with one input, the user selects
 %a data file.
@@ -267,7 +267,7 @@ function [ConvertedData,ChanNames,ci]=convertTDMS(varargin)
 
 
 %Initialize outputs
-%ConvertVer='1.991';    %Version number of this conversion function
+ConvertVer='1.991';    %Version number of this conversion function
 ConvertedData=[];
 
 p=inputParser();
@@ -342,20 +342,20 @@ for fnum=1:numel(infilename)
     ConvertedData(fnum).FileName=FileNameShort;
     ConvertedData(fnum).FileFolder=FileFolder;
     
-    %ConvertedData(fnum).SegTDMSVerNum=SegInfo.vernum;
-    %ConvertedData(fnum).NumOfSegments=NumOfSeg;
+    ConvertedData(fnum).SegTDMSVerNum=SegInfo.vernum;
+    ConvertedData(fnum).NumOfSegments=NumOfSeg;
     [ConvertedData(fnum).Data,CurrGroupNames]=postProcess(ob,channelinfo);
+    
     GroupNames(fnum)={CurrGroupNames};
-    %TempChanNames={ConvertedData(fnum).Data.MeasuredData.Name};
-    %TempChanNames(strcmpi(TempChanNames,'Root'))=[];
-    %ChanNames(fnum)={sort(setdiff(TempChanNames',CurrGroupNames))};
+    
+    TempChanNames={ConvertedData(fnum).Data.MeasuredData.Name};
+    TempChanNames(strcmpi(TempChanNames,'Root'))=[];
+    ChanNames(fnum)={sort(setdiff(TempChanNames',CurrGroupNames))};
     if SaveConvertedFile
         MATFileNameShort=sprintf('%s.mat',FileNameNoExt);
         MATFileNameLong=fullfile(FileFolder,MATFileNameShort);
         try
-            %FILIP
-            %save(MATFileNameLong,'ConvertedData','ConvertVer','ChanNames')
-            save(MATFileNameLong,'ConvertedData')
+            save(MATFileNameLong,'ConvertedData','ConvertVer','ChanNames')
             fprintf('\n\nConversion complete (saved in ''%s'').\n\n',MATFileNameShort)
         catch exception
             fprintf('\n\nConversion complete (could not save ''%s'').\n\t%s: %s\n\n',MATFileNameShort,exception.identifier,...
@@ -822,7 +822,6 @@ for segCnt=1:NumOfSeg
                 
             end
             
-            %Filip
             %Get the properties
             numProps=fread(fid,1,'uint32',kTocEndian);
             if numProps>0
@@ -1377,14 +1376,14 @@ for i=1:numel(obFieldNames)
         if isfield(ob.(cname),'data')
             DataStructure.MeasuredData(cntData).Data=ob.(cname).data;
             %The following field is redundant because the information can be obtained from the size of the 'Data' field.
-            %DataStructure.MeasuredData(cntData).Total_Samples=ob.(cname).nsamples;
+            DataStructure.MeasuredData(cntData).Total_Samples=ob.(cname).nsamples;
         else
             DataStructure.MeasuredData(cntData).Data=[];
-            %DataStructure.MeasuredData(cntData).Total_Samples=0;
+            DataStructure.MeasuredData(cntData).Total_Samples=0;
         end
     else
         DataStructure.MeasuredData(cntData).Data=[];
-        %DataStructure.MeasuredData(cntData).Total_Samples=0;
+        DataStructure.MeasuredData(cntData).Total_Samples=0;
     end
     
     %Assign all the 'Property' values
@@ -1478,19 +1477,18 @@ end %'end' for the 'groups/channels' loop
 GroupIndices=false(numel(DataStructure.MeasuredData),1);
 for d=1:numel(DataStructure.MeasuredData)
     
-%     if ~strcmpi(DataStructure.MeasuredData(d).Name,'Root')
-%         if (DataStructure.MeasuredData(d).Total_Samples==0)
-%             fs=strfind(DataStructure.MeasuredData(d).Name,'/');
-%             if (isempty(fs))
-%                 GroupIndices(d)=true;
-%             end
-%         end
-%     end
+    if ~strcmpi(DataStructure.MeasuredData(d).Name,'Root')
+        if (DataStructure.MeasuredData(d).Total_Samples==0)
+            fs=strfind(DataStructure.MeasuredData(d).Name,'/');
+            if (isempty(fs))
+                GroupIndices(d)=true;
+            end
+        end
+    end
     
 end
 if any(GroupIndices)
     GroupNames=sort({DataStructure.MeasuredData(GroupIndices).Name})';
-   
 else
     GroupNames=[];
 end

@@ -14,7 +14,7 @@ function init_conditions_viewer(handles)
     newDefaultDir = dirChoice;
     IC_directory=[dirChoice,'\IC'];
     try
-        [file_list, ~]=filter_tdms_files(IC_directory);
+        [file_list, fileCounter]=filter_tdms_files(IC_directory);
     catch
         error('Files not chosen, retry and point to files to be processed')
     end
@@ -87,42 +87,40 @@ function init_conditions_viewer(handles)
     %filter files to contain only base component of the name
     rm_MP=cell2mat(cellfun(@(x) any(strfind(x,'MP')),file_list,'UniformOutput',0));
     rm_FAST=cell2mat(cellfun(@(x) any(strfind(x,'FAST')),file_list,'UniformOutput',0));
-    files=file_list(find(~(rm_MP|rm_FAST)));
-    files=strrep(files,'.tdms','');
-    fileCounter=numel(files);
+    files=file_list(find~^
     
     for file_ctr=1:fileCounter
-        gen_flag=exist([files{file_ctr},'-processed.mat'],'file');
-        fast_flag=exist([files{file_ctr},'-FAST-processed.mat'],'file');
-        MP_flag=exist([files{file_ctr},'-MP-processed.mat'],'file');
+        gen_flag=exist([files(file_ctr).name,'-IC-processed.mat'],'file');
+        fast_flag=exist([files(file_ctr),'-IC-FAST-processed.mat'],'file');
+        MP_flag=exist([files(file_ctr),'-IC-MP-processed.mat'],'file');
 
         %remove hyphens from file names
-        legal_file_name=strrep(files{file_ctr},'-','_');
+        legal_file_name=strrep(files(file_ctr),'-','_');
 
         %if all files present, let the user know
         if gen_flag==2 && fast_flag==2 && MP_flag==2
-            disp(['All IC recordings for file ',files{file_ctr}, ' are present, proceeding to load data'])
+            disp(['All IC recordings for file ',files(file_ctr), ' are present, proceeding to load data'])
         end
 
         %otherwise state which are missing
         if gen_flag~=2
-            disp(['General IC recording missing for file ',files{file_ctr}, ', proceeding to load available data'])
+            disp(['General IC recording missing for file ',files(file_ctr), ', proceeding to load available data'])
         else
-            temp=load([files{file_ctr},'-processed.mat']);
+            temp=load([files(file_ctr),'-IC-processed.mat']);
             IC_data.(legal_file_name).general_IC=temp.data;
         end
 
         if fast_flag~=2
-            disp(['FAST sensors IC recording missing for file ',files{file_ctr},', proceeding to load available data'])
+            disp(['FAST sensors IC recording missing for file ',files(file_ctr),', proceeding to load available data'])
         else
-            temp=load([files{file_ctr},'-FAST-processed.mat']);
+            temp=load([files(file_ctr),'-IC-FAST-processed.mat']);
             IC_data.(legal_file_name).fast_IC=temp.data;
         end         
 
         if MP_flag~=2
-            disp(['MP sensors IC recording missing for file ',files{file_ctr},', proceeding to load available data'])
+            disp(['MP sensors IC recording missing for file ',files(file_ctr),', proceeding to load available data'])
         else
-            temp=load([files{file_ctr},'-MP-processed.mat']);
+            temp=load([files(file_ctr),'-IC-MP-processed.mat']);
             IC_data.(legal_file_name).mp_IC=temp.data;
         end
 
@@ -136,12 +134,12 @@ function init_conditions_viewer(handles)
     %call gui for plotting
     %fix hyphens
     for file_ctr=1:fileCounter
-        files{file_ctr}=strrep(files{file_ctr},'-','_');
+        files(file_ctr)=strrep(files(file_ctr),'-','_');
     end
     timing.fast=0.1;
     timing.slow=1;
     timing.MP=0.1;
-    gui_IC(IC_data,files,timing,IC_directory);
+    gui_IC(IC_data,{files},timing,IC_directory);
 %     profile VIEWER
     %now having all appropriate data, open GUI
 end

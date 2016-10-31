@@ -1161,7 +1161,7 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function toolbar_init_ClickedCallback(hObject, eventdata, handles)
-    init_conditions_viewer(handles.file,handles.timing)
+    init_conditions_viewer(handles)
 
 
 % --------------------------------------------------------------------

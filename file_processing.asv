@@ -865,7 +865,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 
         end
         
-        %
+        %GHFS
         distributions.coolant_temp_0deg.value.non_cal=[mean(steady_data.TF9503),mean(steady_data.TF9505),mean(steady_data.TF9507)];
         distributions.coolant_temp_180deg.value.non_cal=[mean(steady_data.TF9504),mean(steady_data.TF9506),mean(steady_data.TF9508)];
         distributions.outer_wall_temp_0deg.value.non_cal=[mean(steady_data.TW9501),mean(steady_data.TW9503),mean(steady_data.TW9505),mean(steady_data.TW9507),mean(steady_data.TW9509),mean(steady_data.TW9511)];
@@ -875,13 +875,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
            
         end
-        
-        % thermocouple steady_data.TCH2_2W is broken
-        % as a workaround, use average between two thermocouples
-        if ~isfield(steady_data,'TCH2_2W')
-            steady_data.TCH2_2W=(steady_data.TCH1_2W+steady_data.TCH3_2W)./2;
-        end
-            
         try
             distributions.GHFS_TC.value.non_cal=[mean(steady_data.HFS1TC),mean(steady_data.HFS2TC),mean(steady_data.HFS3TC),mean(steady_data.HFS4TC)];
             %GHFS_TC_flag=1;

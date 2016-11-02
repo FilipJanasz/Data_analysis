@@ -1181,25 +1181,11 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     PA9701=handles.data.(file).general_IC.PA9701;
     TF9601=handles.data.(file).general_IC.TF9601;
     TF9602=handles.data.(file).general_IC.TF9602;
+    TF9701=handles.data.(file).general_IC.TF9701;
     
-    figure;
+    gui_save_IC(file,PA9601,PA9701,TF9601,TF9602,TF9701)
     
-    subplot(2,1,1)
-    hold on
-    plot(PA9601,'r')
-    plot(PA9701,'k')
-    legend('PA9601','PA9701','Location','eastoutside')
-    t=title(['Initial condition graphs for file:  ', file]);
-    set(t,'interpreter','none')
-    ylabel('Press [bar]')
-    hold off
-    subplot(2,1,2)
-    hold on
-    plot(TF9601,'b')
-    plot(TF9602,'g')
-    legend('TF9601','TF9602','Location','eastoutside')
-    ylabel('Temp [C]')
-    hold off
+%     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');
     
     
     

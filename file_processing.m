@@ -361,6 +361,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             % as a workaround, use average between two thermocouples
             if ~isfield(cal_steady_data,'TCH2_2W')
                 cal_steady_data.TCH2_2W=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
+            elseif isnan(cal_steady_data.TCH2_2W)
+                cal_steady_data.TCH2_2W=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
             end
             GHFS.GHFS1_temp.var=cal_steady_data.TCH1_2W;
             GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;

@@ -391,11 +391,16 @@ function plot_button_Callback(hObject, eventdata, handles)
         y_err=[];
     end
     
+    %if user wants only std values, plot y_st_dev instead of y_dat 
+    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
+    if st_dev_only_flag && st_dev_available
+        y_dat=y_st_dev;
+    end
+    
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     %plot data according to user preferences
-    
     handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});
-    box off
+    box off     
     
     %add standard deviations if desired
     st_dev_flag=get(handles.stdev_checkbox, 'Value');
@@ -1163,7 +1168,6 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 function toolbar_init_ClickedCallback(hObject, eventdata, handles)
     init_conditions_viewer(handles)
 
-
 % --------------------------------------------------------------------
 function relap_ClickedCallback(hObject, eventdata, handles)
     addpath('D:\Data\Relap5\2016ClosedTubeSimulator')
@@ -1172,3 +1176,5 @@ function relap_ClickedCallback(hObject, eventdata, handles)
 % --- Executes on button press in stdev_checkbox.
 function stdev_checkbox_Callback(hObject, eventdata, handles)
 
+% --- Executes on button press in stdev_only_checkbox.
+function stdev_only_checkbox_Callback(hObject, eventdata, handles)

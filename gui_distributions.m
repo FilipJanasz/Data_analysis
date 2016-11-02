@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 11-Oct-2016 16:35:19
+    % Last Modified by GUIDE v2.5 02-Nov-2016 09:27:19
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -259,6 +259,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
+    
+    %if user wants only std values, plot y_st_dev instead of y_dat 
+    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
+    if st_dev_only_flag && st_dev_available
+        value_dat=y_st_dev;
+    end
     
     %PLOTTING PLOTTING PLOTTING
     %depending on user choice, plot along chosen axis, 3D, with or without
@@ -814,7 +820,8 @@ function xmin_edit_CreateFcn(hObject, eventdata, handles)
         set(hObject,'BackgroundColor','white');
     end
 
-
 % --- Executes on button press in stdev_checkbox.
 function stdev_checkbox_Callback(hObject, eventdata, handles)
 
+% --- Executes on button press in stdev_only_checkbox.
+function stdev_only_checkbox_Callback(hObject, eventdata, handles)

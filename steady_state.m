@@ -15,7 +15,7 @@ end
 calc_data_norm=calc_data./median(calc_data);
 
 %initialize vars
-st_dev_local=zeros(1,length(calc_data)-1)
+st_dev_local=zeros(1,length(calc_data)-1);
 
 %for each point of data, prepare a set spanning maximally from
 %-1/2*av_window to +1/2*av_window points around it

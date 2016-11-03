@@ -1179,11 +1179,11 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     file=file_list{file_val};
     PA9601=handles.data.(file).general_IC.PA9601;
     PA9701=handles.data.(file).general_IC.PA9701;
-    TF9601=handles.data.(file).general_IC.TF9601;
+%     TF9601=handles.data.(file).general_IC.TF9601;
     TF9602=handles.data.(file).general_IC.TF9602;
     TF9701=handles.data.(file).general_IC.TF9701;
     
-    gui_save_IC(file,PA9601,PA9701,TF9601,TF9602,TF9701)
+    gui_save_IC(file,PA9601,PA9701,TF9602,TF9701)
     
 %     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');
     

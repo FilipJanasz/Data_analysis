@@ -2,11 +2,15 @@
 % Modified code of Jiro Doke, posted on 22 Feb 2011 here:
 % http://ch.mathworks.com/matlabcentral/answers/1758-crosshairs-or-just-vertical-line-across-linked-axis-plots
 
-function vertical_cursors(handles)
+function hCur=vertical_cursors(handles,param,hCur_old)
 
+    for hCur_n=1:numel(hCur_old)
+        delete(hCur_old(hCur_n))
+    end
+    
     set(gcf,'WindowButtonDownFcn', @clickFcn,'WindowButtonUpFcn', @unclickFcn);
     % Set up cursor text
-    allLines = findobj(gcf, 'type', 'line');
+    allLines = findobj(gcf, 'type', 'line')
     hText = nan(1, length(allLines));
     for id = 1:length(allLines)
        hText(id) = text(NaN, NaN, '','Parent', get(allLines(id), 'Parent'),'BackgroundColor', 'white','Color', get(allLines(id), 'Color'));
@@ -39,9 +43,11 @@ function vertical_cursors(handles)
            xdata = get(allLines(idx), 'XData');
            ydata = get(allLines(idx), 'YData');
            if pt(1) >= xdata(1) && pt(1) <= xdata(end)
-%               y = interp1(xdata, ydata, pt(1));
-%               set(hText(idx), 'Position', [pt(1), y],'String', sprintf('(%0.2f, %0.2f)', pt(1), y));
-            set(handles.IC_table,'Data',num2str(pt(1)))
+              y = interp1(xdata, ydata, pt(1))
+
+              set(handles.(['time_',param]),'String',{num2str(pt(1))})
+              set(handles.(['T_',param]),'String',{num2str(pt(2))})
+              set(handles.(['P_',param]),'String',{num2str(pt(3))})
            else
               set(hText(idx), 'Position', [NaN NaN]);
            end

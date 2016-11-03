@@ -22,7 +22,7 @@ function varargout = gui_save_IC(varargin)
 
     % Edit the above text to modify the response to help gui_save_IC
 
-    % Last Modified by GUIDE v2.5 02-Nov-2016 17:43:49
+    % Last Modified by GUIDE v2.5 03-Nov-2016 12:32:47
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -51,9 +51,9 @@ function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     file=varargin{1};
     PA9601=varargin{2};
     PA9701=varargin{3};
-    TF9601=varargin{4};
-    TF9602=varargin{5};
-    TF9701=varargin{6};
+%     TF9601=varargin{4};
+    TF9602=varargin{4};
+    TF9701=varargin{5};
 
     % set parameters
     set(handles.fileName,'String',file)
@@ -71,10 +71,10 @@ function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     hold off
     subplot(2,1,2)
     hold on
-    plot(TF9601,'b')
+%     plot(TF9601,'b')
     plot(TF9602,'g')
-    plot(TF9701,'r')
-    legend('TF9601','TF9602','Location','eastoutside')
+    plot(TF9701,'b')
+    legend('TF9602','TF9701','Location','eastoutside')
     ylabel('Temp [C]')
     hold off
     
@@ -91,32 +91,228 @@ function varargout = gui_save_IC_OutputFcn(hObject, eventdata, handles)
 % --- Executes on button press in IC_finder.
 function IC_finder_Callback(hObject, eventdata, handles)
 
-    set(handles.IC_table,'Visible','On')
-    vertical_cursors(handles)
+%     set(handles.IC_table,'Visible','On')
+    
 
 
 % --- Executes during object creation, after setting all properties.
 function IC_table_CreateFcn(hObject, eventdata, handles)
 
-
-
 function testEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to testEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of testEdit as text
-%        str2double(get(hObject,'String')) returns contents of testEdit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function testEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to testEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+function T_Htank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_Htank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_Htank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_Htank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_Htank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_Htank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in Htank_vac_pushbutton.
+function Htank_vac_pushbutton_Callback(hObject, eventdata, handles)
+    param='Htank_vac';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+function T_NCtank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_NCtank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_NCtank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_NCtank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_NCtank_vac_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_NCtank_vac_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in NCtank_vac_pushbutton.
+function NCtank_vac_pushbutton_Callback(hObject, eventdata, handles)
+    param='NCtank_vac';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+function T_Htank_h2o_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_Htank_h2o_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_Htank_h2o_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_Htank_h2o_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_Htank_h2o_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_Htank_h2o_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in Htank_h2o_pushbutton.
+function Htank_h2o_pushbutton_Callback(hObject, eventdata, handles)
+    param='Htank_h2o';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+function T_NCtank_He_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_NCtank_He_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_NCtank_He_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_NCtank_He_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_NCtank_He_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_NCtank_He_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in NCtank_He_pushbutton.
+function NCtank_He_pushbutton_Callback(hObject, eventdata, handles)
+    param='NCtank_He';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+function T_NCtank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_NCtank_full_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_NCtank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_NCtank_full_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_NCtank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_NCtank_full_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in NCtank_full_pushbutton.
+function NCtank_full_pushbutton_Callback(hObject, eventdata, handles)
+    param='NCtank_full';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+function T_Htank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function T_Htank_full_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function time_Htank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function time_Htank_full_CreateFcn(hObject, eventdata, handles)
+
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+function P_Htank_full_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function P_Htank_full_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+% --- Executes on button press in Htank_full_pushbutton.
+function Htank_full_pushbutton_Callback(hObject, eventdata, handles)
+    param='Htank_full';
+    if ~isfield(handles,'hCur')
+        handles.hCur=[];
+    end
+    handles.hCur=vertical_cursors(handles,param,handles.hCur);
+    
+    % Update handles structure
+    guidata(hObject, handles);

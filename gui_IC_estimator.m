@@ -1,35 +1,35 @@
-function varargout = IC(varargin)
-% IC MATLAB code for IC.fig
-%      IC, by itself, creates a new IC or raises the existing
+function varargout = gui_IC_estimator(varargin)
+% gui_IC_estimator MATLAB code for gui_IC_estimator.fig
+%      gui_IC_estimator, by itself, creates a new gui_IC_estimator or raises the existing
 %      singleton*.
 %
-%      H = IC returns the handle to a new IC or the handle to
+%      H = gui_IC_estimator returns the handle to a new gui_IC_estimator or the handle to
 %      the existing singleton*.
 %
-%      IC('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in IC.M with the given input arguments.
+%      gui_IC_estimator('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in gui_IC_estimator.M with the given input arguments.
 %
-%      IC('Property','Value',...) creates a new IC or raises the
+%      gui_IC_estimator('Property','Value',...) creates a new gui_IC_estimator or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before IC_OpeningFcn gets called.  An
+%      applied to the GUI before gui_IC_estimator_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to IC_OpeningFcn via varargin.
+%      stop.  All inputs are passed to gui_IC_estimator_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help IC
+% Edit the above text to modify the response to help gui_IC_estimator
 
-% Last Modified by GUIDE v2.5 03-Nov-2016 13:12:54
+% Last Modified by GUIDE v2.5 03-Nov-2016 14:05:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @IC_OpeningFcn, ...
-                   'gui_OutputFcn',  @IC_OutputFcn, ...
+                   'gui_OpeningFcn', @gui_IC_estimator_OpeningFcn, ...
+                   'gui_OutputFcn',  @gui_IC_estimator_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,26 +44,26 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before IC is made visible.
-function IC_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_IC_estimator is made visible.
+function gui_IC_estimator_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user table_1 (see GUIDATA)
-% varargin   command line arguments to IC (see VARARGIN)
+% varargin   command line arguments to gui_IC_estimator (see VARARGIN)
 
-% Choose default command line output for IC
+% Choose default command line output for gui_IC_estimator
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes IC wait for user response (see UIRESUME)
+% UIWAIT makes gui_IC_estimator wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = IC_OutputFcn(hObject, eventdata, handles) 
+function varargout = gui_IC_estimator_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -73,7 +73,7 @@ function varargout = IC_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on button press in 'Calculate IC' button.
+% --- Executes on button press in 'Calculate gui_IC_estimator' button.
 function CalculateIC_Callback(hObject, eventdata, handles)
 % hObject    handle to CalculateIC (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -133,6 +133,6 @@ function Print_Callback(hObject, eventdata, handles)
 % hObject    handle to Print (see GCBO)
 % eventdata  reserved - to be defined in a future vrsion of MATLAB
 % handles    structure with handles and user table_1 (see GUIDATA)
-ICtable = get(handles.table_2, 'data')
+ICtable = get(handles.table_2, 'data');
 xlswrite('PRECISE_IC_table.xlsx',ICtable)
 open('PRECISE_IC_table.xlsx')

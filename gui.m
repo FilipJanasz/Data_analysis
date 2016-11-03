@@ -1178,3 +1178,7 @@ function stdev_checkbox_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in stdev_only_checkbox.
 function stdev_only_checkbox_Callback(hObject, eventdata, handles)
+
+% --------------------------------------------------------------------
+function toolbar_init_estimator_ClickedCallback(hObject, eventdata, handles)
+    gui_IC_estimator

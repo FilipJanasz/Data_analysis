@@ -3,26 +3,18 @@
 % http://ch.mathworks.com/matlabcentral/answers/1758-crosshairs-or-just-vertical-line-across-linked-axis-plots
 
 function hCur=vertical_cursors(handles,param,hCur_old)
-    
-    % remove old vertical lines
+
     for hCur_n=1:numel(hCur_old)
         delete(hCur_old(hCur_n))
-    end
-    
-    
-    %compare param and choose appropriate axes
-    if ~isempty(strfind(param,'Htank'))
-        T_instrument='TF9602';
-        P_instrument='PA9601';
-    elseif ~isempty(strfind(param,'NCtank'))
-        T_instrument='TF9701';
-        P_instrument='PA9701';
     end
     
     set(gcf,'WindowButtonDownFcn', @clickFcn,'WindowButtonUpFcn', @unclickFcn);
     % Set up cursor text
     allLines = findobj(gcf, 'type', 'line');
-
+    hText = nan(1, length(allLines));
+    for id = 1:length(allLines)
+       hText(id) = text(NaN, NaN, '','Parent', get(allLines(id), 'Parent'),'BackgroundColor', 'white','Color', get(allLines(id), 'Color'));
+    end
     % Set up cursor lines
     allAxes = findobj(gcf, 'Type', 'axes');
     hCur = nan(1, length(allAxes));
@@ -34,6 +26,7 @@ function hCur=vertical_cursors(handles,param,hCur_old)
         % Initiate cursor if clicked anywhere but the figure
         if strcmpi(get(gco, 'type'), 'figure')
            set(hCur, 'XData', [NaN NaN]);                % <-- EDIT
+           set(hText, 'Position', [NaN NaN]);            % <-- EDIT
         else
            set(gcf, 'WindowButtonMotionFcn', @dragFcn)
            dragFcn()
@@ -47,19 +40,17 @@ function hCur=vertical_cursors(handles,param,hCur_old)
         set(hCur, 'XData', [pt(1), pt(1)]);
         % Update cursor text
         for idx = 1:length(allLines)
-            graph_name=allLines(idx).DisplayName;
-            set(handles.(['time_',param]),'String',{num2str(pt(1))})
-            if strcmp(graph_name,T_instrument)
-               xdata = get(allLines(idx), 'XData');
-               ydata = get(allLines(idx), 'YData');
-               y = interp1(xdata, ydata, pt(1));               
-               set(handles.(['T_',param]),'String',y)
-            elseif strcmp(graph_name,P_instrument)
-               xdata = get(allLines(idx), 'XData');
-               ydata = get(allLines(idx), 'YData');
-               y = interp1(xdata, ydata, pt(1));               
-               set(handles.(['P_',param]),'String',y)
-            end
+           xdata = get(allLines(idx), 'XData');
+           ydata = get(allLines(idx), 'YData');
+           if pt(1) >= xdata(1) && pt(1) <= xdata(end)
+              y = interp1(xdata, ydata, pt(1))
+
+              set(handles.(['time_',param]),'String',{num2str(pt(1))})
+              set(handles.(['T_',param]),'String',{num2str(pt(2))})
+              set(handles.(['P_',param]),'String',{num2str(pt(3))})
+           else
+              set(hText(idx), 'Position', [NaN NaN]);
+           end
         end
     end
 

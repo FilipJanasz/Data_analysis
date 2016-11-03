@@ -22,7 +22,7 @@ function varargout = gui_save_IC(varargin)
 
     % Edit the above text to modify the response to help gui_save_IC
 
-    % Last Modified by GUIDE v2.5 03-Nov-2016 12:32:47
+    % Last Modified by GUIDE v2.5 03-Nov-2016 17:34:38
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -49,11 +49,11 @@ function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
 
     handles.output = hObject;
     file=varargin{1};
-    PA9601=varargin{2};
-    PA9701=varargin{3};
+    handles.PA9601=varargin{2};
+    handles.PA9701=varargin{3};
 %     TF9601=varargin{4};
-    TF9602=varargin{4};
-    TF9701=varargin{5};
+    handles.TF9602=varargin{4};
+    handles.TF9701=varargin{5};
 
     % set parameters
     set(handles.fileName,'String',file)
@@ -62,8 +62,8 @@ function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     % plot values
     subplot(2,1,1)
     hold on
-    plot(PA9601,'r')
-    plot(PA9701,'k')
+    plot(handles.PA9601,'r')
+    plot(handles.PA9701,'k')
     legend('PA9601','PA9701','Location','eastoutside')
 %     t=title(['Initial condition graphs for file:  ', file]);
 %     set(t,'interpreter','none')
@@ -72,8 +72,8 @@ function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     subplot(2,1,2)
     hold on
 %     plot(TF9601,'b')
-    plot(TF9602,'g')
-    plot(TF9701,'b')
+    plot(handles.TF9602,'g')
+    plot(handles.TF9701,'b')
     legend('TF9602','TF9701','Location','eastoutside')
     ylabel('Temp [C]')
     hold off
@@ -115,6 +115,18 @@ function T_Htank_vac_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_Htank_vac_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_Htank_vac,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_Htank_vac,'String',timeChoice)
+    elseif timeChoice>numel(handles.PA9601)
+        timeChoice=numel(handles.PA9601);
+        set(handles.time_Htank_vac,'String',timeChoice)
+    end
+    P_Htank_vac=handles.PA9601(timeChoice);
+    T_Htank_vac=handles.TF9602(timeChoice);
+    set(handles.P_Htank_vac,'String',num2str(P_Htank_vac))
+    set(handles.T_Htank_vac,'String',num2str(T_Htank_vac))
 
 % --- Executes during object creation, after setting all properties.
 function time_Htank_vac_CreateFcn(hObject, eventdata, handles)
@@ -150,6 +162,18 @@ function T_NCtank_vac_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_NCtank_vac_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_NCtank_vac,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_NCtank_vac,'String',num2str(timeChoice))
+    elseif timeChoice>numel(handles.PA9701)
+        timeChoice=numel(handles.PA9701);
+        set(handles.time_NCtank_vac,'String',num2str(timeChoice))
+    end
+    P_NCtank_vac_temp=handles.PA9701(timeChoice);
+    T_NCtank_vac_temp=handles.TF9701(timeChoice);
+    set(handles.P_NCtank_vac,'String',num2str(P_NCtank_vac_temp))
+    set(handles.T_NCtank_vac,'String',num2str(T_NCtank_vac_temp))
 
 % --- Executes during object creation, after setting all properties.
 function time_NCtank_vac_CreateFcn(hObject, eventdata, handles)
@@ -185,6 +209,18 @@ function T_Htank_h2o_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_Htank_h2o_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_Htank_h2o,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_Htank_h2o,'String',num2str(timeChoice))
+    elseif timeChoice>numel(handles.PA9601)
+        timeChoice=numel(handles.PA9601);
+        set(handles.time_Htank_h2o,'String',num2str(timeChoice))
+    end
+    P_Htank_h2o_temp=handles.PA9601(timeChoice);
+    T_Htank_h2o_temp=handles.TF9602(timeChoice);
+    set(handles.P_Htank_h2o,'String',num2str(P_Htank_h2o_temp))
+    set(handles.T_Htank_h2o,'String',num2str(T_Htank_h2o_temp))
 
 % --- Executes during object creation, after setting all properties.
 function time_Htank_h2o_CreateFcn(hObject, eventdata, handles)
@@ -220,6 +256,18 @@ function T_NCtank_He_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_NCtank_He_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_NCtank_He,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_NCtank_He,'String',num2str(timeChoice))
+    elseif timeChoice>numel(handles.PA9701)
+        timeChoice=numel(handles.PA9701);
+        set(handles.time_NCtank_He,'String',num2str(timeChoice))
+    end
+    P_NCtank_He_temp=handles.PA9701(timeChoice);
+    T_NCtank_He_temp=handles.TF9701(timeChoice);
+    set(handles.P_NCtank_He,'String',num2str(P_NCtank_He_temp))
+    set(handles.T_NCtank_He,'String',num2str(T_NCtank_He_temp))
 
 % --- Executes during object creation, after setting all properties.
 function time_NCtank_He_CreateFcn(hObject, eventdata, handles)
@@ -255,6 +303,18 @@ function T_NCtank_full_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_NCtank_full_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_NCtank_full,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_NCtank_full,'String',num2str(timeChoice))
+    elseif timeChoice>numel(handles.PA9701)
+        timeChoice=numel(handles.PA9701);
+        set(handles.time_NCtank_full,'String',num2str(timeChoice))
+    end
+    P_NCtank_full_temp=handles.PA9701(timeChoice);
+    T_NCtank_full_temp=handles.TF9701(timeChoice);
+    set(handles.P_NCtank_full,'String',num2str(P_NCtank_full_temp))
+    set(handles.T_NCtank_full,'String',num2str(T_NCtank_full_temp))
 
 % --- Executes during object creation, after setting all properties.
 function time_NCtank_full_CreateFcn(hObject, eventdata, handles)
@@ -290,6 +350,18 @@ function T_Htank_full_CreateFcn(hObject, eventdata, handles)
     end
 
 function time_Htank_full_Callback(hObject, eventdata, handles)
+    timeChoice=str2double(get(handles.time_Htank_full,'String'));
+    if timeChoice<=0
+        timeChoice=1;
+        set(handles.time_Htank_full,'String',num2str(timeChoice))
+    elseif timeChoice>numel(handles.PA9601)
+        timeChoice=numel(handles.PA9601);
+        set(handles.time_Htank_full,'String',num2str(timeChoice))
+    end
+    P_Htank_full_temp=handles.PA9601(timeChoice);
+    T_Htank_full_temp=handles.TF9602(timeChoice);
+    set(handles.P_Htank_full,'String',num2str(P_Htank_full_temp))
+    set(handles.T_Htank_full,'String',num2str(T_Htank_full_temp))
 
 % --- Executes during object creation, after setting all properties.
 function time_Htank_full_CreateFcn(hObject, eventdata, handles)
@@ -316,3 +388,56 @@ function Htank_full_pushbutton_Callback(hObject, eventdata, handles)
     
     % Update handles structure
     guidata(hObject, handles);
+
+
+% --- Executes on button press in pureSteam_pushbutton.
+function pureSteam_pushbutton_Callback(hObject, eventdata, handles)
+    set(handles.time_NCtank_vac,'String','0')
+    set(handles.T_NCtank_vac,'String','0')
+    set(handles.P_NCtank_vac,'String','0')
+    set(handles.time_NCtank_He,'String','0')
+    set(handles.T_NCtank_He,'String','0')
+    set(handles.P_NCtank_He,'String','0')
+    set(handles.time_NCtank_full,'String','0')
+    set(handles.T_NCtank_full,'String','0')
+    set(handles.P_NCtank_full,'String','0')
+
+% --- Executes on button press in onlyN2_pushbutton.
+function onlyN2_pushbutton_Callback(hObject, eventdata, handles)
+    time_NCtank_vac_temp=get(handles.time_NCtank_vac,'String');
+    P_NCtank_vac_temp=get(handles.P_NCtank_vac,'String');
+    T_NCtank_vac_temp=get(handles.T_NCtank_vac,'String');
+    set(handles.T_NCtank_He,'String',T_NCtank_vac_temp)
+    set(handles.P_NCtank_He,'String',P_NCtank_vac_temp)
+    set(handles.time_NCtank_He,'String',time_NCtank_vac_temp)
+
+% --- Executes on button press in onlyHe_pushbutton.
+function onlyHe_pushbutton_Callback(hObject, eventdata, handles)
+    time_NCtank_He_temp=get(handles.time_NCtank_He,'String');
+    P_NCtank_He_temp=get(handles.P_NCtank_He,'String');
+    T_NCtank_He_temp=get(handles.T_NCtank_He,'String');
+    set(handles.T_NCtank_full,'String',T_NCtank_He_temp)
+    set(handles.P_NCtank_full,'String',P_NCtank_He_temp)
+    set(handles.time_NCtank_full,'String',time_NCtank_He_temp)
+
+
+% --- Executes on button press in clearAll_pushbutton.
+function clearAll_pushbutton_Callback(hObject, eventdata, handles)
+    set(handles.time_NCtank_vac,'String',[])
+    set(handles.T_NCtank_vac,'String',[])
+    set(handles.P_NCtank_vac,'String',[])
+    set(handles.time_Htank_vac,'String',[])
+    set(handles.T_Htank_vac,'String',[])
+    set(handles.P_Htank_vac,'String',[])
+    set(handles.time_Htank_h2o,'String',[])
+    set(handles.T_Htank_h2o,'String',[])
+    set(handles.P_Htank_h2o,'String',[])
+    set(handles.time_NCtank_He,'String',[])
+    set(handles.T_NCtank_He,'String',[])
+    set(handles.P_NCtank_He,'String',[])
+    set(handles.time_NCtank_full,'String',[])
+    set(handles.T_NCtank_full,'String',[])
+    set(handles.P_NCtank_full,'String',[])
+    set(handles.time_Htank_full,'String',[])
+    set(handles.T_Htank_full,'String',[])
+    set(handles.P_Htank_full,'String',[])

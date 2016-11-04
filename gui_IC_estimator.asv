@@ -134,9 +134,5 @@ function Print_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future vrsion of MATLAB
 % handles    structure with handles and user table_1 (see GUIDATA)
 ICtable = get(handles.table_2, 'data');
-headers=get(handles.table_2,'columnname');
-headers=headers';
-ICtable(2:end+1,:)=ICtable;
-ICtable(1,:)=headers;
 xlswrite('PRECISE_IC_table.xlsx',ICtable);
-open('PRECISE_IC_table.xlsx');
+open('PRECISE_IC_table.xlsx')

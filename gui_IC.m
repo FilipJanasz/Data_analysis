@@ -57,7 +57,8 @@ function gui_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.data=varargin{1};
     handles.files=varargin{2};
     handles.timing=varargin{3};
-    handles.filepath=varargin{4};
+    handles.filepath_IC=varargin{4};
+    handles.filepath=varargin{5};
     handles.plotcounter=0;
 
     %for storing and clearing curves
@@ -578,7 +579,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     %saving figure is problematic due to two y axes
     
     % 0. move to file directory, based on default value stored in GUI    
-    old_folder=cd(handles.filepath);
+    old_folder=cd(handles.filepath_IC);
     
     % 1. Ask user for the file name
     saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
@@ -1183,7 +1184,7 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     TF9602=handles.data.(file).general_IC.TF9602;
     TF9701=handles.data.(file).general_IC.TF9701;
     
-    gui_save_IC(file,PA9601,PA9701,TF9602,TF9701)
+    gui_save_IC(file,PA9601,PA9701,TF9602,TF9701,handles.filepath)
     
 %     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');
     

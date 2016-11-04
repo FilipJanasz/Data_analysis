@@ -141,7 +141,7 @@ function init_conditions_viewer(handles)
     timing.fast=0.1;
     timing.slow=1;
     timing.MP=0.1;
-    gui_IC(IC_data,files,timing,IC_directory);
+    gui_IC(IC_data,files,timing,IC_directory,dirChoice);
 %     profile VIEWER
     %now having all appropriate data, open GUI
 end

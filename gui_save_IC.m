@@ -22,7 +22,7 @@ function varargout = gui_save_IC(varargin)
 
     % Edit the above text to modify the response to help gui_save_IC
 
-    % Last Modified by GUIDE v2.5 03-Nov-2016 17:34:38
+    % Last Modified by GUIDE v2.5 04-Nov-2016 10:52:13
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -48,15 +48,16 @@ function varargout = gui_save_IC(varargin)
 function gui_save_IC_OpeningFcn(hObject, eventdata, handles, varargin)
 
     handles.output = hObject;
-    file=varargin{1};
+    handles.file=varargin{1};
     handles.PA9601=varargin{2};
     handles.PA9701=varargin{3};
 %     TF9601=varargin{4};
     handles.TF9602=varargin{4};
     handles.TF9701=varargin{5};
+    handles.filepath=varargin{6};
 
     % set parameters
-    set(handles.fileName,'String',file)
+    set(handles.fileName,'String',handles.file)
     axes(handles.IC_plot)
     
     % plot values
@@ -441,3 +442,30 @@ function clearAll_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.time_Htank_full,'String',[])
     set(handles.T_Htank_full,'String',[])
     set(handles.P_Htank_full,'String',[])
+
+
+% --- Executes on button press in save_pushbutton.
+function save_pushbutton_Callback(hObject, eventdata, handles)
+    xlsArray={'P_htank_vac';'T_htank_vac';'P_NCtank_vac';'T_NCtank_vac';'P_htank_h2o';'T_htank_h2o';'P_NCtank_He';'T_NCtank_He';'P_NCtank';'T_NCtank';'P_htank_full';'T_htank_full'};
+
+    xlsArray{1,2}=get(handles.P_Htank_vac,'String');
+    xlsArray{2,2}=get(handles.T_Htank_vac,'String');
+    
+    
+    xlsArray{3,2}=str2double(get(handles.P_NCtank_vac,'String'));
+    xlsArray{4,2}=str2double(get(handles.T_NCtank_vac,'String'));
+    
+    xlsArray{5,2}=str2double(get(handles.P_Htank_h2o,'String'));
+    xlsArray{6,2}=str2double(get(handles.T_Htank_h2o,'String'));
+   
+    xlsArray{7,2}=str2double(get(handles.P_NCtank_He,'String'));
+    xlsArray{8,2}=str2double(get(handles.T_NCtank_He,'String'));
+    
+    xlsArray{9,2}=str2double(get(handles.P_NCtank_full,'String'));
+    xlsArray{10,2}=str2double(get(handles.T_NCtank_full,'String'));
+    
+    xlsArray{11,2}=str2double(get(handles.P_Htank_full,'String'));
+    xlsArray{12,2}=str2double(get(handles.T_Htank_full,'String'));
+    
+    xlswrite([handles.filepath,'\DATA\',handles.file,'.xlsx'],xlsArray)
+

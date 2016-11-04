@@ -467,5 +467,5 @@ function save_pushbutton_Callback(hObject, eventdata, handles)
     xlsArray{11,2}=str2double(get(handles.P_Htank_full,'String'));
     xlsArray{12,2}=str2double(get(handles.T_Htank_full,'String'));
     
-    xlswrite([handles.filepath,'\DATA\',handles.file,'.xlsx'],xlsArray)
+    xlswrite([handles.filepath,'\DATA\',handles.file,'_IC.xlsx'],xlsArray)
 

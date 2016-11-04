@@ -59,6 +59,7 @@ function gui_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.timing=varargin{3};
     handles.filepath_IC=varargin{4};
     handles.filepath=varargin{5};
+    handles.file_proper_names=varargin{6};
     handles.plotcounter=0;
 
     %for storing and clearing curves
@@ -1178,13 +1179,15 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     file_list=get(handles.file_popupmenu,'String');
     file_val=get(handles.file_popupmenu,'Value');
     file=file_list{file_val};
+    
     PA9601=handles.data.(file).general_IC.PA9601;
     PA9701=handles.data.(file).general_IC.PA9701;
 %     TF9601=handles.data.(file).general_IC.TF9601;
     TF9602=handles.data.(file).general_IC.TF9602;
     TF9701=handles.data.(file).general_IC.TF9701;
     
-    gui_save_IC(file,PA9601,PA9701,TF9602,TF9701,handles.filepath)
+    file_proper_name=handles(file_val).file_proper_names;  %the minus signes were first replaced with floor signs, so now we go back...
+    gui_save_IC(file_proper_name,PA9601,PA9701,TF9602,TF9701,handles.filepath)
     
 %     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');
     

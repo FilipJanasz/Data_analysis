@@ -141,7 +141,10 @@ function init_conditions_viewer(handles)
     timing.fast=0.1;
     timing.slow=1;
     timing.MP=0.1;
-    gui_IC(IC_data,files,timing,IC_directory,dirChoice);
+    %files have substituted _ for every -, otherwise it doesn't work as a
+    %field name, thus I'm also passing the original list handles.file.name,
+    %so that the function below can refer to files in directories
+    gui_IC(IC_data,files,timing,IC_directory,dirChoice,handles.file.name);
 %     profile VIEWER
     %now having all appropriate data, open GUI
 end

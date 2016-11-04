@@ -1,12 +1,12 @@
 function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file)
     extensive_error_flag=0;
     % get initial conditions from file
-    dir=file.directory;
+    directory=file.directory;
     try
-        init_cond=xlsread([dir,'\IC.xlsx'],'B1:B12');
+        init_cond=xlsread([directory,'\IC.xlsx'],'B1:B12');
 %         name_init_cond=xlsread([dir,'\IC.xlsx'],'A1:A12');
     catch
-         init_cond=xlsread([dir,'\',file.name,'_IC.xlsx'],'B1:B12');
+         init_cond=xlsread([directory,'\',file.name,'_IC.xlsx'],'B1:B12');
 %          name_init_cond=xlsread([dir,'\',file.name,'_IC.xlsx'],'A1:A12');
     end
 

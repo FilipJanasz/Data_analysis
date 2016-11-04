@@ -402,6 +402,13 @@ function pureSteam_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.time_NCtank_full,'String','0')
     set(handles.T_NCtank_full,'String','0')
     set(handles.P_NCtank_full,'String','0')
+    time_Htank_h2o_temp=get(handles.time_Htank_h2o,'String');
+    T_Htank_h2o_temp=get(handles.T_Htank_h2o,'String');
+    P_Htank_h2o_temp=get(handles.P_Htank_h2o,'String');
+    set(handles.time_Htank_full,'String',time_Htank_h2o_temp)
+    set(handles.T_Htank_full,'String',T_Htank_h2o_temp)
+    set(handles.P_Htank_full,'String',P_Htank_h2o_temp)
+    
 
 % --- Executes on button press in onlyN2_pushbutton.
 function onlyN2_pushbutton_Callback(hObject, eventdata, handles)

@@ -151,10 +151,78 @@ function process_btn_Callback(hObject, ~, handles)
     %update handles structure
     guidata(hObject, handles)
 %     profile viewer
+
+% --- Executes on button press in addData_pushbutton.
+function addData_pushbutton_Callback(hObject, eventdata, handles)
+    % profile on
+    clear steam coolant facility NC distributions file BC GHFS MP timing
+
+    %update handles structure
+    guidata(hObject, handles)
+    
+    % based on user choice, acces and process picked files
+    clear_flag=0;
+    interactive_flag=get(handles.interactive_checkbox,'Value');
+    st_state_flag=get(handles.st_state,'Value');
+      
+    % call function down the line for file processing
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
+    
+    %transfer data to handles structure
+    handles.steam=steam;
+    handles.coolant=coolant;
+    handles.facility=facility;
+    handles.NC=NC;
+    handles.file=file;
+    handles.BC=BC;
+    handles.GHFS=GHFS;
+    handles.MP=MP;
+    handles.timing=timing;
+    handles.distributions=distributions;
+   
+    % push the data to main workspace, just in case
+    assignin('base','steam',handles.steam)
+    assignin('base','coolant',handles.coolant)
+    assignin('base','facility',handles.facility)
+    assignin('base','file',handles.file)
+    assignin('base','distributions',handles.distributions)
+    assignin('base','NC',handles.NC)
+    assignin('base','BC',handles.BC)
+    assignin('base','GHFS',handles.GHFS)
+    assignin('base','MP',handles.MP)
+    assignin('base','timing',handles.timing)
+
+    % based on what variables are present, set possible choices to
+    % popupmenus for plotting
+    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+
+    set(handles.popupmenu_x_axis,'String',vars)
+    set(handles.popupmenu_y_axis,'String',vars)
+
+    %two lines below reset popupmenu values to first object on the list
+    set(handles.popupmenu_x_axis,'Value',1);
+    set(handles.popupmenu_y_axis,'Value',1);
+    set(handles.popupmenu_x_axis_var,'Value',1);
+    set(handles.popupmenu_y_axis_var,'Value',1);
+
+    %update variables popupmenus
+    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
+    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    
+    %update data selector listbox
+    file_list={file(1:end).name};
+    set(handles.plot_exclude,'String',file_list)
+    mark_file=1:1:numel(file_list);
+    set(handles.plot_exclude,'Value',mark_file)
+    
+    %update handles structure
+    guidata(hObject, handles)
+%     profile viewer
+
     
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
-%     profile on
+    %     profile on
     %essentially the same as process, but with different flag
     clear steam coolant facility NC distributions file BC GHFS MP timing
 
@@ -1182,3 +1250,4 @@ function stdev_only_checkbox_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function toolbar_init_estimator_ClickedCallback(hObject, eventdata, handles)
     gui_IC_estimator
+

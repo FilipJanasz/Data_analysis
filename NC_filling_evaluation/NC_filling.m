@@ -6,7 +6,11 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         init_cond=xlsread([directory,'\IC.xlsx'],'B1:B12');
 %         name_init_cond=xlsread([dir,'\IC.xlsx'],'A1:A12');
     catch
-         init_cond=xlsread([directory,'\',file.name,'_IC.xlsx'],'B1:B12');
+        try
+            init_cond=xlsread([directory,'\',file.name,'_IC.xlsx'],'B1:B12');
+        catch
+            init_cond=xlsread([directory,'\',file.name,'-IC.xlsx'],'B1:B12');
+        end
 %          name_init_cond=xlsread([dir,'\',file.name,'_IC.xlsx'],'A1:A12');
     end
 

@@ -136,7 +136,7 @@ function init_conditions_viewer(handles)
     %call gui for plotting
     %fix hyphens
     for file_ctr=1:fileCounter
-        files{file_ctr}=strrep(files{file_ctr},'-','_');
+        files_legal_name{file_ctr}=strrep(files{file_ctr},'-','_');
     end
     timing.fast=0.1;
     timing.slow=1;
@@ -144,7 +144,7 @@ function init_conditions_viewer(handles)
     %files have substituted _ for every -, otherwise it doesn't work as a
     %field name, thus I'm also passing the original list handles.file.name,
     %so that the function below can refer to files in directories
-    gui_IC(IC_data,files,timing,IC_directory,dirChoice,handles.file.name);
+    gui_IC(IC_data,files_legal_name,timing,IC_directory,dirChoice,files);
 %     profile VIEWER
     %now having all appropriate data, open GUI
 end

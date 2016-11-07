@@ -55,22 +55,22 @@ function gui_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     % Choose default command line output for gui_IC
     handles.output = hObject;
     handles.data=varargin{1};
-    handles.files=varargin{2};
+    handles.files_legal_names=varargin{2};
     handles.timing=varargin{3};
     handles.filepath_IC=varargin{4};
     handles.filepath=varargin{5};
-    handles.file_proper_names=varargin{6};
+    handles.files=varargin{6};
     handles.plotcounter=0;
 
     %for storing and clearing curves
     handles.graph{1}=0;
 
     %sett file popup menu proeprly
-    set(handles.file_popupmenu,'String',handles.files)
+    set(handles.file_popupmenu,'String',handles.files_legal_names)
     set(handles.file_popupmenu,'Value',1);
 
     %set first popup menu properly
-    vars=fields(handles.data.(handles.files{1}));
+    vars=fields(handles.data.(handles.files_legal_names{1}));
     set(handles.var_popupmenu,'String',vars)
     set(handles.var_popupmenu,'Value',1);
 
@@ -78,7 +78,7 @@ function gui_IC_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.property_popupmenu,'Value',1);
 
     %update variables popupmenus
-    properties=fields(handles.data.(handles.files{1}).(vars{1}));
+    properties=fields(handles.data.(handles.files_legal_names{1}).(vars{1}));
     set(handles.property_popupmenu,'String',properties)
 
     % Update handles structure
@@ -1186,7 +1186,7 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     TF9602=handles.data.(file).general_IC.TF9602;
     TF9701=handles.data.(file).general_IC.TF9701;
     
-    file_proper_name=handles(file_val).file_proper_names;  %the minus signes were first replaced with floor signs, so now we go back...
+    file_proper_name=handles.files(file_val);  %the minus signes were first replaced with floor signs, so now we go back...
     gui_save_IC(file_proper_name,PA9601,PA9701,TF9602,TF9701,handles.filepath)
     
 %     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');

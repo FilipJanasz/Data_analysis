@@ -474,5 +474,10 @@ function save_pushbutton_Callback(hObject, eventdata, handles)
     xlsArray{11,2}=str2double(get(handles.P_Htank_full,'String'));
     xlsArray{12,2}=str2double(get(handles.T_Htank_full,'String'));
     
-    xlswrite([handles.filepath,'\DATA\',handles.file,'_IC.xlsx'],xlsArray)
+    if exist([handles.filepath,'\DATA\',handles.file{1},'.xlsx'],'file')
+        delete [handles.filepath,'\DATA\',handles.file{1},'.xlsx']
+        disp(['Old IC xlsx for file: ',handles.file{1},' has been deleted'])
+    end
+    xlswrite([handles.filepath,'\DATA\',handles.file{1},'.xlsx'],xlsArray)
+    disp(['IC xlsx for file: ',handles.file{1},' saved succefully'])
 

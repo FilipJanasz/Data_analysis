@@ -180,7 +180,7 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
     handles.GHFS=[handles.GHFS,GHFS];
     handles.MP=[handles.MP,MP];
     handles.timing=[handles.timing,timing];
-    handles.distributions=[handles.distributions,distributions];
+    handles.distributions=[handles.distributions,distributions;
    
     % push the data to main workspace, just in case
     assignin('base','steam',handles.steam)
@@ -212,7 +212,7 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
-    file_list={handles.file(1:end).name};
+    file_list={file(1:end).name};
     set(handles.plot_exclude,'String',file_list)
     mark_file=1:1:numel(file_list);
     set(handles.plot_exclude,'Value',mark_file)

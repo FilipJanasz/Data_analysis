@@ -221,6 +221,7 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
     guidata(hObject, handles)
 %     profile viewer
 
+
     
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
@@ -230,10 +231,10 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 
     % based on user choice, access and process picked files
     clear_flag=1;
-    plot_flag=get(handles.interactive_checkbox,'Value');
+    interactive_flag=get(handles.interactive_checkbox,'Value');
     st_state_flag=get(handles.st_state,'Value');
     
-    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(plot_flag,st_state_flag,clear_flag,handles);
+    [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
     
     %transfer data to handles structure
     handles.steam=steam;

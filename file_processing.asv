@@ -259,18 +259,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                             steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative/period_fast:st_state_end_relative/period_fast);
                         elseif ~isempty(strfind(curr_channel,'MP_TF')) || ~isempty(strfind(curr_channel,'MP_Pos')) 
 %                             eval(['steady_data.',curr_channel,'=data.',curr_channel,'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);                          
-                            st_state_start_MP=floor(st_state_start_relative/numel(data.TF9602)*numel(data.(curr_channel)));
-                            st_state_end_MP=floor(st_state_end_relative/numel(data.TF9602)*numel(data.(curr_channel)));                            
-                            steady_data.(curr_channel)=data.(curr_channel)(st_state_start_MP:st_state_end_MP);
-%                             steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative/period_MP:st_state_end_relative/period_MP);
+                            st_start_MP=floor(st_state_start_relative/numel(data.TF9602))*numel(data.(curr_channel))
+                            steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative/period_MP:st_state_end_relative/period_MP);
                         else
 %                             eval(['steady_data.',curr_channel,'=data.',curr_channel,'(st_state_start_relative:st_state_end_relative);']);
-                            try
-                                steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative:st_state_end_relative);
-                            catch
-                                disp(['Problematic channel: ',curr_channel,' - not extracting steady state from it. Check the data'])
-                                steady_data.(curr_channel)=data.(curr_channel);
-                            end
+                            steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative:st_state_end_relative);
                         end
                     end
     %                 st_state_data=steady_data.PA9601;

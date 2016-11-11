@@ -1276,8 +1276,8 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
     for nameCntr=1:numel(handles.graph_name)
         nameTemp=cell2mat(handles.graph_name);
         spacePos=strfind(nameTemp,' ');
-        name4table_x{nameCntr}=['X_dat ',nameCntr,' ',nameTemp(1:spacePos(1)-1)];
-        name4table_y{nameCntr}=['Y_dat ',nameCntr,' ',nameTemp(spacePos(1)+1:end)];
+        name4table_x{nameCntr}=[nameTemp(1:spacePos(1)-1);
+        name4table_y{nameCntr}=nameTemp(spacePos(1)+1:end);
     end
 
     tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));

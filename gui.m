@@ -1271,15 +1271,15 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
     %create and populate the table
     tableFig=figure;
     tableTab=uitable;
+    tableTab.Position=[0 0 560 400];
     tableTab.Data=data4table;
     %fix column naming
     for nameCntr=1:numel(handles.graph_name)
-        nameTemp=cell2mat(handles.graph_name);
+        nameTemp=cell2mat(handles.graph_name(nameCntr));
         spacePos=strfind(nameTemp,' ');
-        name4table_x{nameCntr}=['X_dat ',nameCntr,' ',nameTemp(1:spacePos(1)-1)];
-        name4table_y{nameCntr}=['Y_dat ',nameCntr,' ',nameTemp(spacePos(1)+1:end)];
+        name4table_x{nameCntr}=['<HTML>X_dat ',num2str(nameCntr),'<br />',nameTemp(1:spacePos(1)-1),'<HTML/>'];
+        name4table_y{nameCntr}=['<HTML>Y_dat ',num2str(nameCntr),'<br />',nameTemp(spacePos(1)+1:end),'<HTML/>'];
     end
-
+    
     tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));
-    disp(1)
   

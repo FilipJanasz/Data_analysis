@@ -1283,3 +1283,13 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
     
     tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));
   
+% --- Executes on button press in AdvPlot_pushbutton.
+function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
+    %get all main categories names
+    list_medium=get(handles.popupmenu_x_axis,'String');
+    %and subcategories
+    for namingCntr=1:numel(list_medium)
+        list_variable.(list_medium{namingCntr})=fieldnames(handles.(list_medium{namingCntr}));
+    end
+    %pass it to the gui (instead of the whole "handles" structure
+    gui_plotting_arithmetic(list_medium,list_variable)

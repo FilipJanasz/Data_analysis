@@ -48,6 +48,9 @@ function varargout = gui_plotting_arithmetic(varargin)
 function gui_plotting_arithmetic_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.medium=varargin{1};
     handles.var=varargin{2};
+    handles.steam=varargin{3};
+    handles.NC=varargin{4};
+    handles.var_axes=varargin{5};
     %copy the popupmenus from the main gui
     set(handles.popupmenu_medium,'String',handles.medium);
     set(handles.popupmenu_medium,'Value',1);
@@ -194,14 +197,18 @@ function pushbutton4_Callback(hObject, eventdata, handles)
     for insrtCntr=1:numel(pos)
         Ystr=[Ystr(1:pos(insrtCntr)-1),'(cntr)',Ystr(pos(insrtCntr):end)];
     end
-
-
-    %plotting temp
-%     try
-        for cntr=1:insrtCntr
-            x_dat(cntr)=eval(Xstr);
-            y_dat(cntr)=eval(Ystr);
-        end
-%     catch
-%         disp('Wrong expression')
-%     end
+% 
+%     %plotting temp
+%     steam=handles.steam;
+%     NC=handles.NC;
+% %     try
+%         for cntr=1:numel(steam)
+%             x_dat(cntr)=eval(Xstr);
+%             y_dat(cntr)=eval(Ystr);
+%         end
+% %     catch
+% %         disp('Wrong expression')
+% %     end
+% 
+% axes(handles.var_axes)
+% plot(x_dat,y_dat,'r.')

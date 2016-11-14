@@ -22,7 +22,7 @@ function varargout = gui_plotting_arithmetic(varargin)
 
     % Edit the above text to modify the response to help gui_plotting_arithmetic
 
-    % Last Modified by GUIDE v2.5 14-Nov-2016 16:39:22
+    % Last Modified by GUIDE v2.5 14-Nov-2016 18:01:19
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -162,8 +162,8 @@ function insertY_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.y_dat_expression,'String',string_to_return);
 
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
+% --- Executes on button press in tempPlot_pushbutton.
+function tempPlot_pushbutton_Callback(hObject, eventdata, handles)
     %because of the data structure, it is crucial to add a counter reference after
     %each variable - this piece of code does it automatically, allowing the
     %user to type in expression in more natural way
@@ -221,3 +221,19 @@ function pushbutton4_Callback(hObject, eventdata, handles)
     plot(x_dat,y_dat,'b')
     plot(x_dat,y_dat,'rx')
     hold off
+
+
+% --- Executes on button press in clearX_pushbutton.
+function clearX_pushbutton_Callback(hObject, eventdata, handles)
+    set(handles.x_dat_expression,'String',[]);
+
+
+% --- Executes on button press in clearY_pushbutton.
+function clearY_pushbutton_Callback(hObject, eventdata, handles)
+    set(handles.y_dat_expression,'String',[]);
+
+
+% --- Executes on button press in clearAll_pushbutton.
+function clearAll_pushbutton_Callback(hObject, eventdata, handles)
+    set(handles.x_dat_expression,'String',[]);
+    set(handles.y_dat_expression,'String',[]);

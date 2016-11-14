@@ -1293,18 +1293,3 @@ function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
     end
     %pass it to the gui (instead of the whole "handles" structure
     gui_plotting_arithmetic(list_medium,list_variable,handles.steam,handles.NC,handles.var_axes)
-
-
-% --- Executes on button press in channel_arithmetics_checkbox.
-function channel_arithmetics_checkbox_Callback(hObject, eventdata, handles)
-    handles.channel_arithemtics=get(handles.channel_arithmetics_checkbox,'Value');
-        %get all main categories names
-    if handles.channel_arithemtics
-        list_medium=get(handles.popupmenu_x_axis,'String');
-        %and subcategories
-        for namingCntr=1:numel(list_medium)
-            list_variable.(list_medium{namingCntr})=fieldnames(handles.(list_medium{namingCntr}));
-        end
-        %pass it to the gui (instead of the whole "handles" structure
-        gui_plotting_arithmetic(list_medium,list_variable,handles.steam,handles.NC,handles.var_axes)
-    end

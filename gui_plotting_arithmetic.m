@@ -197,18 +197,27 @@ function pushbutton4_Callback(hObject, eventdata, handles)
     for insrtCntr=1:numel(pos)
         Ystr=[Ystr(1:pos(insrtCntr)-1),'(cntr)',Ystr(pos(insrtCntr):end)];
     end
-% 
-%     %plotting temp
-%     steam=handles.steam;
-%     NC=handles.NC;
-% %     try
-%         for cntr=1:numel(steam)
-%             x_dat(cntr)=eval(Xstr);
-%             y_dat(cntr)=eval(Ystr);
-%         end
-% %     catch
-% %         disp('Wrong expression')
-% %     end
-% 
-% axes(handles.var_axes)
-% plot(x_dat,y_dat,'r.')
+
+    %plotting temp
+    steam=handles.steam;
+    NC=handles.NC;
+    try
+        for cntr=1:numel(steam)
+            x_dat(cntr)=eval(Xstr);
+            y_dat(cntr)=eval(Ystr);
+        end
+    catch
+        disp('Wrong expression')
+    end
+    
+    %sorting by x
+    tempDat=[x_dat',y_dat'];
+    tempDat=sort(tempDat,1);
+    x_dat=tempDat(:,1);
+    y_dat=tempDat(:,2);
+
+    axes(handles.var_axes)
+    hold on   
+    plot(x_dat,y_dat,'b')
+    plot(x_dat,y_dat,'rx')
+    hold off

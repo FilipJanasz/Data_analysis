@@ -1,4 +1,4 @@
-function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
+function nc_length=length_NC(equilibrium_T,test_press,h2o_mole_fraction_equlibrium,N2_moles,He_moles,NC_moles_total)
     
     %T in Kelvin
     %P in bar
@@ -13,28 +13,28 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
     pc_N2=33.94;
     pc_He=2.27;
-%     pc_h2o=220.6;
+    pc_h2o=220.6;
 
     pc(1)=pc_N2;
     pc(2)=pc_He;    %put critical pressure values (pc's) into one var for Equation Of State
-%     pc(3)=pc_h2o;
+    pc(3)=pc_h2o;
 
     %critical temperature in K http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
     Tc_N2=126.2;
     Tc_He=5.19;
-%     Tc_h2o=647.096;
+    Tc_h2o=647.096;
 
     Tc(1)=Tc_N2;
     Tc(2)=Tc_He;    %put Tc's into one var for Equation Of State
-%     Tc(3)=Tc_h2o;
+    Tc(3)=Tc_h2o;
     
     %gas contant
     R=8.31;
     
     % moles and fractions
-    mole_fr(1)=N2_moles/NC_moles_total;
-    mole_fr(2)=He_moles/NC_moles_total;
-%     mole_fr(3)=0; %assuming no steam in NC mixture
+    mole_fr(1)=(1-h2o_mole_fraction_equlibrium)*N2_moles/NC_moles_total;
+    mole_fr(2)=(1-h2o_mole_fraction_equlibrium)*He_moles/NC_moles_total;
+    mole_fr(3)=h2o_mole_fraction_equlibrium; %assuming no steam in NC mixture
     
     % mixture_components=length(mass_fr);
     mixture_components=length(mole_fr);
@@ -43,7 +43,7 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     if eos==2;
         RK_app=zeros(1,mixture_components);
         for i=1:mixture_components
-            RK_app(i)=test_press/pc(i)/(test_T/2/Tc(i));
+            RK_app(i)=test_press/pc(i)/(equilibrium_T/2/Tc(i));
             if RK_app(i)>1
                  warning('Redlich-Kwong equation not applicable - for a mixture component the condition is not met (p/pc > T/2*Tc), forcing ideal gas equation')
                  eos=1;
@@ -58,11 +58,11 @@ function nc_length=length_NC(test_T,test_press,N2_moles,He_moles,NC_moles_total)
     end
     
     %from equation of state get molar volume (i.e. m3/mol)
-    molar_Vol=Vm_fun(test_press*100000,test_T);
+    molar_Vol=Vm_fun(test_press*100000,equilibrium_T);
     molar_Vol=real(molar_Vol(1));
     
     %get volume
-    volume=NC_moles_total*molar_Vol;
+    volume=NC_moles_total/(1-h2o_mole_fraction_equlibrium)*molar_Vol;
         
     %from volume, get length of tube (divide by tube crossection)
     nc_length=volume/(pi*0.01^2);

@@ -1157,7 +1157,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
         NC.moles_total.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;    
         % estimate tube length occupied by non mixed (with steam) NC mixture
-        NC.length.value=length_NC(mean(cal_steady_data.TF9603)+273.15,steam.press.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);
+%         NC.length.value=length_NC(mean(cal_steady_data.TF9603)+273.15,steam.press.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);
+        NC.length.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);
         
         %errors
         NC.N2_molefraction_init.error=NC.N2_molefraction.error;

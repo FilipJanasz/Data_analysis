@@ -197,7 +197,8 @@ function tempPlot_pushbutton_Callback(hObject, eventdata, handles)
     for insrtCntr=1:numel(pos)
         Ystr=[Ystr(1:pos(insrtCntr)-1),'(cntr)',Ystr(pos(insrtCntr):end)];
     end
-
+    
+    handles.output={Xstr,Ystr}
     %plotting temp
     steam=handles.steam;
     NC=handles.NC;

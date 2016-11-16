@@ -22,7 +22,7 @@ function varargout = gui_plotting_arithmetic(varargin)
 
     % Edit the above text to modify the response to help gui_plotting_arithmetic
 
-    % Last Modified by GUIDE v2.5 14-Nov-2016 18:01:19
+    % Last Modified by GUIDE v2.5 16-Nov-2016 17:30:59
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -46,18 +46,29 @@ function varargout = gui_plotting_arithmetic(varargin)
 
 % --- Executes just before gui_plotting_arithmetic is made visible.
 function gui_plotting_arithmetic_OpeningFcn(hObject, eventdata, handles, varargin)
-    handles.medium=varargin{1};
+    
+handles.medium=varargin{1};
     handles.var=varargin{2};
-    handles.steam=varargin{3};
-    handles.NC=varargin{4};
-    handles.var_axes=varargin{5};
-    %copy the popupmenus from the main gui
-    set(handles.popupmenu_medium,'String',handles.medium);
-    set(handles.popupmenu_medium,'Value',1);
+    handles.popupmenu_x_axis=varargin{3};
+    handles.popupmenu_y_axis=varargin{4};
+    handles.popupmenu_x_axis_var=varargin{5};
+    handles.popupmenu_y_axis_var=varargin{6};
+
+    %copy the popupmenu contents from the main gui
+    handles.popupmenu_medium.String=handles.medium;
+    handles.popupmenu_medium.Value=1;
     
-    set(handles.popupmenu_var,'String',handles.var.(handles.medium{1}));
+    handles.popupmenu_var.String=handles.var.(handles.medium{1});    
+    handles.popupmenu_var.Value=1;
     
-    set(handles.popupmenu_var,'Value',1);
+    %fill the listbox with available expressions from file
+    [name,expression]=textread('custom_expressions.txt','%s %s');
+    for expressionCntr=1:numel(name)
+        handles.custom(expressionCntr).name=name{expressionCntr};
+        handles.custom(expressionCntr).expression=expression{expressionCntr};
+    end
+    
+    handles.custExpression_listbox.String=name;
     
     handles.output = hObject;
     guidata(hObject, handles);
@@ -74,13 +85,13 @@ function varargout = gui_plotting_arithmetic_OutputFcn(hObject, eventdata, handl
 % --- Executes on selection change in popupmenu_medium.
 function popupmenu_medium_Callback(hObject, eventdata, handles)
 
-    curr_medium_list=get(handles.popupmenu_medium,'String');
-    curr_medium_val=get(handles.popupmenu_medium,'Value');
+    curr_medium_list=handles.popupmenu_medium.String;
+    curr_medium_val=handles.popupmenu_medium.Value;
     curr_medium=curr_medium_list{curr_medium_val};
        
     %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.popupmenu_var,'String',handles.var.(curr_medium));
-    set(handles.popupmenu_var,'Value',1);
+    handles.popupmenu_var.String=handles.var.(curr_medium);
+    handles.popupmenu_var.Value=1;
     
 
 % --- Executes during object creation, after setting all properties.
@@ -89,7 +100,6 @@ function popupmenu_medium_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-
 
 % --- Executes on selection change in popupmenu_var.
 function popupmenu_var_Callback(hObject, eventdata, handles)
@@ -101,140 +111,88 @@ function popupmenu_var_CreateFcn(hObject, eventdata, handles)
         set(hObject,'BackgroundColor','white');
     end
 
-function x_dat_expression_Callback(hObject, eventdata, handles)
+function customExpression_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
-function x_dat_expression_CreateFcn(hObject, eventdata, handles)
+function customExpression_CreateFcn(hObject, eventdata, handles)
 
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
 
-function y_dat_expression_Callback(hObject, eventdata, handles)
-
-% --- Executes during object creation, after setting all properties.
-function y_dat_expression_CreateFcn(hObject, eventdata, handles)
-
-    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-        set(hObject,'BackgroundColor','white');
-    end
-
-
-% --- Executes on button press in insertX_pushbutton.
-function insertX_pushbutton_Callback(hObject, eventdata, handles)
+% --- Executes on button press in insert_pushbutton.
+function insert_pushbutton_Callback(hObject, eventdata, handles)
     %reads user choice of variable and inserts in a proper box
-    curr_medium_list=get(handles.popupmenu_medium,'String');
-    curr_medium_val=get(handles.popupmenu_medium,'Value');
+    curr_medium_list=handles.popupmenu_medium.String;
+    curr_medium_val=handles.popupmenu_medium.Value;
     curr_medium=curr_medium_list{curr_medium_val};
     
-    curr_var_list=get(handles.popupmenu_var,'String');
-    curr_var_val=get(handles.popupmenu_var,'Value');
+    curr_var_list=handles.popupmenu_var.String;
+    curr_var_val=handles.popupmenu_var.Value;
     curr_var=curr_var_list{curr_var_val};
     
-    string_so_far=get(handles.x_dat_expression,'String');
+    string_so_far=handles.customExpression.String;
     
     if strcmp(string_so_far,'Type expression here')
         string_so_far=[];
     end
     
     string_to_return=[string_so_far,curr_medium,'.',curr_var,'.value'];
-    set(handles.x_dat_expression,'String',string_to_return);
+    handles.customExpression.String=string_to_return;
 
 
-% --- Executes on button press in insertY_pushbutton.
-function insertY_pushbutton_Callback(hObject, eventdata, handles)
-    %reads user choice of variable and inserts in a proper box
-    curr_medium_list=get(handles.popupmenu_medium,'String');
-    curr_medium_val=get(handles.popupmenu_medium,'Value');
-    curr_medium=curr_medium_list{curr_medium_val};
-    
-    curr_var_list=get(handles.popupmenu_var,'String');
-    curr_var_val=get(handles.popupmenu_var,'Value');
-    curr_var=curr_var_list{curr_var_val};
-    
-    string_so_far=get(handles.y_dat_expression,'String');
-    
-    if strcmp(string_so_far,'Type expression here')
-        string_so_far=[];
-    end
-    
-    string_to_return=[string_so_far,curr_medium,'.',curr_var,'.value'];
-    set(handles.y_dat_expression,'String',string_to_return);
 
-
-% --- Executes on button press in tempPlot_pushbutton.
-function tempPlot_pushbutton_Callback(hObject, eventdata, handles)
+% --- Executes on button press in custExpression_pushbutton.
+function custExpression_pushbutton_Callback(hObject, eventdata, handles)
     %because of the data structure, it is crucial to add a counter reference after
     %each variable - this piece of code does it automatically, allowing the
     %user to type in expression in more natural way
     
-    %for x expression
-    Xstr=get(handles.x_dat_expression,'String');
-    curr_medium_list=get(handles.popupmenu_medium,'String');
-    pos=[];
+    %for expression
+    expressionStr=handles.customExpression.String;
+    curr_medium_list=handles.popupmenu_medium.String;
+
     for mediumCntr=1:numel(curr_medium_list)
-       pos=[pos,strfind(Xstr,curr_medium_list{mediumCntr})+numel(curr_medium_list{mediumCntr})];
+        expressionStr=strrep(expressionStr,curr_medium_list{mediumCntr},['handles.',curr_medium_list{mediumCntr},'(x)']); %x is the file counter
     end
 
-    %sort "pos" so we can start adding from the back, not affecting positions in front
-    pos=sort(pos,'descend');
+    %write custom expression to file
+    custExprFile=fopen('custom_expressions.txt','a');
+    fprintf(custExprFile,'%s \r\n',[handles.customExpression.String,' ', expressionStr]);
+    fclose(custExprFile);
 
-    for insrtCntr=1:numel(pos)
-        Xstr=[Xstr(1:pos(insrtCntr)-1),'(cntr)',Xstr(pos(insrtCntr):end)];
+% --- Executes on button press in clear_pushbutton.
+function clear_pushbutton_Callback(hObject, eventdata, handles)
+    handles.customExpression.String=[];
+
+
+% --- Executes on selection change in custExpression_listbox.
+function custExpression_listbox_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function custExpression_listbox_CreateFcn(hObject, eventdata, handles)
+
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
     end
+
+% --- Executes on button press in deleteExpression_pushbutton.
+function deleteExpression_pushbutton_Callback(hObject, eventdata, handles)
+    %get delete selection
+    deleteSelection=handles.custExpression_listbox.Value
     
-    %for y expression
-    Ystr=get(handles.y_dat_expression,'String');
-    curr_medium_list=get(handles.popupmenu_medium,'String');
-    pos=[];
-    for mediumCntr=1:numel(curr_medium_list)
-       pos=[pos,strfind(Ystr,curr_medium_list{mediumCntr})+numel(curr_medium_list{mediumCntr})];
-    end
-
-    %sort "pos" so we can start adding from the back, not affecting positions in front
-    pos=sort(pos,'descend');
-
-    for insrtCntr=1:numel(pos)
-        Ystr=[Ystr(1:pos(insrtCntr)-1),'(cntr)',Ystr(pos(insrtCntr):end)];
-    end
+    %clear desired positions from list
+    handles.custom(deleteSelection).name=[]
+    handles.custom(deleteSelection).expression=[]
     
-    handles.output={Xstr,Ystr}
-    %plotting temp
-    steam=handles.steam;
-    NC=handles.NC;
-    try
-        for cntr=1:numel(steam)
-            x_dat(cntr)=eval(Xstr);
-            y_dat(cntr)=eval(Ystr);
-        end
-    catch
-        disp('Wrong expression')
-    end
+    %update listbox
+    handles.custExpression_listbox.Value=1;
+    handles.custExpression_listbox.String=handles.custom.name;
     
-    %sorting by x
-    tempDat=[x_dat',y_dat'];
-    tempDat=sort(tempDat,1);
-    x_dat=tempDat(:,1);
-    y_dat=tempDat(:,2);
+    %update file
+%     custExprFile=fopen('custom_expressions.txt','w');
+%     for writeCntr=1:numel(handles.custom.name)
+%         fprintf(custExprFile,'%s \r\n',[handles.custom(writeCntr).name,' ', handles.custom(writeCntr).expression]);
+%     end
+%     fclose(custExprFile);
 
-    axes(handles.var_axes)
-    hold on   
-    plot(x_dat,y_dat,'b')
-    plot(x_dat,y_dat,'rx')
-    hold off
-
-
-% --- Executes on button press in clearX_pushbutton.
-function clearX_pushbutton_Callback(hObject, eventdata, handles)
-    set(handles.x_dat_expression,'String',[]);
-
-
-% --- Executes on button press in clearY_pushbutton.
-function clearY_pushbutton_Callback(hObject, eventdata, handles)
-    set(handles.y_dat_expression,'String',[]);
-
-
-% --- Executes on button press in clearAll_pushbutton.
-function clearAll_pushbutton_Callback(hObject, eventdata, handles)
-    set(handles.x_dat_expression,'String',[]);
-    set(handles.y_dat_expression,'String',[]);

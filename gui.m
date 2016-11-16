@@ -60,9 +60,18 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     handles.plotcounter=0;
     handles.clear_old_flag=0;
     handles.adv_options_flag=0;
+    
+    %load and display logo
     logo=imread('precise_logo.png');
     axes(handles.logo_axes);
     imshow(logo);
+    
+    %read and store custom expresions
+    [name,expression]=textread('custom_expressions.txt','%s %s');
+    for expressionCntr=1:numel(name)
+        handles.custom(expressionCntr).name=name{expressionCntr};
+        handles.custom(expressionCntr).expression=expression{expressionCntr};
+    end
     % Update handles structure
     guidata(hObject, handles);
 % profile viewer
@@ -95,8 +104,8 @@ function process_btn_Callback(hObject, ~, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;
-    interactive_flag=get(handles.interactive_checkbox,'Value');
-    st_state_flag=get(handles.st_state,'Value');
+    interactive_flag=handles.interactive_checkbox.Value;
+    st_state_flag=handles.st_state.Value;
       
     % call function down the line for file processing
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles);
@@ -127,26 +136,26 @@ function process_btn_Callback(hObject, ~, handles)
 
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
-    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+    vars={'steam','coolant','facility','NC','BC','GHFS','MP','custom'};
 
-    set(handles.popupmenu_x_axis,'String',vars)
-    set(handles.popupmenu_y_axis,'String',vars)
+    handles.popupmenu_x_axis.String=vars;
+    handles.popupmenu_y_axis.String=vars;
 
     %two lines below reset popupmenu values to first object on the list
-    set(handles.popupmenu_x_axis,'Value',1);
-    set(handles.popupmenu_y_axis,'Value',1);
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'Value',1);
+    handles.popupmenu_x_axis.Value=1;
+    handles.popupmenu_y_axis.Value=1;
+    handles.popupmenu_x_axis_var.Value=1;
+    handles.popupmenu_y_axis_var.Value=1;
 
     %update variables popupmenus
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));   %the () around vars{1} allows for dynamic field name usage
+    handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));   %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
     file_list={file(1:end).name};
-    set(handles.plot_exclude,'String',file_list)
+    handles.plot_exclude.String=file_list;
     mark_file=1:1:numel(file_list);
-    set(handles.plot_exclude,'Value',mark_file)
+    handles.plot_exclude.Value=mark_file;
     
     %update handles structure
     guidata(hObject, handles)
@@ -196,26 +205,26 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
 
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
-    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+    vars={'steam','coolant','facility','NC','BC','GHFS','MP','custom'};
 
-    set(handles.popupmenu_x_axis,'String',vars)
-    set(handles.popupmenu_y_axis,'String',vars)
+    handles.popupmenu_x_axis.String=vars;
+    handles.popupmenu_y_axis.String=vars;
 
     %two lines below reset popupmenu values to first object on the list
-    set(handles.popupmenu_x_axis,'Value',1);
-    set(handles.popupmenu_y_axis,'Value',1);
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'Value',1);
+    handles.popupmenu_x_axis.Value=1;
+    handles.popupmenu_y_axis.Value=1;
+    handles.popupmenu_x_axis_var.Value=1;
+    handles.popupmenu_y_axis_var.Value=1;
 
     %update variables popupmenus
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));    %the () around vars{1} allows for dynamic field name usage
+    handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
     file_list={handles.file(1:end).name};
-    set(handles.plot_exclude,'String',file_list)
+    handles.plot_exclude.String=file_list;
     mark_file=1:1:numel(file_list);
-    set(handles.plot_exclude,'Value',mark_file)
+    handles.plot_exclude.Value=mark_file;
     
     %update handles structure
     guidata(hObject, handles)
@@ -262,26 +271,26 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 
     % based on what variables are present, set possible choices to
     % popupmenus for plotting
-    vars={'steam','coolant','facility','NC','BC','GHFS','MP'};
+    vars={'steam','coolant','facility','NC','BC','GHFS','MP','custom'};
 
-    set(handles.popupmenu_x_axis,'String',vars)
-    set(handles.popupmenu_y_axis,'String',vars)
+    handles.popupmenu_x_axis.String=vars;
+    handles.popupmenu_y_axis.String=vars;
 
     %two lines below reset popupmenu values to first object on the list
-    set(handles.popupmenu_x_axis,'Value',1);
-    set(handles.popupmenu_y_axis,'Value',1);
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'Value',1);
+    handles.popupmenu_x_axis.Value=1;
+    handles.popupmenu_y_axis.Value=1;
+    handles.popupmenu_x_axis_var.Value=1;
+    handles.popupmenu_y_axis_var.Value=1;
 
     %update variables popupmenus
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars{1})))    %the () around vars{1} allows for dynamic field name usage
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars{1})))    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));    %the () around vars{1} allows for dynamic field name usage
+    handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
-    file_list={file(1:end).name};
-    set(handles.plot_exclude,'String',file_list)
+    file_list={handles.file(1:end).name};
+    handles.plot_exclude.String=file_list;
     mark_file=1:1:numel(file_list);
-    set(handles.plot_exclude,'Value',mark_file)
+    handles.plot_exclude.Value=mark_file;
     
     %update handles structure
     guidata(hObject, handles)
@@ -295,22 +304,22 @@ function plot_button_Callback(hObject, eventdata, handles)
     end
     
     % get choice of files to be plotted
-    file_choice=get(handles.plot_exclude,'Value');
+    file_choice=handles.plot_exclude.Value;
     files_chosen=numel(file_choice);
 
     % get choice of x/y axis phase to be plotted
-    list_x=get(handles.popupmenu_x_axis,'String');
-    list_y=get(handles.popupmenu_y_axis,'String');
-    val_x=get(handles.popupmenu_x_axis,'Value');
-    val_y=get(handles.popupmenu_y_axis,'Value');
+    list_x=handles.popupmenu_x_axis.String;
+    list_y=handles.popupmenu_y_axis.String;
+    val_x=handles.popupmenu_x_axis.Value;
+    val_y=handles.popupmenu_y_axis.Value;
     x_param=list_x{val_x};
     y_param=list_y{val_y};        
     
     % get choice of what parameter of each phase is to be plotted
-    list_x_var=get(handles.popupmenu_x_axis_var,'String');
-    list_y_var=get(handles.popupmenu_y_axis_var,'String');
-    val_x_var=get(handles.popupmenu_x_axis_var,'Value');
-    val_y_var=get(handles.popupmenu_y_axis_var,'Value');
+    list_x_var=handles.popupmenu_x_axis_var.String;
+    list_y_var=handles.popupmenu_y_axis_var.String;
+    val_x_var=handles.popupmenu_x_axis_var.Value;
+    val_y_var=handles.popupmenu_y_axis_var.Value;
     x_param_var=list_x_var{val_x_var};
     y_param_var=list_y_var{val_y_var};
     
@@ -323,10 +332,24 @@ function plot_button_Callback(hObject, eventdata, handles)
     
     %extract data values, error values abd st_dev values, if applicable applying file choice filter
     for cntr=1:files_chosen
-        x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
-        y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
-        x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
-        y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
+        if strcmp(x_param,'custom')
+%             x_dat(cntr)=eval(handles.custom(val_x_var).expression);
+            customExpressionFunX=@(x) eval(handles.custom(val_x_var).expression);
+            x_dat(cntr)=customExpressionFunX(file_choice(cntr));
+            x_err(cntr)=1;
+        else
+            x_dat(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).value;
+            x_err(cntr)=handles.(x_param)(file_choice(cntr)).(x_param_var).error;
+        end
+        
+        if strcmp(y_param,'custom')
+            customExpressionFunY=@(x) eval(handles.custom(val_y_var).expression);
+            y_dat(cntr)=customExpressionFunY(file_choice(cntr));
+            y_err(cntr)=1;
+        else
+            y_dat(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).value;
+            y_err(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).error;
+        end
         try
             y_st_dev(cntr)=handles.(y_param)(file_choice(cntr)).(y_param_var).std;
             st_dev_available=1;
@@ -336,8 +359,17 @@ function plot_button_Callback(hObject, eventdata, handles)
     end
 
     %get units for the plot
-    x_unit=handles.(x_param)(1).(x_param_var).unit;
-    y_unit=handles.(y_param)(1).(y_param_var).unit;
+    if strcmp(x_param,'custom')
+        x_unit=1;
+    else
+        x_unit=handles.(x_param)(1).(x_param_var).unit;
+    end
+    
+    if strcmp(x_param,'custom')
+        y_unit=1;
+    else
+        y_unit=handles.(y_param)(1).(y_param_var).unit;
+    end
     
     hold_flag=get(handles.hold_checkbox, 'Value');
  
@@ -652,13 +684,20 @@ function edit1_CreateFcn(hObject, eventdata, handles)
 % --- Executes on selection change in popupmenu_x_axis.
 function popupmenu_x_axis_Callback(hObject, eventdata, handles)
 
-    vars_list=get(handles.popupmenu_x_axis,'String');
-    vars_val=get(handles.popupmenu_x_axis,'Value');
+    vars_list=handles.popupmenu_x_axis.String;
+    vars_val=handles.popupmenu_x_axis.Value;
     vars=vars_list{vars_val};
        
     %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.popupmenu_x_axis_var,'Value',1);
-    set(handles.popupmenu_x_axis_var,'String',fieldnames(handles.(vars)));
+    handles.popupmenu_x_axis_var.Value=1;
+    
+    %due to different data structure of variable 'custom', this if
+    %statement is neccessary
+    if strcmp(vars,'custom')
+        handles.popupmenu_x_axis_var.String={handles.custom.name};
+    else
+        handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars));
+    end
     
 % --- Executes during object creation, after setting all properties.
 function popupmenu_x_axis_CreateFcn(hObject, eventdata, handles)
@@ -670,13 +709,20 @@ function popupmenu_x_axis_CreateFcn(hObject, eventdata, handles)
 % --- Executes on selection change in popupmenu_y_axis.
 function popupmenu_y_axis_Callback(hObject, eventdata, handles)
 
-    vars_list=get(handles.popupmenu_y_axis,'String');
-    vars_val=get(handles.popupmenu_y_axis,'Value');
-    vars=vars_list{vars_val};  
+    vars_list=handles.popupmenu_y_axis.String;
+    vars_val=handles.popupmenu_y_axis.Value;
+    vars=vars_list{vars_val}; 
     
     %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.popupmenu_y_axis_var,'Value',1);
-    set(handles.popupmenu_y_axis_var,'String',fieldnames(handles.(vars)));
+    handles.popupmenu_y_axis_var.Value=1;
+    
+    %due to different data structure of variable 'custom', this if
+    %statement is neccessary
+    if strcmp(vars,'custom')
+        handles.popupmenu_y_axis_var.String={handles.custom.name};
+    else
+        handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars));
+    end
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu_y_axis_CreateFcn(hObject, eventdata, handles)
@@ -1008,7 +1054,7 @@ function line_delete_Callback(hObject, eventdata, handles)
 
     if handles.plotcounter>1
         %get user choice for deltion
-        del_choice=get(handles.graph_list,'Value');
+        del_choice=handles.graph_list.Value;
 
         %delete
         try
@@ -1287,11 +1333,15 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
 function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
     %get all main categories names
     list_medium=get(handles.popupmenu_x_axis,'String');
+    
+    %remove 'Custom' field from the list
+    if strcmp(list_medium{end},'Custom')
+        list_medium(end)=[];
+    end
     %and subcategories
     for namingCntr=1:numel(list_medium)
         list_variable.(list_medium{namingCntr})=fieldnames(handles.(list_medium{namingCntr}));
     end
     %pass it to the gui (instead of the whole "handles" structure
-    gui_plotting_arithmetic(list_medium,list_variable,handles.steam,handles.NC,handles.var_axes)
-
+    gui_plotting_arithmetic(list_medium,list_variable,handles.popupmenu_x_axis,handles.popupmenu_y_axis,handles.popupmenu_x_axis_var,handles.popupmenu_y_axis_var)
 

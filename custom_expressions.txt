@@ -1,0 +1,3 @@
+steam.TF9603.value*2 handles.steam(x).TF9603.value*2 
+steam.TF9607.value*10 handles.steam(x).TF9603.value*2 
+BC.Coolant_flow.value*BC.NC_molefraction.value handles.BC(x).Coolant_flow.value*handles.BC(x).handles.NC(x)_molefraction.value 

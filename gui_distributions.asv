@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 18-Nov-2016 16:25:34
+    % Last Modified by GUIDE v2.5 18-Nov-2016 15:46:04
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -71,7 +71,7 @@ end
 
 % --- Executes on button press in plot_pushbutton.
 function plot_pushbutton_Callback(hObject, eventdata, handles)
-%     profile on
+
     %check for which recording plot is to be made
     file=get(handles.file_popupmenu,'Value');
         
@@ -354,38 +354,34 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         msgbox('Standard deviation data not available for the chosen variables / files - omitting')
     end
     
-    %if replotting, disable to save time
-    if ~handles.replot_checkbox.Value
-        %add legend and create graph name
-        processing_string=[smooth_str,norm_str,flip_str];
-        handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
-        handles.legend=legend(handles.graph_name{1:end});
-
-        set(handles.legend,'interpreter','none')
-        legend_state=get(handles.legend_on,'Value');
-        if (legend_state && handles.plotcounter>0)
-            set(handles.legend,'Visible','On')   
-        elseif handles.plotcounter>0
-            set(handles.legend,'Visible','Off')
-        end
-
-        %label axes
-        ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
-        xlabel('Position [mm]', 'interpreter', 'none')
-
-        %update list of graphs
-        set(handles.graph_list,'String',handles.graph_name)
-        set(handles.graph_list,'Value', handles.plotcounter)
-
-        %store data in the figure
-        handles.value_dat{handles.plotcounter}=value_dat;
-        handles.x_dat{handles.plotcounter}=x_dat;
+    %add legend and create graph name
+    processing_string=[smooth_str,norm_str,flip_str];
+    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
+    handles.legend=legend(handles.graph_name{1:end});
+    
+    set(handles.legend,'interpreter','none')
+    legend_state=get(handles.legend_on,'Value');
+    if (legend_state && handles.plotcounter>0)
+        set(handles.legend,'Visible','On')   
+    elseif handles.plotcounter>0
+        set(handles.legend,'Visible','Off')
     end
+    
+    %label axes
+    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
+    xlabel('Position [mm]', 'interpreter', 'none')
+    
+    %update list of graphs
+    set(handles.graph_list,'String',handles.graph_name)
+    set(handles.graph_list,'Value', handles.plotcounter)
+    
+    %store data in the figure
+    handles.value_dat{handles.plotcounter}=value_dat;
+    handles.x_dat{handles.plotcounter}=x_dat;
     
     %send updated handles back up
     guidata(hObject, handles);
 
-%     profile viewer
 % --- Executes on button press in hold_checkbox.
 function hold_checkbox_Callback(hObject, eventdata, handles)
 
@@ -414,11 +410,7 @@ function file_popupmenu_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 0.1];
-        handles.intervalCenter_slider.Value=floor(row/2);
-        
-        %update edit box
-        handles.intervalCenter_edit.String=num2str(floor(row/2));
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -919,7 +911,7 @@ function useMean_radiobutton_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 0.1];
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
     else
         handles.interval_uipanel.Visible='off';
     end
@@ -951,24 +943,13 @@ function useInterval_radiobutton_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 0.1];
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
     else
         handles.interval_uipanel.Visible='off';
     end
 
 function intervalCenter_edit_Callback(hObject, eventdata, handles)
-    %control user entered values and correct if necessary
-    if str2double(handles.intervalCenter_edit.String)>str2double(handles.recordingLength_text.String)
-        handles.intervalCenter_edit.String=handles.recordingLength_text.String;
-    elseif str2double(handles.intervalCenter_edit.String)<1
-        handles.intervalCenter_edit.String='1';
-    end
     handles.intervalCenter_slider.Value=str2double(handles.intervalCenter_edit.String);
-    
-    %if replotting is desired
-    if handles.replot_checkbox.Value
-        plot_pushbutton_Callback(hObject, eventdata, handles)
-    end
 
 % --- Executes during object creation, after setting all properties.
 function intervalCenter_edit_CreateFcn(hObject, eventdata, handles)
@@ -978,17 +959,6 @@ function intervalCenter_edit_CreateFcn(hObject, eventdata, handles)
     end
 
 function intervalWidth_edit_Callback(hObject, eventdata, handles)
-    %control user entered values and correct if necessary
-    if str2double(handles.intervalWidth_edit.String)>str2double(handles.recordingLength_text.String)
-        handles.intervalWidth_edit.String=handles.recordingLength_text.String;
-    elseif str2double(handles.intervalWidth_edit.String)<1
-        handles.intervalWidth_edit.String='1';
-    end
-    
-    %if replotting is desired
-    if handles.replot_checkbox.Value
-        plot_pushbutton_Callback(hObject, eventdata, handles)
-    end
 
 % --- Executes during object creation, after setting all properties.
 function intervalWidth_edit_CreateFcn(hObject, eventdata, handles)
@@ -999,14 +969,8 @@ function intervalWidth_edit_CreateFcn(hObject, eventdata, handles)
 
 % --- Executes on slider movement.
 function intervalCenter_slider_Callback(hObject, eventdata, handles)
-    %adjust value of edit box based on the slider choice, but round to
-    %nearest interger - otherwise it's pointless
     handles.intervalCenter_edit.String=num2str(round(handles.intervalCenter_slider.Value));
-    
-    %if replotting is desired
-    if handles.replot_checkbox.Value
-        plot_pushbutton_Callback(hObject, eventdata, handles)
-    end
+    if handles.rep
 
 % --- Executes during object creation, after setting all properties.
 function intervalCenter_slider_CreateFcn(hObject, eventdata, handles)
@@ -1022,5 +986,3 @@ end
 % --- Executes on button press in replot_checkbox.
 function replot_checkbox_Callback(hObject, eventdata, handles)
 
-% --- Executes on button press in shadowing_checkbox.
-function shadowing_checkbox_Callback(hObject, eventdata, handles)

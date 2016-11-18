@@ -877,8 +877,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
         end
         
-        %==================================================================================================================
-        %temperature mean values - calibrated 
+        %temperature - calibrated
         if MP_flag %MP_flag points to new files. which have modified TC layout
             %movable probe distributions
             if forward_flag
@@ -943,7 +942,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         end
         
         %==================================================================================================================
-        %temperature mean values- non calibrated
+        %temperature - non calibrated
               
         if MP_flag
             %across the tube - forward motion

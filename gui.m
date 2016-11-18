@@ -76,7 +76,7 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
     guidata(hObject, handles);
 % profile viewer
     % UIWAIT makes gui wait for user response (see UIRESUME)
-    % uiwait(handles.figure1);
+    % uiwait(handles.main_gui);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(~, ~, handles) 
@@ -365,7 +365,7 @@ function plot_button_Callback(hObject, eventdata, handles)
         x_unit=handles.(x_param)(1).(x_param_var).unit;
     end
     
-    if strcmp(x_param,'custom')
+    if strcmp(y_param,'custom')
         y_unit=1;
     else
         y_unit=handles.(y_param)(1).(y_param_var).unit;
@@ -1331,11 +1331,17 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
   
 % --- Executes on button press in AdvPlot_pushbutton.
 function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
+   
+    %get handles to dropdown menus
+    x_var_handle=handles.popupmenu_x_axis;
+    x_var_value_handle=handles.popupmenu_x_axis_var;
+    y_var_handle=handles.popupmenu_y_axis;
+    y_var_value_handle=handles.popupmenu_y_axis_var;
     %get all main categories names
     list_medium=get(handles.popupmenu_x_axis,'String');
     
     %remove 'Custom' field from the list
-    if strcmp(list_medium{end},'Custom')
+    if strcmp(list_medium{end},'custom')
         list_medium(end)=[];
     end
     %and subcategories
@@ -1343,5 +1349,14 @@ function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
         list_variable.(list_medium{namingCntr})=fieldnames(handles.(list_medium{namingCntr}));
     end
     %pass it to the gui (instead of the whole "handles" structure
-    gui_plotting_arithmetic(list_medium,list_variable,handles.popupmenu_x_axis,handles.popupmenu_y_axis,handles.popupmenu_x_axis_var,handles.popupmenu_y_axis_var)
+    gui_custom_expressions(list_medium,list_variable,x_var_handle,x_var_value_handle,y_var_handle,y_var_value_handle)
+
+
+
+% --------------------------------------------------------------------
+function MenuDataProcessing_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuDataProcessing (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 

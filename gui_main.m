@@ -36,7 +36,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 
     
     %% PROCESS FILES
-
+    %start waitbar
+    h = waitbar(0,'Loading data, please wait');
     for dir_counter=1:dir_amount
 %         cd(directories{dir_counter})  %move to data directory, so it's easier on the user when picking again
         for fc=1:fileCounter{dir_counter}
@@ -50,7 +51,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
             
             [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},dirChoice{dir_counter},st_state_flag,options);
-% below is for debugging
+
+            %fancy bling wait bar:
+            waitbar(fc/fileCounter{dir_counter},h)
+           
+            % below is for debugging
 %            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1, timing1]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 %            steam(fc)=steam1;
 %            coolant(fc)=coolant1;
@@ -65,6 +70,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %            timing(fc)=timing1;
         end
     end
+    
+    %close waitbar
+    close(h) 
     
     disp('-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-')
     disp('Processing of all files completed')

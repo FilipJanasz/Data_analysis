@@ -1,35 +1,35 @@
-function varargout = gui_plotting_arithmetic(varargin)
-    % GUI_PLOTTING_ARITHMETIC MATLAB code for gui_plotting_arithmetic.fig
-    %      GUI_PLOTTING_ARITHMETIC, by itself, creates a new GUI_PLOTTING_ARITHMETIC or raises the existing
+function varargout = gui_custom_expressions(varargin)
+    % GUI_CUSTOM_EXPRESSIONS MATLAB code for gui_custom_expressions.fig
+    %      GUI_CUSTOM_EXPRESSIONS, by itself, creates a new GUI_CUSTOM_EXPRESSIONS or raises the existing
     %      singleton*.
     %
-    %      H = GUI_PLOTTING_ARITHMETIC returns the handle to a new GUI_PLOTTING_ARITHMETIC or the handle to
+    %      H = GUI_CUSTOM_EXPRESSIONS returns the handle to a new GUI_CUSTOM_EXPRESSIONS or the handle to
     %      the existing singleton*.
     %
-    %      GUI_PLOTTING_ARITHMETIC('CALLBACK',hObject,eventData,handles,...) calls the local
-    %      function named CALLBACK in GUI_PLOTTING_ARITHMETIC.M with the given input arguments.
+    %      GUI_CUSTOM_EXPRESSIONS('CALLBACK',hObject,eventData,handles,...) calls the local
+    %      function named CALLBACK in GUI_CUSTOM_EXPRESSIONS.M with the given input arguments.
     %
-    %      GUI_PLOTTING_ARITHMETIC('Property','Value',...) creates a new GUI_PLOTTING_ARITHMETIC or raises the
+    %      GUI_CUSTOM_EXPRESSIONS('Property','Value',...) creates a new GUI_CUSTOM_EXPRESSIONS or raises the
     %      existing singleton*.  Starting from the left, property value pairs are
-    %      applied to the GUI before gui_plotting_arithmetic_OpeningFcn gets called.  An
+    %      applied to the GUI before gui_custom_expressions_OpeningFcn gets called.  An
     %      unrecognized property name or invalid value makes property application
-    %      stop.  All inputs are passed to gui_plotting_arithmetic_OpeningFcn via varargin.
+    %      stop.  All inputs are passed to gui_custom_expressions_OpeningFcn via varargin.
     %
     %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
     %      instance to run (singleton)".
     %
     % See also: GUIDE, GUIDATA, GUIHANDLES
 
-    % Edit the above text to modify the response to help gui_plotting_arithmetic
+    % Edit the above text to modify the response to help gui_custom_expressions
 
-    % Last Modified by GUIDE v2.5 16-Nov-2016 17:30:59
+    % Last Modified by GUIDE v2.5 17-Nov-2016 10:27:23
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
     gui_State = struct('gui_Name',       mfilename, ...
                        'gui_Singleton',  gui_Singleton, ...
-                       'gui_OpeningFcn', @gui_plotting_arithmetic_OpeningFcn, ...
-                       'gui_OutputFcn',  @gui_plotting_arithmetic_OutputFcn, ...
+                       'gui_OpeningFcn', @gui_custom_expressions_OpeningFcn, ...
+                       'gui_OutputFcn',  @gui_custom_expressions_OutputFcn, ...
                        'gui_LayoutFcn',  [] , ...
                        'gui_Callback',   []);
     if nargin && ischar(varargin{1})
@@ -44,15 +44,18 @@ function varargout = gui_plotting_arithmetic(varargin)
     % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before gui_plotting_arithmetic is made visible.
-function gui_plotting_arithmetic_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_custom_expressions is made visible.
+function gui_custom_expressions_OpeningFcn(hObject, eventdata, handles, varargin)
     
-handles.medium=varargin{1};
+    %read inputs
+    handles.medium=varargin{1};
     handles.var=varargin{2};
-    handles.popupmenu_x_axis=varargin{3};
-    handles.popupmenu_y_axis=varargin{4};
-    handles.popupmenu_x_axis_var=varargin{5};
-    handles.popupmenu_y_axis_var=varargin{6};
+    handles.x_var_handle=varargin{3};
+    handles.x_var_value_handle=varargin{4};
+    handles.y_var_handle=varargin{5};
+    handles.y_var_value_handle=varargin{6};
+
+   
 
     %copy the popupmenu contents from the main gui
     handles.popupmenu_medium.String=handles.medium;
@@ -73,12 +76,12 @@ handles.medium=varargin{1};
     handles.output = hObject;
     guidata(hObject, handles);
 
-% UIWAIT makes gui_plotting_arithmetic wait for user response (see UIRESUME)
+% UIWAIT makes gui_custom_expressions wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_plotting_arithmetic_OutputFcn(hObject, eventdata, handles) 
+function varargout = gui_custom_expressions_OutputFcn(hObject, eventdata, handles) 
 
     varargout{1} = handles.output;
 
@@ -137,8 +140,12 @@ function insert_pushbutton_Callback(hObject, eventdata, handles)
         string_so_far=[];
     end
     
+    %update textbox
     string_to_return=[string_so_far,curr_medium,'.',curr_var,'.value'];
     handles.customExpression.String=string_to_return;
+    
+    %bring focus to textbox
+    uicontrol(handles.customExpression)
 
 
 
@@ -153,13 +160,59 @@ function custExpression_pushbutton_Callback(hObject, eventdata, handles)
     curr_medium_list=handles.popupmenu_medium.String;
 
     for mediumCntr=1:numel(curr_medium_list)
-        expressionStr=strrep(expressionStr,curr_medium_list{mediumCntr},['handles.',curr_medium_list{mediumCntr},'(x)']); %x is the file counter
+        curr_string=[curr_medium_list{mediumCntr},'.'];
+        replace_string=['handles.',curr_medium_list{mediumCntr},'(x).'];
+        expressionStr=strrep(expressionStr,curr_string,replace_string); %x is the file counter
     end
 
-    %write custom expression to file
-    custExprFile=fopen('custom_expressions.txt','a');
-    fprintf(custExprFile,'%s \r\n',[handles.customExpression.String,' ', expressionStr]);
-    fclose(custExprFile);
+    
+    if ~isempty(handles.customExpression.String)&&~strcmp(handles.customExpression.String,'Type expression here')
+        %write custom expression to file
+        custExprFile=fopen('custom_expressions.txt','a');
+        fprintf(custExprFile,'%s \r\n',[handles.customExpression.String,' ', expressionStr]);
+        fclose(custExprFile);
+    
+        %update data structure
+        handles.custom(end+1).name=handles.customExpression.String;
+        handles.custom(end).expression=expressionStr;
+
+        %update listbox
+        handles.custExpression_listbox.String={handles.custom.name};
+        
+        %update main GUI
+        %get handle to the main gui
+        hMain=findobj('Tag','main_gui');
+        %get data structure from main gui
+        originalData=guidata(hMain);
+        %update relevant fields
+        originalData.custom=handles.custom;
+        %store it back to main gui
+        guidata(hMain,originalData)
+        
+        %and dropdown boxes
+        %first check if in first dropdownbox, 'custom' is selected
+        x_var_string_list=handles.x_var_handle.String;
+        x_var_value=handles.x_var_handle.Value;
+        x_var_string=x_var_string_list(x_var_value);
+        %and if yes, udpate the list
+        if strcmp(x_var_string,'custom')
+            handles.x_var_value_handle.Value=1;
+            handles.x_var_value_handle.String={handles.custom.name};
+        end
+        %do the same for y
+        y_var_string_list=handles.y_var_handle.String;
+        y_var_value=handles.y_var_handle.Value;
+        y_var_string=y_var_string_list(y_var_value);
+        if strcmp(y_var_string,'custom')
+            handles.y_var_value_handle.Value=1;
+            handles.y_var_value_handle.String={handles.custom.name};
+        end
+        
+
+    end
+        %update handles structure
+        handles.output = hObject;
+        guidata(hObject, handles);
 
 % --- Executes on button press in clear_pushbutton.
 function clear_pushbutton_Callback(hObject, eventdata, handles)
@@ -179,20 +232,52 @@ function custExpression_listbox_CreateFcn(hObject, eventdata, handles)
 % --- Executes on button press in deleteExpression_pushbutton.
 function deleteExpression_pushbutton_Callback(hObject, eventdata, handles)
     %get delete selection
-    deleteSelection=handles.custExpression_listbox.Value
+    deleteSelection=handles.custExpression_listbox.Value;
     
     %clear desired positions from list
-    handles.custom(deleteSelection).name=[]
-    handles.custom(deleteSelection).expression=[]
+    handles.custom(deleteSelection)=[];
     
     %update listbox
     handles.custExpression_listbox.Value=1;
-    handles.custExpression_listbox.String=handles.custom.name;
+    handles.custExpression_listbox.String={handles.custom.name};
+
     
     %update file
-%     custExprFile=fopen('custom_expressions.txt','w');
-%     for writeCntr=1:numel(handles.custom.name)
-%         fprintf(custExprFile,'%s \r\n',[handles.custom(writeCntr).name,' ', handles.custom(writeCntr).expression]);
-%     end
-%     fclose(custExprFile);
+    custExprFile=fopen('custom_expressions.txt','w');
+    for writeCntr=1:numel(handles.custom)
+        fprintf(custExprFile,'%s \r\n',[handles.custom(writeCntr).name,' ', handles.custom(writeCntr).expression]);
+    end
+    fclose(custExprFile);
 
+    %update main GUI
+    %get handle to the main gui
+    hMain=findobj('Tag','main_gui');
+    %get data structure from main gui
+    originalData=guidata(hMain);
+    %update relevant fields
+    originalData.custom=handles.custom;
+    %store it back to main gui
+    guidata(hMain,originalData)
+        
+    %and dropdown boxes
+    %first check if in first dropdownbox, 'custom' is selected
+    x_var_string_list=handles.x_var_handle.String;
+    x_var_value=handles.x_var_handle.Value;
+    x_var_string=x_var_string_list(x_var_value);
+    %and if yes, udpate the list
+    if strcmp(x_var_string,'custom')
+        handles.x_var_value_handle.Value=1;
+        handles.x_var_value_handle.String={handles.custom.name};
+    end
+    %do the same for y
+    y_var_string_list=handles.y_var_handle.String;
+    y_var_value=handles.y_var_handle.Value;
+    y_var_string=y_var_string_list(y_var_value);
+    if strcmp(y_var_string,'custom')
+        handles.y_var_value_handle.Value=1;
+        handles.y_var_value_handle.String={handles.custom.name};
+    end
+        
+    %update handles structure
+    handles.output = hObject;
+    guidata(hObject, handles);

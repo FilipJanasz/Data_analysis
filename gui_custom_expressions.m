@@ -22,7 +22,7 @@ function varargout = gui_custom_expressions(varargin)
 
     % Edit the above text to modify the response to help gui_custom_expressions
 
-    % Last Modified by GUIDE v2.5 17-Nov-2016 10:27:23
+    % Last Modified by GUIDE v2.5 18-Nov-2016 11:23:46
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -145,7 +145,7 @@ function insert_pushbutton_Callback(hObject, eventdata, handles)
     handles.customExpression.String=string_to_return;
     
     %bring focus to textbox
-    uicontrol(handles.customExpression)
+%     uicontrol(handles.customExpression)
 
 
 
@@ -281,3 +281,14 @@ function deleteExpression_pushbutton_Callback(hObject, eventdata, handles)
     %update handles structure
     handles.output = hObject;
     guidata(hObject, handles);
+    
+% --- Executes on button press in copyExpression_pushbutton.
+function copyExpression_pushbutton_Callback(hObject, eventdata, handles)
+
+%get selectino from listbox
+listbox_stringList=handles.custExpression_listbox.String;
+listbox_value=handles.custExpression_listbox.Value;
+listbox_selectedExpression=listbox_stringList{listbox_value};
+
+%and copy it to editbox
+handles.customExpression.String=listbox_selectedExpression;

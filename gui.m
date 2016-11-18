@@ -1341,9 +1341,14 @@ function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
     list_medium=get(handles.popupmenu_x_axis,'String');
     
     %remove 'Custom' field from the list
-    if strcmp(list_medium{end},'custom')
-        list_medium(end)=[];
+    try
+        if strcmp(list_medium{end},'custom')
+            list_medium(end)=[];
+        end
+    catch
+        msgbox('Data not present - load data first')
     end
+    
     %and subcategories
     for namingCntr=1:numel(list_medium)
         list_variable.(list_medium{namingCntr})=fieldnames(handles.(list_medium{namingCntr}));

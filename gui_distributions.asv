@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 18-Nov-2016 15:46:04
+    % Last Modified by GUIDE v2.5 18-Nov-2016 16:41:16
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -71,7 +71,7 @@ end
 
 % --- Executes on button press in plot_pushbutton.
 function plot_pushbutton_Callback(hObject, eventdata, handles)
-
+%     profile on
     %check for which recording plot is to be made
     file=get(handles.file_popupmenu,'Value');
         
@@ -354,34 +354,38 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         msgbox('Standard deviation data not available for the chosen variables / files - omitting')
     end
     
-    %add legend and create graph name
-    processing_string=[smooth_str,norm_str,flip_str];
-    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
-    handles.legend=legend(handles.graph_name{1:end});
-    
-    set(handles.legend,'interpreter','none')
-    legend_state=get(handles.legend_on,'Value');
-    if (legend_state && handles.plotcounter>0)
-        set(handles.legend,'Visible','On')   
-    elseif handles.plotcounter>0
-        set(handles.legend,'Visible','Off')
+    %if replotting, disable to save time
+    if ~handles.replot_checkbox.Value
+        %add legend and create graph name
+        processing_string=[smooth_str,norm_str,flip_str];
+        handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
+        handles.legend=legend(handles.graph_name{1:end});
+
+        set(handles.legend,'interpreter','none')
+        legend_state=get(handles.legend_on,'Value');
+        if (legend_state && handles.plotcounter>0)
+            set(handles.legend,'Visible','On')   
+        elseif handles.plotcounter>0
+            set(handles.legend,'Visible','Off')
+        end
+
+        %label axes
+        ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
+        xlabel('Position [mm]', 'interpreter', 'none')
+
+        %update list of graphs
+        set(handles.graph_list,'String',handles.graph_name)
+        set(handles.graph_list,'Value', handles.plotcounter)
+
+        %store data in the figure
+        handles.value_dat{handles.plotcounter}=value_dat;
+        handles.x_dat{handles.plotcounter}=x_dat;
     end
-    
-    %label axes
-    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
-    xlabel('Position [mm]', 'interpreter', 'none')
-    
-    %update list of graphs
-    set(handles.graph_list,'String',handles.graph_name)
-    set(handles.graph_list,'Value', handles.plotcounter)
-    
-    %store data in the figure
-    handles.value_dat{handles.plotcounter}=value_dat;
-    handles.x_dat{handles.plotcounter}=x_dat;
     
     %send updated handles back up
     guidata(hObject, handles);
 
+%     profile viewer
 % --- Executes on button press in hold_checkbox.
 function hold_checkbox_Callback(hObject, eventdata, handles)
 
@@ -410,7 +414,11 @@ function file_popupmenu_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , (0.1*row)/(row-1)];
+        handles.intervalCenter_slider.Value=floor(row/2);
+        
+        %update edit box
+        handles.intervalCenter_edit.String=num2str(floor(row/2));
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -563,17 +571,17 @@ function err_checkbox_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function uipanel_buttongroup_CreateFcn(hObject, eventdata, handles)
-    handles.axes_flag=2;
+    handles.axes_flag=1;
     guidata(hObject, handles);
 
 % --- Executes when selected object is changed in uipanel_buttongroup.
 function uipanel_buttongroup_SelectionChangeFcn(hObject, eventdata, handles)
 
-    if get(handles.vertical_radiobutton, 'Value')
+    if handles.vertical_radiobutton.Value
         handles.axes_flag=1;
-    elseif get(handles.horizontal_radiobutton, 'Value')
+    elseif handles.horizontal_radiobutton.Value
         handles.axes_flag=2;
-    elseif get(handles.threed_radiobutton, 'Value')
+    elseif handles.threed_radiobutton.Value
         handles.axes_flag=3;
     end
     guidata(hObject, handles);
@@ -585,7 +593,7 @@ function normalize_Callback(hObject, eventdata, handles)
 function boundary_layer_Callback(hObject, eventdata, handles)
      
     %get user choice
-    graph_choice=get(handles.graph_list,'Value');
+    graph_choice=handles.graph_list.Value;
     graph=handles.graph_name{graph_choice};
     yaxis=handles.axischoice{graph_choice};
     
@@ -601,9 +609,9 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         errordlg('Boundary layer can only be estimated for data from movable probe - pick correct data')
     else         
         %get user preference
-        av_window=str2double(get(handles.av_window,'String'));
-        lim_factor=str2double(get(handles.lim_factor,'String'));
-        position_lim=str2double(get(handles.position_lim,'String'));
+        av_window=str2double(handles.av_window.String);
+        lim_factor=str2double(handles.lim_factor.String);
+        position_lim=str2double(handles.position_lim.String);
         
         %get data
         y_dat=handles.value_dat{graph_choice};
@@ -646,16 +654,16 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         set(handles.legend,'interpreter','none')
         legend_state=get(handles.legend_on,'Value');
         if (legend_state && handles.plotcounter>0)
-            set(handles.legend,'Visible','On')   
+            handles.legend.Visible='On';   
         elseif handles.plotcounter>0
-            set(handles.legend,'Visible','Off')
+            handles.legend.Visible='Off';
         end
 
         %update list of graphs
-        set(handles.graph_list,'String',handles.graph_name)  
+        handles.graph_list.String=handles.graph_name;  
         
         %Plotting processing graphs
-        if get(handles.bl_graph,'Value')
+        if handles.bl_graph.Value
             figure
             subplot(2,1,1)
             hold on
@@ -672,7 +680,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         end
         
         %update gui
-        set(handles.bl_calc,'String',num2str(boundary_layer))
+        handles.bl_calc.String=num2str(boundary_layer);
         %forward changes
         guidata(hObject, handles);
     end
@@ -911,7 +919,11 @@ function useMean_radiobutton_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , (0.1*row)/(row-1)];
+        
+        %update edit box
+        handles.intervalCenter_edit.String=num2str(floor(row/2));
+        
     else
         handles.interval_uipanel.Visible='off';
     end
@@ -943,13 +955,28 @@ function useInterval_radiobutton_Callback(hObject, eventdata, handles)
         
         %update slider
         handles.intervalCenter_slider.Max=row;
-        handles.intervalCenter_slider.SliderStep=[1/(row-1) , 1/(row-1)];
+        handles.intervalCenter_slider.SliderStep=[1/(row-1) , (0.1*row)/(row-1)];
+        
+        %update edit box
+        handles.intervalCenter_edit.String=num2str(floor(row/2));
+        
     else
         handles.interval_uipanel.Visible='off';
     end
 
 function intervalCenter_edit_Callback(hObject, eventdata, handles)
+    %control user entered values and correct if necessary
+    if str2double(handles.intervalCenter_edit.String)>str2double(handles.recordingLength_text.String)
+        handles.intervalCenter_edit.String=handles.recordingLength_text.String;
+    elseif str2double(handles.intervalCenter_edit.String)<1
+        handles.intervalCenter_edit.String='1';
+    end
     handles.intervalCenter_slider.Value=str2double(handles.intervalCenter_edit.String);
+    
+    %if replotting is desired
+    if handles.replot_checkbox.Value
+        plot_pushbutton_Callback(hObject, eventdata, handles)
+    end
 
 % --- Executes during object creation, after setting all properties.
 function intervalCenter_edit_CreateFcn(hObject, eventdata, handles)
@@ -959,6 +986,17 @@ function intervalCenter_edit_CreateFcn(hObject, eventdata, handles)
     end
 
 function intervalWidth_edit_Callback(hObject, eventdata, handles)
+    %control user entered values and correct if necessary
+    if str2double(handles.intervalWidth_edit.String)>str2double(handles.recordingLength_text.String)
+        handles.intervalWidth_edit.String=handles.recordingLength_text.String;
+    elseif str2double(handles.intervalWidth_edit.String)<1
+        handles.intervalWidth_edit.String='1';
+    end
+    
+    %if replotting is desired
+    if handles.replot_checkbox.Value
+        plot_pushbutton_Callback(hObject, eventdata, handles)
+    end
 
 % --- Executes during object creation, after setting all properties.
 function intervalWidth_edit_CreateFcn(hObject, eventdata, handles)
@@ -969,8 +1007,14 @@ function intervalWidth_edit_CreateFcn(hObject, eventdata, handles)
 
 % --- Executes on slider movement.
 function intervalCenter_slider_Callback(hObject, eventdata, handles)
+    %adjust value of edit box based on the slider choice, but round to
+    %nearest interger - otherwise it's pointless
     handles.intervalCenter_edit.String=num2str(round(handles.intervalCenter_slider.Value));
-    if handles.rep
+    
+    %if replotting is desired
+    if handles.replot_checkbox.Value
+        plot_pushbutton_Callback(hObject, eventdata, handles)
+    end
 
 % --- Executes during object creation, after setting all properties.
 function intervalCenter_slider_CreateFcn(hObject, eventdata, handles)
@@ -985,4 +1029,11 @@ end
 
 % --- Executes on button press in replot_checkbox.
 function replot_checkbox_Callback(hObject, eventdata, handles)
+
+% --- Executes on button press in shadowing_checkbox.
+function shadowing_checkbox_Callback(hObject, eventdata, handles)
+
+
+% --- Executes on button press in play_pushbutton.
+function play_pushbutton_Callback(hObject, eventdata, handles)
 

@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 18-Nov-2016 16:41:16
+    % Last Modified by GUIDE v2.5 19-Nov-2016 13:07:56
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -1039,10 +1039,20 @@ function play_pushbutton_Callback(hObject, eventdata, handles)
     handles.replot_checkbox.Value=1;
     centerPos=str2double(handles.intervalCenter_edit.String);
     recordingLength=str2double(handles.recordingLength_text.String);
-    while centerPos<recordingLength
+    %plotting loop
+    while centerPos<recordingLength && ~handles.stop_pushbutton.Value
         plot_pushbutton_Callback(hObject, eventdata, handles)
         centerPos=centerPos+1;
         handles.intervalCenter_edit.String=num2str(centerPos);
         handles.intervalCenter_slider.Value=centerPos;
         pause(0.1)
     end
+    handles.stop_pushbutton.Value=0;
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+
+% --- Executes on button press in stop_pushbutton.
+function stop_pushbutton_Callback(hObject, eventdata, handles)
+

@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 19-Nov-2016 13:07:56
+    % Last Modified by GUIDE v2.5 21-Nov-2016 14:35:34
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -129,7 +129,16 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     % get positions
     vertical_pos=handles.data(file).(y_param).position_y;
     horizontal_pos=handles.data(file).(y_param).position_x;
-      
+     
+    
+    % to lessen the computation burden in case of replotting
+    % only replace Y data and keep other parts of graphs untouched
+    if handles.replot_checkbox.Value && handles.plotcounter>0
+        handles.graph{handles.plotcounter}.YData=value_dat;
+        handles.value_dat{handles.plotcounter}=value_dat;
+        return
+    end
+    
     % figure out how many data points are to be plotted
     y_amount=numel(value_dat);
     
@@ -354,33 +363,32 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         msgbox('Standard deviation data not available for the chosen variables / files - omitting')
     end
     
-    %if replotting, disable to save time
-    if ~handles.replot_checkbox.Value
-        %add legend and create graph name
-        processing_string=[smooth_str,norm_str,flip_str];
-        handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
-        handles.legend=legend(handles.graph_name{1:end});
 
-        set(handles.legend,'interpreter','none')
-        legend_state=get(handles.legend_on,'Value');
-        if (legend_state && handles.plotcounter>0)
-            set(handles.legend,'Visible','On')   
-        elseif handles.plotcounter>0
-            set(handles.legend,'Visible','Off')
-        end
+    %add legend and create graph name
+    processing_string=[smooth_str,norm_str,flip_str];
+    handles.graph_name{handles.plotcounter}=[handles.files{file},' ',y_param,processing_string];
+    handles.legend=legend(handles.graph_name{1:end});
 
-        %label axes
-        ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
-        xlabel('Position [mm]', 'interpreter', 'none')
-
-        %update list of graphs
-        set(handles.graph_list,'String',handles.graph_name)
-        set(handles.graph_list,'Value', handles.plotcounter)
-
-        %store data in the figure
-        handles.value_dat{handles.plotcounter}=value_dat;
-        handles.x_dat{handles.plotcounter}=x_dat;
+    set(handles.legend,'interpreter','none')
+    legend_state=get(handles.legend_on,'Value');
+    if (legend_state && handles.plotcounter>0)
+        set(handles.legend,'Visible','On')   
+    elseif handles.plotcounter>0
+        set(handles.legend,'Visible','Off')
     end
+
+    %label axes
+    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
+    xlabel('Position [mm]', 'interpreter', 'none')
+
+    %update list of graphs
+    set(handles.graph_list,'String',handles.graph_name)
+    set(handles.graph_list,'Value', handles.plotcounter)
+
+    %store data in the figure
+    handles.value_dat{handles.plotcounter}=value_dat;
+    handles.x_dat{handles.plotcounter}=x_dat;
+  
     
     %send updated handles back up
     guidata(hObject, handles);
@@ -920,6 +928,7 @@ function useMean_radiobutton_Callback(hObject, eventdata, handles)
         %update slider
         handles.intervalCenter_slider.Max=row;
         handles.intervalCenter_slider.SliderStep=[1/(row-1) , (0.1*row)/(row-1)];
+        handles.intervalCenter_slider.Value=floor(row/2);
         
         %update edit box
         handles.intervalCenter_edit.String=num2str(floor(row/2));
@@ -956,7 +965,8 @@ function useInterval_radiobutton_Callback(hObject, eventdata, handles)
         %update slider
         handles.intervalCenter_slider.Max=row;
         handles.intervalCenter_slider.SliderStep=[1/(row-1) , (0.1*row)/(row-1)];
-        
+        handles.intervalCenter_slider.Value=floor(row/2);
+                
         %update edit box
         handles.intervalCenter_edit.String=num2str(floor(row/2));
         
@@ -1030,8 +1040,8 @@ end
 % --- Executes on button press in replot_checkbox.
 function replot_checkbox_Callback(hObject, eventdata, handles)
 
-% --- Executes on button press in shadowing_checkbox.
-function shadowing_checkbox_Callback(hObject, eventdata, handles)
+% --- Executes on button press in storeMovie_checkbox.
+function storeMovie_checkbox_Callback(hObject, eventdata, handles)
 
 
 % --- Executes on button press in play_pushbutton.
@@ -1039,15 +1049,32 @@ function play_pushbutton_Callback(hObject, eventdata, handles)
     handles.replot_checkbox.Value=1;
     centerPos=str2double(handles.intervalCenter_edit.String);
     recordingLength=str2double(handles.recordingLength_text.String);
+    %if video save is requested
+    if handles.storeMovie_checkbox.Value
+        vidObj = VideoWriter('matlab.avi');
+        open(vidObj);
+    end
     %plotting loop
     while centerPos<recordingLength && ~handles.stop_pushbutton.Value
         plot_pushbutton_Callback(hObject, eventdata, handles)
         centerPos=centerPos+1;
         handles.intervalCenter_edit.String=num2str(centerPos);
         handles.intervalCenter_slider.Value=centerPos;
-        pause(0.1)
+        if handles.storeMovie_checkbox.Value
+            currFrame=getframe(handles.var_axes);
+            writeVideo(vidObj,currFrame);
+
+        end
+        pause(0.05)
     end
+    %switch stop button to default position
     handles.stop_pushbutton.Value=0;
+    
+    if handles.storeMovie_checkbox.Value
+        % Close the file.
+        close(vidObj);
+    end
+    
     
     % Update handles structure
     guidata(hObject, handles);

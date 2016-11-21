@@ -91,12 +91,23 @@ data3=str2double(data3);
 
 % NC tank pressure calculation using NCfilling_estimation_fun macro (Redlich Kwong + ideal gas
 T_room=20; %[°C]
+vol_waterTank=0.0025;
+vol_heaterTank=0.0040675;
+mol_m_air=28.97;
+R=8.3144621;
 eos=1;
 test_amount=size(data3);
 mole_fr_NC=data3(:,1);
 N2_NC_mole_fr=data3(:,2);
 test_press=data3(:,3); 
 wall_dT=data3(:,4);
+% Residual gas in demineralized water (1 bar, room temperature)
+dens_dissair=0.023; % [g air/kg water] 25°C room temperature
+dens_water=997.13; % 25°C room temperature
+m_deminw=dens_water*vol_waterTank;
+m_dissair=dens_dissair*m_deminw; % [g]
+n_dissair=m_dissair/mol_m_air;
+p_diss_N2=(0.74*n_dissair*R*(T_room+273.15))/vol_heaterTank;
 
 for n=1:test_amount(1);
     if mole_fr_NC(n)==0;
@@ -106,8 +117,13 @@ for n=1:test_amount(1);
             [press_NC_tank_both, press_NC_tank_He]=NCfilling_estimation_fun((1-mole_fr_NC(n)),N2_NC_mole_fr(n),T_room,test_press(n),eos);
     end
     y{n,1}=data2{n}; % Hardcopy the experiment name to column 1 from IC table
-    y{n,2}=press_NC_tank_both;  % NC tank pressure [bar]
+    if N2_NC_mole_fr(n) > 0;
+        y{n,2}=press_NC_tank_both-p_diss_N2/100000;  %becaus of the extra gas dissolved in the water, one can fill lest N2 to the test section
+    else
+        y{n,2}=press_NC_tank_both;  % NC tank pressure [bar]
+    end
     y{n,3}=press_NC_tank_He; % He pressure [bar]
+
     y{n,4}=mole_fr_NC(n); % NC mole fraction [-]
     y{n,5}=N2_NC_mole_fr(n); % N2 mole fraction [-]
     y{n,6}=test_press(n); % Test pressure [bar]

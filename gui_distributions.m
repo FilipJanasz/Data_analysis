@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 21-Nov-2016 14:35:34
+    % Last Modified by GUIDE v2.5 21-Nov-2016 15:35:19
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -309,7 +309,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         value_dat=y_st_dev;
     end
     
-    %PLOTTING PLOTTING PLOTTING
+    %PLOTTING PLOTTING PLOTTING==================================================================
     %depending on user choice, plot along chosen axis, 3D, with or without
     %errorbars
     try
@@ -1051,7 +1051,7 @@ function play_pushbutton_Callback(hObject, eventdata, handles)
     recordingLength=str2double(handles.recordingLength_text.String);
     %if video save is requested
     if handles.storeMovie_checkbox.Value
-        vidObj = VideoWriter('matlab.avi');
+        vidObj = VideoWriter([handles.filepath,'\Time evolution ',handles.graph_name{end}]);
         open(vidObj);
     end
     %plotting loop
@@ -1079,7 +1079,47 @@ function play_pushbutton_Callback(hObject, eventdata, handles)
     % Update handles structure
     guidata(hObject, handles);
 
-
 % --- Executes on button press in stop_pushbutton.
 function stop_pushbutton_Callback(hObject, eventdata, handles)
+
+% --- Executes on button press in analyze_pushbutton.
+function analyze_pushbutton_Callback(hObject, eventdata, handles)
+    
+    %check for which recording plot is to be made
+    file=get(handles.file_popupmenu,'Value');
+
+    % get choice of phase to be plotted
+    list_y=get(handles.var_popupmenu,'String');
+    val_y=get(handles.var_popupmenu,'Value');
+    y_param=list_y{val_y}; 
+    
+    
+    full_matrix=handles.data(file).(y_param).var;
+    [rows,columns]=size(full_matrix);
+
+    %estimate averaging interval start and end based on user entered
+    %data
+    distribution_avg=zeros(1,rows);
+    span=50;
+    for rowCntr=1:rows
+        intervalStart=rowCntr-span;
+        intervalEnd=rowCntr+span;
+
+        if intervalStart<1
+            intervalStart=1;
+        end
+        if intervalEnd>rows
+            intervalEnd=rows;
+        end
+
+        distribution_avg(rowCntr)=sum(mean(full_matrix(intervalStart:intervalEnd,:)))/columns;
+
+    end
+        
+        
+%     for frameCntr=1:frames
+%         distavg=sum(handles.value_dat{handles.plotcounter});
+%     end
+    figure
+    plot(diff(distribution_avg))
 

@@ -87,8 +87,6 @@ data=reshape(data,rownum,6);
 data2=data(:,1);
 data3=data(:,2:end);
 data3=str2double(data3);
-
-
 % NC tank pressure calculation using NCfilling_estimation_fun macro (Redlich Kwong + ideal gas
 T_room=20; %[°C]
 vol_waterTank=0.0025;
@@ -118,20 +116,19 @@ for n=1:test_amount(1);
     end
     y{n,1}=data2{n}; % Hardcopy the experiment name to column 1 from IC table
     if N2_NC_mole_fr(n) > 0;
-        y{n,2}=press_NC_tank_both-p_diss_N2/100000;  %becaus of the extra gas dissolved in the water, one can fill lest N2 to the test section
+        y{n,2}=press_NC_tank_both-p_diss_N2/100000;
     else
         y{n,2}=press_NC_tank_both;  % NC tank pressure [bar]
     end
     y{n,3}=press_NC_tank_He; % He pressure [bar]
-
     y{n,4}=mole_fr_NC(n); % NC mole fraction [-]
     y{n,5}=N2_NC_mole_fr(n); % N2 mole fraction [-]
     y{n,6}=test_press(n); % Test pressure [bar]
     y{n,7}=IAPWS_IF97('Tsat_p',test_press(n)*(1-mole_fr_NC(n))/10)-273.15; % Steam boiling point [°C]
     y{n,8}=y{n,7}-wall_dT(n); % Coolant temperature [°C]
     y{n,9}=IAPWS_IF97('psat_T',y{n,8}+273.15)*10; % Coolant saturation pressure [bar]
-    y{n,10}=data3(n,4); % Coolant flow [m3/h]
-    y{n,11}=data3(n,3); % wall dT [°C]
+    y{n,10}=data3(n,5); % Coolant flow [m3/h]
+    y{n,11}=data3(n,4); % wall dT [°C]
 end
 
 set(handles.table_2, 'data', y);

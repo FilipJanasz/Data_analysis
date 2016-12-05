@@ -85,8 +85,8 @@ function init_conditions_viewer(handles)
 
     %% Verify that all the required IC recording files are there, according to available data files
     %filter files to contain only base component of the name
-    rm_MP=cell2mat(cellfun(@(x) any(strfind(x,'MP')),file_list,'UniformOutput',0));
-    rm_FAST=cell2mat(cellfun(@(x) any(strfind(x,'FAST')),file_list,'UniformOutput',0));
+    rm_MP=cell2mat(cellfun(@(x) any(strfind(x,'-MP')),file_list,'UniformOutput',0));
+    rm_FAST=cell2mat(cellfun(@(x) any(strfind(x,'-FAST')),file_list,'UniformOutput',0));
     files=file_list(find(~(rm_MP|rm_FAST)));
     files=strrep(files,'.tdms','');
     fileCounter=numel(files);

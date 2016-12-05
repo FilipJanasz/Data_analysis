@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag)
+function [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag,eos)
 reset(symengine) %clears symbolic variables
 
     %% PURPOSE OF THIS CODE
@@ -49,9 +49,8 @@ reset(symengine) %clears symbolic variables
         vol.waterTank=0.003;
 
     %% EOS choice
-        % 1 - ideal gas
-        % 2 - Redlich Kwong
-        eos=1; 
+        % eos=1 - ideal gas
+        % eos=2 - Redlich Kwong
 
     %% CONDITIONS 
         
@@ -91,7 +90,8 @@ reset(symengine) %clears symbolic variables
         if eos==1
             %in case of ideal gas equation, equation of state always looks the
             %same
-            [~,Vm_fun_N2,~]=ideal_gas(R);
+%             [~,Vm_fun_N2,~]=ideal_gas(R);
+            Vm_fun_N2=@(P,T) R*T/P;  %simplify maths
 %             [press_fun_N2,Vm_fun_N2,T_fun_N2]=ideal_gas(R);
         elseif eos==2
             [~,Vm_fun_N2,~]=Redlich_Kwong(R,Tc_N2,pc_N2,1);

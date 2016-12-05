@@ -4,3 +4,4 @@ x_limit -10
 frame_size 30
 smoothing_type 4
 sgolay_order 2
+eos_type 1

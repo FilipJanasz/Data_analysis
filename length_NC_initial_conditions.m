@@ -1,4 +1,7 @@
-function nc_length=length_NC(equilibrium_T,test_press,h2o_mole_fraction_equlibrium,N2_moles,He_moles,NC_moles_total)
+function nc_length=length_NC_initial_conditions(equilibrium_T,test_press,h2o_mole_fraction_equlibrium,N2_moles,He_moles,NC_moles_total)
+    
+    %calculate volume taken up by NC gases based on initial condition
+    %recordings
     
     %T in Kelvin
     %P in bar
@@ -34,7 +37,7 @@ function nc_length=length_NC(equilibrium_T,test_press,h2o_mole_fraction_equlibri
     % moles and fractions
     mole_fr(1)=(1-h2o_mole_fraction_equlibrium)*N2_moles/NC_moles_total;
     mole_fr(2)=(1-h2o_mole_fraction_equlibrium)*He_moles/NC_moles_total;
-    mole_fr(3)=h2o_mole_fraction_equlibrium; %assuming no steam in NC mixture
+    mole_fr(3)=h2o_mole_fraction_equlibrium;
     
     % mixture_components=length(mass_fr);
     mixture_components=length(mole_fr);

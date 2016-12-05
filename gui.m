@@ -234,7 +234,7 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
     
     % --- Executes on button press in reprocess_btn.
 function reprocess_btn_Callback(hObject, eventdata, handles)
-    %     profile on
+        profile on
     %essentially the same as process, but with different flag
     clear steam coolant facility NC distributions file BC GHFS MP timing
 
@@ -294,7 +294,7 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
     
     %update handles structure
     guidata(hObject, handles)
-%     profile viewer
+    profile viewer
 
 function plot_button_Callback(hObject, eventdata, handles)
 %     profile on

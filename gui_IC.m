@@ -98,12 +98,12 @@ function file_popupmenu_Callback(hObject, eventdata, handles)
     vars=fields(handles.data.(file));
     
     %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.var_popupmenu,'Value',1);
+%     set(handles.var_popupmenu,'Value',1);
     set(handles.var_popupmenu,'String',fieldnames(handles.data.(file)))
 
     %the next line is to set the second popupmenu to common value, otherwise it breaks
-    set(handles.property_popupmenu,'Value',1);
-    set(handles.property_popupmenu,'String',fieldnames(handles.data.(file).(vars{1})))
+%     set(handles.property_popupmenu,'Value',1);
+%     set(handles.property_popupmenu,'String',fieldnames(handles.data.(file).(vars{1})))
 
 % --- Executes during object creation, after setting all properties.
 function file_popupmenu_CreateFcn(hObject, eventdata, handles)

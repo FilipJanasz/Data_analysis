@@ -22,7 +22,7 @@ function varargout = gui_advanced_options(varargin)
 
     % Edit the above text to modify the response to help gui_advanced_options
 
-    % Last Modified by GUIDE v2.5 18-Jul-2016 17:16:31
+    % Last Modified by GUIDE v2.5 02-Dec-2016 17:23:28
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -65,15 +65,17 @@ function gui_advanced_options_OpeningFcn(hObject, eventdata, handles, varargin)
     for options_ctr=1:numel(options)/2;
         odd_ctr=options_ctr*2-1;
         even_ctr=options_ctr*2;
-        if ~strcmp(options{odd_ctr},'smoothing_type')
+        if ~strcmp(options{odd_ctr},'smoothing_type') && ~strcmp(options{odd_ctr},'eos_type')
         	set(handles.(options{odd_ctr}),'String',options{even_ctr})
-        else
+        elseif strcmp(options{odd_ctr},'smoothing_type')
             set(handles.(options{odd_ctr}),'Value',str2double(options{even_ctr}))
             %in case smoothing default is Savitzky - Golay
             if str2double(options{even_ctr})==2
                 set(handles.text25,'Visible','On')
                 set(handles.sgolay_order,'Visible','On')
             end
+        elseif strcmp(options{odd_ctr},'eos_type')
+            set(handles.(options{odd_ctr}),'Value',str2double(options{even_ctr}))
         end
     end
 
@@ -159,12 +161,13 @@ function sgolay_order_CreateFcn(hObject, eventdata, handles)
 % --- Executes on button press in apply_btn.
 function apply_btn_Callback(hObject, eventdata, handles)
     %get updated values
-    options.avg_window=str2double(get(handles.avg_window,'String'));
-    options.limiting_factor=str2double(get(handles.limiting_factor,'String'));
-    options.x_limit=str2double(get(handles.x_limit,'String'));
-    options.frame_size=str2double(get(handles.frame_size,'String'));
-    options.smoothing_type=get(handles.smoothing_type,'Value');
-    options.sgolay_order=str2double(get(handles.sgolay_order,'String'));
+    options.avg_window=str2double(handles.avg_window.String);
+    options.limiting_factor=str2double(handles.limiting_factor.String);
+    options.x_limit=str2double(handles.x_limit.String);
+    options.frame_size=str2double(handles.frame_size.String);
+    options.smoothing_type=handles.smoothing_type.Value;
+    options.sgolay_order=str2double(handles.sgolay_order.String);
+    options.eos_type=handles.eos_type.Value;
     options_names=fieldnames(options);
     %open file for writing
     fileID=fopen('adv_options.txt','wt+');
@@ -177,3 +180,14 @@ function apply_btn_Callback(hObject, eventdata, handles)
     
     %close file
     fclose(fileID);
+
+% --- Executes on selection change in eos_type.
+function eos_type_Callback(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function eos_type_CreateFcn(hObject, eventdata, handles)
+
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end

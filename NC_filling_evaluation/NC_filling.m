@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file)
+function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file,eos_flag)
     extensive_error_flag=0;
     % get initial conditions from file
     directory=file.directory;
@@ -26,7 +26,7 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)
     disp_flag=1;
-    [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag);
+    [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag,eos_flag);
     
     if ~extensive_error_flag     
         %calculate maximal possible deviation from p and T, due to p and T
@@ -41,8 +41,8 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
             arg_mod_T(err_cntr*2)=arg_mod_T(err_cntr*2)+T_error;
         end
         disp_flag=0;
-        [h2o_mole_frac_T, N2_mole_frac_T, He_mole_frac_T,moles_N2_htank_T,moles_He_htank_T]=NCfilling_evaluation_fun(arg_mod_p,disp_flag);
-        [h2o_mole_frac_P, N2_mole_frac_P, He_mole_frac_P,moles_N2_htank_P,moles_He_htank_P]=NCfilling_evaluation_fun(arg_mod_T,disp_flag);
+        [h2o_mole_frac_T, N2_mole_frac_T, He_mole_frac_T,moles_N2_htank_T,moles_He_htank_T]=NCfilling_evaluation_fun(arg_mod_p,disp_flag,eos_flag);
+        [h2o_mole_frac_P, N2_mole_frac_P, He_mole_frac_P,moles_N2_htank_P,moles_He_htank_P]=NCfilling_evaluation_fun(arg_mod_T,disp_flag,eos_flag);
 
         %calculate "derivatives" of mole fractions wrt p and T, as finite
         %differences for each species

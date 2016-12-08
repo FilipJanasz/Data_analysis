@@ -180,6 +180,8 @@ function apply_btn_Callback(hObject, eventdata, handles)
     
     %close file
     fclose(fileID);
+    disp('Default values succesfully updated')
+    msgbox('Default values succesfully updated')
 
 % --- Executes on selection change in eos_type.
 function eos_type_Callback(hObject, eventdata, handles)

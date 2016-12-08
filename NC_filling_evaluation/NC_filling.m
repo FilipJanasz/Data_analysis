@@ -13,21 +13,16 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
         end
 %          name_init_cond=xlsread([dir,'\',file.name,'_IC.xlsx'],'A1:A12');
     end
-
-%     % by mistake, first component filled is actually He, but the script
-%     % thinks it's N2, so to fix this, in case we have He in the system,
-%     % recalculate correct partial pressure of N2 and substitute
-%     if strcmp(name_init_cond(7),'P_NCtank_He')
-%         init_cond(7)=init_cond(9)-init_cond(7);
-%     end
     
     arg=[p T init_cond'];
     P_init=init_cond(11);
+    
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)
     disp_flag=1;
     [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag,eos_flag);
     
+    %% estimate errors
     if ~extensive_error_flag     
         %calculate maximal possible deviation from p and T, due to p and T
         %errors

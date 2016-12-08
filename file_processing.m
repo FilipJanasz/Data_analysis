@@ -343,7 +343,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %distributions - really long struct
         value=struct('cal',[],'non_cal',[]);
         data_holder_2=struct('value',value,'position_y',[],'position_x',[]);
-        distributions=struct('NC_length',data_holder_2,'GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
+        distributions=struct('NC_length_est',data_holder_2,'NC_length_init',data_holder_2,'GHFS_TC',data_holder_2,'MP_backward_molefr_h2o',data_holder_2,'MP_backward_partpress_h2o',data_holder_2,...
             'MP_backward_temp',data_holder_2,'MP_forward_molefr_h2o',data_holder_2,'MP_forward_partpress_h2o',data_holder_2,...
             'MP_forward_temp',data_holder_2,'MP_backward_temp_smooth',data_holder_2,'MP_forward_temp_smooth',data_holder_2,...
             'centerline_molefr_h2o',data_holder_2,'centerline_partpress_h2o',data_holder_2,'coolant_temp_0deg',data_holder_2,...
@@ -1242,7 +1242,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.MP_forward_temp_smooth.error=0.05;
         distributions.centerline_molefr_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
         distributions.centerline_molefr_NC.error=1;%XXXXXXXXXXXXXXXXXXX 
-        distributions.centerline_NC_moles.error=1;%XXXXXXXXXXXXXXXXXXX 
+        distributions.centerline_NC_moles_per_height.error=1;%XXXXXXXXXXXXXXXXXXX 
         distributions.centerline_partpress_h2o.error=1;%XXXXXXXXXXXXXXXXXXX 
         distributions.centerline_temp.error=0.05;
         distributions.coolant_temp_0deg.error=0.05;
@@ -1260,34 +1260,48 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         % values
         [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_N2_htank.error,NC.moles_He_htank.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
         NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
-        NC.moles_total.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;
+        NC.moles_total_init.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;
         
         % estimate tube length occupied by NC mixture, based on NC moles estimate calculated with recorded temperature
+        %initialize
+        NC.moles_total_est.value=0;
+        
         if centerline_flag~=0
             for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
-                distributions.centerline_NC_moles.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value,eos_type);  
-            end  
+                distributions.centerline_NC_moles_per_height.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_init.value,eos_type);  
+            end
+            
+            for mole_ctr=1:numel(distributions.centerline_temp.value.cal)-1
+                distance=(distributions.centerline_temp.position_y(mole_ctr+1)-distributions.centerline_temp.position_y(mole_ctr))/1000;  %divide by 1000 to convert mm to m
+                %trapezoid (a+b)*h/2 a = value at mole_ctr b = value at mole_ctr+1 h = distance
+                NC.moles_total_est.value=NC.moles_total_est.value+(distributions.centerline_NC_moles_per_height.value.cal(mole_ctr+1)+distributions.centerline_NC_moles_per_height.value.cal(mole_ctr))*distance/2;  %sum all the calculated NC moles from temperatures
+            end
         end
-
         % estimate tube length occupied by NC mixture, based on initial conditions estimate of total NC moles
-        NC.length.value=length_NC_initial_conditions(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total.value);      
+        NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_init.value,eos_type);      
+        % and based on deduced amount of NC moles from temeprature measurements
+        NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_est.value,eos_type);      
         
         %errors
         NC.N2_molefraction_init.error=NC.N2_molefraction.error;
         NC.He_molefraction_init.error=NC.He_molefraction.error;
         NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
-        NC.moles_total.error=NC.moles_N2_htank.error+NC.moles_He_htank.error;
-        NC.length.error=error_NC_length(NC.length.value,NC.moles_total.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+        NC.moles_total_init.error=NC.moles_N2_htank.error+NC.moles_He_htank.error;
+        NC.moles_total_est.error=1; %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+        NC.length_est.error=error_NC_length(NC.length_init.value,NC.moles_total_est.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_est.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
         
         %distributions
-        distributions.NC_length.position_y=[1,1330-NC.length.value*1000-1,1330-NC.length.value*1000,1330];
-        distributions.NC_length.position_x=zeros(numel(distributions.NC_length.position_y),1);
-        distributions.centerline_NC_moles.position_y=distributions.centerline_molefr_NC.position_y;
-        distributions.centerline_NC_moles.position_x=distributions.centerline_molefr_NC.position_x;
-        distributions.NC_length.value.cal=[0,0,1,1];
-        distributions.NC_length.error=NC.length.error;
-        distributions.centerline_NC_moles.error=1;  %XXXXXXXXXXXXXXXXXXXXXXXXXX
-        
+        distributions.NC_length_init.position_y=[1,1330-NC.length_init.value*1000-1,1330-NC.length_init.value*1000,1330];
+        distributions.NC_length_init.position_x=zeros(numel(distributions.NC_length_init.position_y),1);
+        distributions.NC_length_est.position_y=[1,1330-NC.length_est.value*1000-1,1330-NC.length_est.value*1000,1330];
+        distributions.NC_length_est.position_x=zeros(numel(distributions.NC_length_est.position_y),1);
+        distributions.centerline_NC_moles_per_height.position_y=distributions.centerline_molefr_NC.position_y;
+        distributions.centerline_NC_moles_per_height.position_x=distributions.centerline_molefr_NC.position_x;
+        distributions.NC_length_init.value.cal=[0,0,1,1];
+        distributions.NC_length_init.error=NC.length_init.error;
+        distributions.NC_length_est.value.cal=[0,0,1,1];
+        distributions.NC_length_est.error=NC.length_est.error;        
         
         
         %% Boundary conditions ==============================================================================================================
@@ -1392,10 +1406,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.NC_molefraction.unit='1';
         NC.N2_molefraction_init.unit='1';
         NC.He_molefraction_init.unit='1';
-        NC.moles_N2_htank.unit='1';
-        NC.moles_He_htank.unit='1';
-        NC.moles_total.unit='1';
-        NC.length.unit='1';
+        NC.moles_N2_htank.unit='mol';
+        NC.moles_He_htank.unit='mol';
+        NC.moles_total_init.unit='mol';
+        NC.moles_total_est.unit='mol';
+        NC.length_init.unit='1';
+        NC.length_est.unit='1';
         
         if  fast_flag
         % GHFS units
@@ -1462,7 +1478,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.MP_forward_temp_smooth.unit=[char(176),'C'];
         distributions.centerline_molefr_h2o.unit='1';
         distributions.centerline_molefr_NC.unit='1';
-        distributions.centerline_NC_moles.unit='1';
+        distributions.centerline_NC_moles_per_height.unit='mol/m';
         distributions.centerline_partpress_h2o.unit='bar';
         distributions.centerline_temp.unit=[char(176),'C'];
         distributions.coolant_temp_0deg.unit=[char(176),'C'];
@@ -1472,7 +1488,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.wall_dT.unit=[char(176),'C'];
         distributions.wall_inner.unit=[char(176),'C'];
         distributions.wall_outer.unit=[char(176),'C'];
-        distributions.NC_length.unit=1;
+        distributions.NC_length_init.unit=1;
+        distributions.NC_length_est.unit=1;
 
 %% calculate standard deviations for steam cooland facility
         disp('6. Calculating standard deviations')
@@ -1576,6 +1593,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     end
     
 disp('Processing finished, ready for a new file')
-disp('*****************************************')
+disp('*****************************************\n')
+
 
 end

@@ -1,4 +1,4 @@
-function nc_length=length_NC_initial_conditions(equilibrium_T,test_press,h2o_mole_fraction_equlibrium,N2_moles,He_moles,NC_moles_total)
+function nc_length=length_NC(equilibrium_T,test_press,h2o_mole_fraction_equlibrium,N2_moles,He_moles,NC_moles_total,eos)
     
     %calculate volume taken up by NC gases based on initial condition
     %recordings
@@ -6,12 +6,9 @@ function nc_length=length_NC_initial_conditions(equilibrium_T,test_press,h2o_mol
     %T in Kelvin
     %P in bar
     
-    reset(symengine)
-    
     %ideal gas vs redlich kwong equation
-    % 1 - ideal gas
-    % 2 - Redlich Kwong
-    eos=2;
+    % eos=1 - ideal gas
+    % eos=2 - Redlich Kwong
     
     %critical pressure in Bar http://en.wikipedia.org/wiki/Critical_point_%28thermodynamics%29
     pc_N2=33.94;
@@ -41,9 +38,10 @@ function nc_length=length_NC_initial_conditions(equilibrium_T,test_press,h2o_mol
     
     % mixture_components=length(mass_fr);
     mixture_components=length(mole_fr);
-    
+
     %% check applicability condition (for all mixture components p/pc > T/2*Tc) for Redlich Kwong
     if eos==2;
+        reset(symengine)
         RK_app=zeros(1,mixture_components);
         for i=1:mixture_components
             RK_app(i)=test_press/pc(i)/(equilibrium_T/2/Tc(i));
@@ -55,7 +53,8 @@ function nc_length=length_NC_initial_conditions(equilibrium_T,test_press,h2o_mol
     end
     %% Define state equation - Redlich-Kwong equation (for three species in heater tank) or ideal gas
     if eos==1
-        [~,Vm_fun,~]=ideal_gas(R);
+        %[~,Vm_fun,~]=ideal_gas(R);
+        Vm_fun=@(P,T) R*T/P;  %simplify maths
     elseif eos==2
         [~,Vm_fun,~]=Redlich_Kwong(R,Tc,pc,mole_fr);
     end

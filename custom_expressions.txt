@@ -1,2 +1,3 @@
 NC.NC_molefraction.value/facility.wall_dT.value handles.NC(x).NC_molefraction.value/handles.facility(x).wall_dT.value 
 NC.N2_molefraction.value*facility.wall_dT.value handles.NC(x).N2_molefraction.value*handles.facility(x).wall_dT.value 
+NC.length_init.value-NC.length_est.value handles.NC(x).length_init.value-handles.NC(x).length_est.value 

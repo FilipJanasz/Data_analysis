@@ -1,5 +1,5 @@
 function [h2o_mole_frac, N2_mole_frac, He_mole_frac,moles_N2_htank,moles_He_htank,N2_mole_frac_init,He_mole_frac_init]=NCfilling_evaluation_fun(arg,disp_flag,eos)
-reset(symengine) %clears symbolic variables
+
 
     %% PURPOSE OF THIS CODE
     % Enter measured values for pressure and temperature at following stages of
@@ -52,7 +52,14 @@ reset(symengine) %clears symbolic variables
         % eos=1 - ideal gas
         % eos=2 - Redlich Kwong
 
-    %% CONDITIONS 
+    %% GET CONDITIONS 
+    
+        %remove negative pressures
+        for arg_ctr=1:numel(arg)
+            if arg(arg_ctr)<0
+                arg(arg_ctr)=0.00001;
+            end
+        end
         
         %test conditions
         P_Htank_test=arg(1);
@@ -81,8 +88,8 @@ reset(symengine) %clears symbolic variables
         % 6. Heater tank filled with NC
         P_htank_full=arg(13);
         T_htank_full=arg(14)+273.15;
-
-
+      
+        
     %% Calculaion 1 - Vacuum in heater tank
 
     % assume there's only nitrogen in air mixture
@@ -94,6 +101,7 @@ reset(symengine) %clears symbolic variables
             Vm_fun_N2=@(P,T) R*T/P;  %simplify maths
 %             [press_fun_N2,Vm_fun_N2,T_fun_N2]=ideal_gas(R);
         elseif eos==2
+            reset(symengine) %clears symbolic variables
             [~,Vm_fun_N2,~]=Redlich_Kwong(R,Tc_N2,pc_N2,1);
 %             [press_fun_N2,Vm_fun_N2,T_fun_N2]=Redlich_Kwong(R,Tc_N2,pc_N2,1);
         end
@@ -181,18 +189,22 @@ reset(symengine) %clears symbolic variables
 %         moles_He_NCtank=vol.NCtank/real(molar_vol_NCtank(1))-moles_N2_NCtank_vac;
         molar_vol_NCtank_step_4=Vm_fun_N2(P_NCtank_He*100000,T_NCtank_He);
         moles_He_NCtank=vol.NCtank/real(molar_vol_NCtank_step_4(1))-moles_N2_NCtank_vac;
-        mole_fr_He_NCtank=moles_He_NCtank/(moles_He_NCtank+moles_N2_NCtank_vac);
+        
 
 
-    % Caculation 5 Second NC componenfat (N2) filled in NC tank
+    % Caculation 5 Second NC component (N2) filled in NC tank
 
     % make an initial guess about mole fraction of N2 in NC gas mixture
         molar_vol_NCtank_step_5=Vm_fun_N2(P_NCtank_full*100000,T_NCtank_full);
         moles_N2_NCtank=vol.NCtank/real(molar_vol_NCtank_step_5(1))-moles_He_NCtank;
 %         mole_fr_N2_NCtank=moles_N2_NCtank/(moles_He_NCtank+moles_N2_NCtank); % apparently unused, keep in the code though
 
+    % get the gas ratio
+        mole_fr_He_NCtank=moles_He_NCtank/(moles_He_NCtank+moles_N2_NCtank);
+
         % check what equation of state was chosen and act accordingly
         if eos==1
+
                     %initial guess is final guess in this case
         elseif eos==2
             flag=0;
@@ -250,7 +262,7 @@ reset(symengine) %clears symbolic variables
 
         while flag==0
 %             
-            moles_NC=moles_total-moles_h2o_htank-moles_N2_Htank_filling;
+            moles_NC=moles_total-moles_h2o_htank-moles_N2_Htank_filling;   %these are moles that entered heater tank from NC tank, hence substract the original leftovers
             moles_N2_htank=moles_N2_Htank_filling+moles_NC*(1-mole_fr_He_NCtank);
             moles_He_htank=moles_NC*mole_fr_He_NCtank;
             mole_fr_h2o_htank_full=moles_h2o_htank/moles_total;
@@ -258,7 +270,7 @@ reset(symengine) %clears symbolic variables
             Tsat_h2o=IAPWS_IF97('Tsat_p',part_press_h2o/10);
 
             %check if initial guess is OK - if the while loop below would
-            %start with Tsat_h2o smalle than T_htank_full, it breaks
+            %start with Tsat_h2o smaller than T_htank_full, it breaks
             if Tsat_h2o<T_htank_full  
                 if disp_flag==1
                     disp('Step 6 error - measured T larger than T sat. Adjusting T')

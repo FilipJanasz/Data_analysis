@@ -62,6 +62,6 @@ function NC_moles_per_height=NC_moles_estimate(T,test_press,NC_mole_fraction,N2_
     molar_Vol=Vm_fun(test_press*100000,T);
     molar_Vol=real(molar_Vol(1));
     
-    NC_moles_per_height=1/molar_Vol*(pi*0.01^2);
+    NC_moles_per_height=1/molar_Vol*(pi*0.01^2);  % mol / m
     
 end

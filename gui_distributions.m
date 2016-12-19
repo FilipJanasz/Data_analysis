@@ -126,6 +126,13 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     catch
             st_dev_available=0;
     end
+    
+    %if user wants only std values, plot y_st_dev instead of y_dat 
+    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
+    if st_dev_only_flag && st_dev_available
+        value_dat=y_st_dev;
+    end
+    
     % get positions
     vertical_pos=handles.data(file).(y_param).position_y;
     horizontal_pos=handles.data(file).(y_param).position_x;
@@ -302,12 +309,6 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %combine input into line specification string
     line_spec=[line_style,line_color,line_marker];
-    
-    %if user wants only std values, plot y_st_dev instead of y_dat 
-    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
-    if st_dev_only_flag && st_dev_available
-        value_dat=y_st_dev;
-    end
     
     %PLOTTING PLOTTING PLOTTING==================================================================
     %depending on user choice, plot along chosen axis, 3D, with or without

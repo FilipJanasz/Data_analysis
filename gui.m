@@ -357,7 +357,13 @@ function plot_button_Callback(hObject, eventdata, handles)
             st_dev_available=0;
         end
     end
-
+    
+     %if user wants only std values, plot y_st_dev instead of y_dat 
+    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
+    if st_dev_only_flag && st_dev_available
+        y_dat=y_st_dev;
+    end
+    
     %get units for the plot
     if strcmp(x_param,'custom')
         x_unit=1;
@@ -493,13 +499,7 @@ function plot_button_Callback(hObject, eventdata, handles)
     if ~yerr_flag
         y_err=[];
     end
-    
-    %if user wants only std values, plot y_st_dev instead of y_dat 
-    st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
-    if st_dev_only_flag && st_dev_available
-        y_dat=y_st_dev;
-    end
-    
+        
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
     %plot data according to user preferences
     handles.graph{handles.plotcounter}=errorbarxy(x_dat, y_dat, x_err, y_err,{line_spec, 'k', 'k'});

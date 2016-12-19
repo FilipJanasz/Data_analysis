@@ -1028,6 +1028,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
                 distributions.centerline_partpress_h2o.value.cal(molefr_ctr)=IAPWS_IF97('psat_T',(distributions.centerline_temp.value.cal(molefr_ctr)+273.15))*10;  % * 10 to convert MPa to bar
                 distributions.centerline_molefr_h2o.value.cal(molefr_ctr)=distributions.centerline_partpress_h2o.value.cal(molefr_ctr)/steam.press.value;
+                if distributions.centerline_molefr_h2o.value.cal(molefr_ctr)>1  %due to superheat!
+                    distributions.centerline_molefr_h2o.value.cal(molefr_ctr)=1;
+                end
                 distributions.centerline_molefr_NC.value.cal(molefr_ctr)=1-distributions.centerline_molefr_h2o.value.cal(molefr_ctr); 
             end  
         end

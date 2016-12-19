@@ -35,7 +35,7 @@ function init_conditions_viewer(handles)
     for file_ctr=1:numel(file_list_dotmat)
         
         %setup file names
-        proccesed_file=strrep(file_list_dotmat{file_ctr},'.mat','-processed.mat');
+        proccesed_file=strrep(file_list_dotmat{file_ctr},'.mat','-processed.mat')
         
         %check if file was already processed
         exist_proccessed_flag=exist(proccesed_file,'file');

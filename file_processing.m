@@ -662,13 +662,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %combine all into one matrix for further processing
             MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MP_direction'];
 
-            %sort by movement direction into separate in two matrices
+            %sort by movement direction and separate in two matrices
             MP_matrix=sortrows(MP_matrix,4);
             direction_forward=find(MP_matrix(:,4)==1);
             direction_backward=find(MP_matrix(:,4)==0);
 
             %as matrix is sorted by row 4, all forward and backward points
-            %are grouped - first backward, then forward, simple to separate
+            %are grouped - first backward movement, then forward movement, simple to separate
             if numel(direction_forward)>0
                 MP_data.forward=MP_matrix(direction_forward(1):direction_forward(end),1:3);
                 forward_flag=1;
@@ -683,7 +683,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 backward_flag=0;
             end
 
-            %flags are VERY not elegant way here but I have to prepare for
+            %this is not elegant way here but I have to prepare for
             %cases when we measured only one direction of movement
             %and honestly it's Friday and I could not be less creative
             %Filip 04.03.2016
@@ -720,11 +720,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     if numel(interval)>3
                         %average temperatures for given position over all
                         %measurements
-                        pos_temp=mean(MP_temp_sorted(1:interval(end)));
+                        pos_temp=mean(MP_temp_sorted(1:interval(end)));                        
                         %also for the filtered data
                         pos_temp_smooth=mean(MP_temp_sorted_filtered(1:interval(end)));
+                        %calculate standard deviation for a given position
+                        pos_std=std(MP_temp_sorted(1:interval(end)));
                         %store all for the glorious future
-                        MP_Temp_averaged.(directions{ctr})(n,:)=[processed_pos pos_temp pos_temp_smooth];
+                        MP_Temp_averaged.(directions{ctr})(n,:)=[processed_pos pos_temp pos_temp_smooth pos_std];
                         n=n+1;
                     else
                     end
@@ -758,7 +760,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         %make sure that the while loop executes at least once
         frist_loop_flag=1;
-        
+        %------*-***************-*-***************** 
         %boundary layer calculation, based on movable probe temperature and position data       
         
         while interactive_flag || frist_loop_flag   
@@ -832,11 +834,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         if MP_flag %MP_flag points to new files. which have modified TC layout
             %movable probe distributions
             if forward_flag
-                distributions.MP_forward_temp.var=MP_Temp_averaged.forward(:,2);
+                distributions.MP_forward_temp.var=MP_Temp_averaged.forward(:,2);                
                 distributions.MP_forward_temp_smooth.var=MP_Temp_averaged.forward(:,3);
             end
             if backward_flag
-                distributions.MP_backward_temp.var=MP_Temp_averaged.backward(:,2);
+                distributions.MP_backward_temp.var=MP_Temp_averaged.backward(:,2);               
                 distributions.MP_backward_temp_smooth.var=MP_Temp_averaged.backward(:,3);
             end 
             short_flag=0;
@@ -898,10 +900,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %movable probe distributions
             if forward_flag
                 distributions.MP_forward_temp.value.cal=MP_Temp_averaged.forward(:,2);
+                distributions.MP_forward_temp.std=MP_Temp_averaged.forward(:,4);               
                 distributions.MP_forward_temp_smooth.value.cal=MP_Temp_averaged.forward(:,3);
             end
             if backward_flag
-                distributions.MP_backward_temp.value.cal=MP_Temp_averaged.backward(:,2);
+                distributions.MP_backward_temp.value.cal=MP_Temp_averaged.backward(:,2);               
+                distributions.MP_backward_temp.std=MP_Temp_averaged.backward(:,4);
                 distributions.MP_backward_temp_smooth.value.cal=MP_Temp_averaged.backward(:,3);
             end 
             short_flag=0;
@@ -1515,8 +1519,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
         end
         
-        %add st dev to distributions
+        %add st dev to centerline distribution
         distributions.centerline_temp.std=[steam.TF9603.std,steam.TF9604.std,steam.TF9605.std,steam.TF9606.std,steam.TF9607.std,steam.TF9608.std,steam.TF9609.std,steam.TF9610.std,steam.TF9611.std,steam.TF9612.std,steam.TF9613.std,steam.TF9614.std];
+
+        
 %% Sort variables and save
         disp('7. Sorting and storing data in .mat files')
         

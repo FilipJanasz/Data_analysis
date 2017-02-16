@@ -1,2 +1,4 @@
 (NC.length_init.value-NC.length_est.value)/NC.length_init.value (handles.NC(x).length_init.value-handles.NC(x).length_est.value)/handles.NC(x).length_init.value 
 NC.length_init.value-NC.length_est.value handles.NC(x).length_init.value-handles.NC(x).length_est.value 
+coolant.temp_outlet_TC.value-coolant.temp_inlet.value handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value 
+(coolant.temp_outlet_TC.value-coolant.temp_inlet.value)*coolant.mflow.value/3600*coolant.spec_heat.value (handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value)*handles.coolant(x).mflow.value/3600*handles.coolant(x).spec_heat.value 

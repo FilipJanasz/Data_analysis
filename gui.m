@@ -358,7 +358,21 @@ function plot_button_Callback(hObject, eventdata, handles)
         end
     end
     
-     %if user wants only std values, plot y_st_dev instead of y_dat 
+    
+    %filter out NaNs in y_dat
+    
+    any_nan=~isnan(y_dat);
+    y_dat=y_dat(any_nan);    
+    x_dat=x_dat(any_nan);   
+    y_err=y_err(any_nan);   
+    x_err=x_err(any_nan);  
+    y_st_dev=y_st_dev(any_nan);  
+    if isnan(y_dat)
+        disp('NaN values found and filtered')
+    end
+    
+    
+    %if user wants only std values, plot y_st_dev instead of y_dat 
     st_dev_only_flag=get(handles.stdev_only_checkbox, 'Value');
     if st_dev_only_flag && st_dev_available
         y_dat=y_st_dev;
@@ -557,14 +571,18 @@ function plot_button_Callback(hObject, eventdata, handles)
     xlabel([x_param,' ',x_param_var,' [',x_unit,']'], 'interpreter', 'none')
     ylabel([y_param,' ',y_param_var,' [',y_unit,']'], 'interpreter', 'none')
     
-    %add point labeling
+    %add point labeling - two loops solution to account for possible missing NaN values
     label_flag=get(handles.checkbox_point_labels, 'Value');
     if label_flag == 1
         for cntr=1:files_chosen
-            str_label=[handles.file(file_choice(cntr)).name,' ',y_param_var];
-            text(x_dat(cntr),y_dat(cntr),str_label,'interpreter','none');            
-        end   
-    end
+            str_label{cntr}=[handles.file(file_choice(cntr)).name,' ',y_param_var];                       
+        end
+        str_label=str_label(any_nan);
+
+        for cntr=1:numel(str_label)
+            text(x_dat(cntr),y_dat(cntr),str_label{cntr},'interpreter','none'); 
+        end       
+    end    
     
     %store data in the figure
     handles.y_dat{handles.plotcounter}=y_dat;
@@ -1307,7 +1325,7 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
     %prepare data for tbale display
     data4table=0;
     for tabCounter=1:numel(handles.x_dat)
-        if data4table==0;
+        if data4table==0
             data4table=[handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
         else
             data4table=[data4table,handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
@@ -1319,6 +1337,7 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
     tableTab=uitable;
     tableTab.Position=[0 0 560 400];
     tableTab.Data=data4table;
+    
     %fix column naming
     for nameCntr=1:numel(handles.graph_name)
         nameTemp=cell2mat(handles.graph_name(nameCntr));

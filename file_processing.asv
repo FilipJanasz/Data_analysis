@@ -379,7 +379,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS1_raw.var=cal_steady_data.GHFS1;
             GHFS.GHFS2_raw.var=cal_steady_data.GHFS2;
             GHFS.GHFS3_raw.var=cal_steady_data.GHFS3;
-            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4;                    
+            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4;
+            
+            GHFS_offset=[0.01735 -0.14407 0.28317 -0.20995];
             
             % thermocouple cal_steady_data.TCH2_2W is broken
             % as a workaround, use average between two thermocouples
@@ -409,26 +411,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS3.area=82.34; % mm^2
             GHFS.GHFS4.area=84.31; % mm^2
             
-            %sensitivities
-            GHFS.GHFS1.sensitivity=0.7e-5;
-            GHFS.GHFS2.sensitivity=0.7e-5;
-            GHFS.GHFS3.sensitivity=1.25e-5;
-            GHFS.GHFS4.sensitivity=0.25e-5;
-            
             %based on amplifier tests
             GHFS.GHFS1.amplification=10000; % 
             GHFS.GHFS2.amplification=10000; % 
             GHFS.GHFS3.amplification=10000; % 
             GHFS.GHFS4.amplification=10000; % 
             
-            %based on GHFS response with no heatflux applied
-            GHFS_offset=[-0.032 0.26 0.4 0.20];  
-%             GHFS_offset=[0 0 0 0];  
-            
             GHFS_string={'GHFS1','GHFS2','GHFS3','GHFS4'}; %contains names of all sensors in facility
             %call function with appropriate data and recalculate heat flux from meaured voltage
             for ghfs_cntr=1:numel(GHFS_string)
-                [GHFS.(GHFS_string{ghfs_cntr}).var,GHFS.([GHFS_string{ghfs_cntr},'_offset_raw']).var]=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification,GHFS_offset(ghfs_cntr),GHFS.(GHFS_string{ghfs_cntr}).sensitivity);
+                GHFS.(GHFS_string{ghfs_cntr}).var=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification,GHFS_offset(ghfs_cntr));
             end
             
             % from dT (0.003 is distance between thermocouples in mm)
@@ -548,8 +540,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.wall_htc.value=2*15/(0.02*log(0.03/0.02));
         facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
         facility.wall_heatflow_dT.value=facility.wall_heatflux_dT.value*2*pi*0.021/2*1;  %last term is inner wall area of the test tube
-        facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*1.3); %delivered power over tube area
-        %         facility.voltage.value=mean(facility.voltage.var);
+%         facility.voltage.value=mean(facility.voltage.var);
         facility.current.value=mean(facility.current.var);
         facility.NCtank_press.value=mean(facility.NCtank_press.var);
         facility.NCtank_temp.value=mean(facility.NCtank_press.var);
@@ -561,11 +552,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS2_raw.value=mean(GHFS.GHFS2_raw.var);
             GHFS.GHFS3_raw.value=mean(GHFS.GHFS3_raw.var);
             GHFS.GHFS4_raw.value=mean(GHFS.GHFS4_raw.var);
-            
-            GHFS.GHFS1_offset_raw.value=mean(GHFS.GHFS1_offset_raw.var);
-            GHFS.GHFS2_offset_raw.value=mean(GHFS.GHFS2_offset_raw.var);
-            GHFS.GHFS3_offset_raw.value=mean(GHFS.GHFS3_offset_raw.var);
-            GHFS.GHFS4_offset_raw.value=mean(GHFS.GHFS4_offset_raw.var);
             
             GHFS.GHFS1_temp.value=mean(GHFS.GHFS1_temp.var);
             GHFS.GHFS2_temp.value=mean(GHFS.GHFS2_temp.var);
@@ -585,7 +571,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_heatflux_GHFS1.value=mean(GHFS.wall_heatflux_GHFS1.var);
             GHFS.wall_heatflux_GHFS2.value=mean(GHFS.wall_heatflux_GHFS2.var);
             GHFS.wall_heatflux_GHFS3.value=mean(GHFS.wall_heatflux_GHFS3.var);
-            GHFS.wall_heatflux_GHFS4.value=mean(GHFS.wall_heatflux_GHFS4.var);       
+            GHFS.wall_heatflux_GHFS4.value=mean(GHFS.wall_heatflux_GHFS4.var);
+
+            % total heat transmitted through wall based on GHFS and dT
+            steam.total_HF_dT.value=wall_heatflow([GHFS.wall_heatflux_GHFS1.value,GHFS.wall_heatflux_GHFS2.value,GHFS.wall_heatflux_GHFS3.value,GHFS.wall_heatflux_GHFS4.value],[220 420 670 920]);
+            steam.total_HF_GHFS.value=wall_heatflow([GHFS.wall_heatflux_GHFS1.value,GHFS.wall_heatflux_GHFS2.value,GHFS.wall_heatflux_GHFS3.value,GHFS.wall_heatflux_GHFS4.value],[220 420 670 920]);
+        
         
             % Movable probe - electrodes
             MP.MP1.value=mean(MP.MP1.var);
@@ -1148,12 +1139,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             steam.mixing_zone_start.value=mixing_zone.start;
             steam.mixing_zone_length.error=mixing_zone.length_error;
             steam.mixing_zone_start.error=mixing_zone.start_error;
-            
-            % total heat transmitted through wall based on GHFS and dT
-            GHFS.total_HF_dT.value=wall_heatflow([GHFS.wall_heatflux_GHFS1.value,GHFS.wall_heatflux_GHFS2.value,GHFS.wall_heatflux_GHFS3.value,GHFS.wall_heatflux_GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
-            GHFS.total_HF_GHFS.value=wall_heatflow([GHFS.GHFS1.value,GHFS.GHFS2.value,GHFS.GHFS3.value,GHFS.GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
-            GHFS.total_mflux_dT.value=GHFS.total_HF_dT.value/steam.evap_heat.value;
-            GHFS.total_mflux_GHFS.value=GHFS.total_HF_GHFS.value/steam.evap_heat.value;
         end
         
         %% DEFINE ERRORS ==============================================================================================================
@@ -1226,8 +1211,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.wall_htc.error=0.001*facility.wall_htc.value;%ooooooooooooooooo
         facility.wall_heatflux_dT.error=error_wall_heatflux(facility.wall_heatflux_dT.value,facility.wall_htc.value,facility.wall_dT.value,facility.wall_htc.error ,facility.wall_dT.error );
         facility.wall_heatflow_dT.error=error_wall_heatflow(facility.wall_heatflow_dT.value,facility.wall_heatflux_dT.value,facility.wall_heatflux_dT.error );
-        facility.wall_heatflux_powerbased.error=steam.power.error/(pi*0.02*1.3);
-        %         facility.voltage.error=1;
+%         facility.voltage.error=1;
         facility.current.error=1;
         facility.NCtank_press.error=error_press(facility.NCtank_press.value);
         facility.NCtank_temp.error=error_PT100;
@@ -1238,11 +1222,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             [GHFS.GHFS2_raw.error,~]=error_DAS_m9215(GHFS.GHFS2_raw.value);
             [GHFS.GHFS3_raw.error,~]=error_DAS_m9215(GHFS.GHFS3_raw.value);
             [GHFS.GHFS4_raw.error,~]=error_DAS_m9215(GHFS.GHFS4_raw.value);
-            
-            GHFS.GHFS1_offset_raw.error=GHFS.GHFS1_raw.error;
-            GHFS.GHFS2_offset_raw.error=GHFS.GHFS2_raw.error;
-            GHFS.GHFS3_offset_raw.error=GHFS.GHFS3_raw.error;
-            GHFS.GHFS4_offset_raw.error=GHFS.GHFS4_raw.error;
             
             GHFS.GHFS1_temp.error=0.05;
             GHFS.GHFS2_temp.error=0.05;
@@ -1263,11 +1242,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_heatflux_GHFS2.error=facility.wall_heatflux_dT.error;
             GHFS.wall_heatflux_GHFS3.error=facility.wall_heatflux_dT.error;
             GHFS.wall_heatflux_GHFS4.error=facility.wall_heatflux_dT.error;
-            
-            GHFS.total_HF_dT.error=0;  %XXXXXXXXXXXXXXXXXXX 
-            GHFS.total_HF_GHFS.error=0;  %XXXXXXXXXXXXXXXXXXX 
-            GHFS.total_mflux_dT.error=0;
-            GHFS.total_mflux_GHFS.error=0;
 
             % MP - errors
             MP.MP1.error=0.002*MP.MP1.value;
@@ -1332,7 +1306,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 NC.moles_total_est.value=NC.moles_total_est.value+(distributions.centerline_NC_moles_per_height.value.cal(mole_ctr+1)+distributions.centerline_NC_moles_per_height.value.cal(mole_ctr))*distance/2;  %sum all the calculated NC moles from temperatures
             end
         end
-     
         % estimate tube length occupied by NC mixture, based on initial conditions estimate of total NC moles
         NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_init.value,eos_type);      
         % and based on deduced amount of NC moles from temeprature measurements
@@ -1458,7 +1431,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.dT_losses.unit=[char(176),'C'];
         facility.wall_htc.unit='W/(m2*K)'; 
         facility.wall_heatflux_dT.unit='W/m2'; 
-        facility.wall_heatflux_powerbased.unit='W/m2'; 
         facility.wall_heatflow_dT.unit='W'; 
 %         facility.voltage.unit='V';
         facility.current.unit='A';
@@ -1486,11 +1458,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS3_raw.unit='V';
             GHFS.GHFS4_raw.unit='V';
             
-            GHFS.GHFS1_offset_raw.unit='V';
-            GHFS.GHFS2_offset_raw.unit='V';
-            GHFS.GHFS3_offset_raw.unit='V';
-            GHFS.GHFS4_offset_raw.unit='V';
-            
             GHFS.GHFS1_temp.unit=[char(176),'C'];
             GHFS.GHFS2_temp.unit=[char(176),'C'];
             GHFS.GHFS3_temp.unit=[char(176),'C'];
@@ -1510,11 +1477,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_heatflux_GHFS2.unit='W/m2';
             GHFS.wall_heatflux_GHFS3.unit='W/m2';
             GHFS.wall_heatflux_GHFS4.unit='W/m2';
-            
-            GHFS.total_HF_dT.unit='W';
-            GHFS.total_HF_GHFS.unit='W';
-            GHFS.total_mflux_dT.unit='kg/s';
-            GHFS.total_mflux_GHFS.unit='kg/s';
         
         % Movable probe units   
             MP.MP1.unit='V';

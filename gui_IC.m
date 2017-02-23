@@ -22,7 +22,7 @@ function varargout = gui_IC(varargin)
 
     % Edit the above text to modify the response to help gui_IC
 
-    % Last Modified by GUIDE v2.5 31-Oct-2016 16:13:28
+    % Last Modified by GUIDE v2.5 22-Feb-2017 14:17:42
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -1190,8 +1190,63 @@ function graphs_ClickedCallback(hObject, eventdata, handles)
     gui_save_IC(file_proper_name,PA9601,PA9701,TF9602,TF9701,handles.filepath)
     
 %     hFig=figure('Name',['Initial condition graphs for file:  ', file],'NumberTitle','off');
+   
+
+% --- Executes on button press in GHFSoffset_pushbutton.
+function GHFSoffset_pushbutton_Callback(hObject, eventdata, handles)
+
+    %get all files
+    file_list=get(handles.file_popupmenu,'String');
+    file_amount=numel(file_list);
+
+    %calculate offsets
+    file_cntr=1;
+    for n=1:file_amount
+        if isfield(handles.data.(file_list{n}),'fast_IC')      
+            GHFS1_offset(file_cntr)=mean(handles.data.(file_list{n}).fast_IC.GHFS1);       
+            GHFS2_offset(file_cntr)=mean(handles.data.(file_list{n}).fast_IC.GHFS2);
+            GHFS3_offset(file_cntr)=mean(handles.data.(file_list{n}).fast_IC.GHFS3);
+            GHFS4_offset(file_cntr)=mean(handles.data.(file_list{n}).fast_IC.GHFS4);
+
+            GHFS1_var(file_cntr)=var(handles.data.(file_list{n}).fast_IC.GHFS1);
+            GHFS2_var(file_cntr)=var(handles.data.(file_list{n}).fast_IC.GHFS2);
+            GHFS3_var(file_cntr)=var(handles.data.(file_list{n}).fast_IC.GHFS3);
+            GHFS4_var(file_cntr)=var(handles.data.(file_list{n}).fast_IC.GHFS4); 
+            
+            file_cntr=file_cntr+1;
+        end
+    end
+    
+    %add mode
+    GHFS1_offset(end+1)=mode(GHFS1_offset);
+    GHFS2_offset(end+1)=mode(GHFS2_offset);
+    GHFS3_offset(end+1)=mode(GHFS3_offset);
+    GHFS4_offset(end+1)=mode(GHFS4_offset);
+    
+    GHFS1_var(end+1)=mode(GHFS1_var);
+    GHFS2_var(end+1)=mode(GHFS2_var);
+    GHFS3_var(end+1)=mode(GHFS3_var);
+    GHFS4_var(end+1)=mode(GHFS4_var);
     
     
+    %store data for table
+    data4table=[GHFS1_offset',GHFS2_offset',GHFS3_offset',GHFS4_offset',GHFS1_var',GHFS2_var',GHFS3_var',GHFS4_var'];
+    %create and populate the table
+    tableFig=figure;
+    tableFig.Position=[360 502 960 420];
+    tableTab=uitable;
+    tableTab.Position=[0 0 960 400];
+    tableTab.Data=data4table;
     
-    
-    
+    %fix column naming
+    tableTab.ColumnName={'GHFS1_offset','GHFS2_offset','GHFS3_offset','GHFS4_offset'};
+    tableTab.RowName=file_list;
+
+%     figure
+%     plot(GHFS1_var,GHFS1_offset,'.')
+%     figure
+%     plot(GHFS2_var,GHFS2_offset,'.')
+%     figure
+%     plot(GHFS3_var,GHFS3_offset,'.')
+%     figure
+%     plot(GHFS4_var,GHFS4_offset,'.')

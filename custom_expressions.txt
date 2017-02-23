@@ -1,4 +1,11 @@
-(NC.length_init.value-NC.length_est.value)/NC.length_init.value (handles.NC(x).length_init.value-handles.NC(x).length_est.value)/handles.NC(x).length_init.value 
 NC.length_init.value-NC.length_est.value handles.NC(x).length_init.value-handles.NC(x).length_est.value 
 coolant.temp_outlet_TC.value-coolant.temp_inlet.value handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value 
 (coolant.temp_outlet_TC.value-coolant.temp_inlet.value)*coolant.mflow.value/3600*coolant.spec_heat.value (handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value)*handles.coolant(x).mflow.value/3600*handles.coolant(x).spec_heat.value 
+abs(GHFS.GHFS1_offset_raw.value)/GHFS.wall_heatflux_GHFS1.value abs(handles.GHFS(x).GHFS1_offset_raw.value)/handles.GHFS(x).wall_heatflux_GHFS1.value 
+abs(GHFS.GHFS2_offset_raw.value)/GHFS.wall_heatflux_GHFS2.value abs(handles.GHFS(x).GHFS2_offset_raw.value)/handles.GHFS(x).wall_heatflux_GHFS2.value 
+abs(GHFS.GHFS3_offset_raw.value)/GHFS.wall_heatflux_GHFS3.value abs(handles.GHFS(x).GHFS3_offset_raw.value)/handles.GHFS(x).wall_heatflux_GHFS3.value 
+abs(GHFS.GHFS4_offset_raw.value)/GHFS.wall_heatflux_GHFS4.value abs(handles.GHFS(x).GHFS4_offset_raw.value)/handles.GHFS(x).wall_heatflux_GHFS4.value 
+GHFS.GHFS1.value/GHFS.wall_heatflux_GHFS1.value handles.GHFS(x).GHFS1.value/handles.GHFS(x).wall_heatflux_GHFS1.value 
+GHFS.GHFS2.value/GHFS.wall_heatflux_GHFS2.value handles.GHFS(x).GHFS2.value/handles.GHFS(x).wall_heatflux_GHFS2.value 
+GHFS.GHFS3.value/GHFS.wall_heatflux_GHFS3.value handles.GHFS(x).GHFS3.value/handles.GHFS(x).wall_heatflux_GHFS3.value 
+GHFS.GHFS4.value/GHFS.wall_heatflux_GHFS4.value handles.GHFS(x).GHFS4.value/handles.GHFS(x).wall_heatflux_GHFS4.value 

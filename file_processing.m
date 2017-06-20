@@ -1152,8 +1152,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             % total heat transmitted through wall based on GHFS and dT
             GHFS.total_HF_dT.value=wall_heatflow([GHFS.wall_heatflux_GHFS1.value,GHFS.wall_heatflux_GHFS2.value,GHFS.wall_heatflux_GHFS3.value,GHFS.wall_heatflux_GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
             GHFS.total_HF_GHFS.value=wall_heatflow([GHFS.GHFS1.value,GHFS.GHFS2.value,GHFS.GHFS3.value,GHFS.GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
-            GHFS.total_mflux_dT.value=GHFS.total_HF_dT.value/steam.evap_heat.value;
-            GHFS.total_mflux_GHFS.value=GHFS.total_HF_GHFS.value/steam.evap_heat.value;
+            GHFS.total_mflow_dT.value=GHFS.total_HF_dT.value/steam.evap_heat.value;
+            GHFS.total_mflow_GHFS.value=GHFS.total_HF_GHFS.value/steam.evap_heat.value;
         end
         
         %% DEFINE ERRORS ==============================================================================================================
@@ -1266,8 +1266,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             GHFS.total_HF_dT.error=0;  %XXXXXXXXXXXXXXXXXXX 
             GHFS.total_HF_GHFS.error=0;  %XXXXXXXXXXXXXXXXXXX 
-            GHFS.total_mflux_dT.error=0;
-            GHFS.total_mflux_GHFS.error=0;
+            GHFS.total_mflow_dT.error=0;
+            GHFS.total_mflow_GHFS.error=0;
 
             % MP - errors
             MP.MP1.error=0.002*MP.MP1.value;
@@ -1513,8 +1513,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             GHFS.total_HF_dT.unit='W';
             GHFS.total_HF_GHFS.unit='W';
-            GHFS.total_mflux_dT.unit='kg/s';
-            GHFS.total_mflux_GHFS.unit='kg/s';
+            GHFS.total_mflow_dT.unit='kg/s';
+            GHFS.total_mflow_GHFS.unit='kg/s';
         
         % Movable probe units   
             MP.MP1.unit='V';

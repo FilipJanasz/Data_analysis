@@ -303,34 +303,14 @@ function load_RELAP_dat_Callback(hObject, eventdata, handles)
     RELAP_dat=load_relap(handles);
     handles.RELAP=RELAP_dat;
     assignin('base','RELAP',handles.RELAP)
-    
-    vars=handles.popupmenu_x_axis.String;
-    
-    if isempty(find(strcmp(vars,'RELAP'), 1))
-        vars{end+1}='RELAP';        
+    if isempty(strcmp(handles.popupmenu_x_axis,'RELAP'))
+        handles.popupmenu_x_axis=[handles.popupmenu_x_axis,'RELAP'];
+        handles.popupmenu_y_axis=[handles.popupmenu_y_axis,'RELAP'];
     end
     
-    handles.popupmenu_x_axis.String=vars;
-    handles.popupmenu_y_axis.String=vars;
-
-    %two lines below reset popupmenu values to first object on the list
-    handles.popupmenu_x_axis.Value=1;
-    handles.popupmenu_y_axis.Value=1;
-    handles.popupmenu_x_axis_var.Value=1;
-    handles.popupmenu_y_axis_var.Value=1;
-
     %update variables popupmenus
     handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));    %the () around vars{1} allows for dynamic field name usage
     handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
-    
-    %update data selector listbox
-    file_list={handles.file(1:end).name};
-    handles.plot_exclude.String=file_list;
-    mark_file=1:1:numel(file_list);
-    handles.plot_exclude.Value=mark_file;
-    
-    %update handles structure
-    guidata(hObject, handles)
 
 % --------------------------------------------------------------------
 function plot_button_Callback(hObject, eventdata, handles)
@@ -1231,8 +1211,7 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %code below extracts elements from the main struct array that have the
     %field "vars" storing time dependant experimental data and forwards it
     %to another GUI
-    
-    vars={'steam','coolant','facility','GHFS','MP','RELAP'};
+    vars={'steam','coolant','facility','GHFS','MP'};
 
     for k=1:numel(vars)
     field_names=fields(handles.(vars{k}));

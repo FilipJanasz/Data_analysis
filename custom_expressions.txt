@@ -9,3 +9,4 @@ GHFS.GHFS1.value/GHFS.wall_heatflux_GHFS1.value handles.GHFS(x).GHFS1.value/hand
 GHFS.GHFS2.value/GHFS.wall_heatflux_GHFS2.value handles.GHFS(x).GHFS2.value/handles.GHFS(x).wall_heatflux_GHFS2.value 
 GHFS.GHFS3.value/GHFS.wall_heatflux_GHFS3.value handles.GHFS(x).GHFS3.value/handles.GHFS(x).wall_heatflux_GHFS3.value 
 GHFS.GHFS4.value/GHFS.wall_heatflux_GHFS4.value handles.GHFS(x).GHFS4.value/handles.GHFS(x).wall_heatflux_GHFS4.value 
+NC.N2_molefraction_init.value+NC.He_molefraction_init.value handles.NC(x).N2_molefraction_init.value+handles.NC(x).He_molefraction_init.value 

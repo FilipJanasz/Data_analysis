@@ -1,4 +1,3 @@
-NC.length_init.value-NC.length_est.value handles.NC(x).length_init.value-handles.NC(x).length_est.value 
 coolant.temp_outlet_TC.value-coolant.temp_inlet.value handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value 
 (coolant.temp_outlet_TC.value-coolant.temp_inlet.value)*coolant.mflow.value/3600*coolant.spec_heat.value (handles.coolant(x).temp_outlet_TC.value-handles.coolant(x).temp_inlet.value)*handles.coolant(x).mflow.value/3600*handles.coolant(x).spec_heat.value 
 abs(GHFS.GHFS1_offset_raw.value)/GHFS.wall_heatflux_GHFS1.value abs(handles.GHFS(x).GHFS1_offset_raw.value)/handles.GHFS(x).wall_heatflux_GHFS1.value 
@@ -10,3 +9,7 @@ GHFS.GHFS2.value/GHFS.wall_heatflux_GHFS2.value handles.GHFS(x).GHFS2.value/hand
 GHFS.GHFS3.value/GHFS.wall_heatflux_GHFS3.value handles.GHFS(x).GHFS3.value/handles.GHFS(x).wall_heatflux_GHFS3.value 
 GHFS.GHFS4.value/GHFS.wall_heatflux_GHFS4.value handles.GHFS(x).GHFS4.value/handles.GHFS(x).wall_heatflux_GHFS4.value 
 NC.N2_molefraction_init.value+NC.He_molefraction_init.value handles.NC(x).N2_molefraction_init.value+handles.NC(x).He_molefraction_init.value 
+-coolant.temp_inlet.value+steam.TF9603.value -handles.coolant(x).temp_inlet.value+handles.steam(x).TF9603.value 
+NC.length_init.value/NC.length_est.value handles.NC(x).length_init.value/handles.NC(x).length_est.value 
+NC.moles_total_est.value/NC.moles_total_init.value handles.NC(x).moles_total_est.value/handles.NC(x).moles_total_init.value 
+NC.moles_total_init.value-NC.moles_total_est.value handles.NC(x).moles_total_init.value-handles.NC(x).moles_total_est.value 

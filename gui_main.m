@@ -79,7 +79,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             disp('Processing of all files completed')
             msgbox('Processing of all files completed')
     catch ME
-        close(h) 
+%         close(h) 
         msgbox('File processing error, check matlab command window for details')
         rethrow(ME)
     end

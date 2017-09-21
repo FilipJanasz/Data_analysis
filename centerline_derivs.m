@@ -35,11 +35,11 @@ function mix_zone=centerline_derivs(temp_distribution)
         mix_zone.length_error=NaN;
     end
     
-    distr_vars=zeros(1,distr_size);
-    
-    for n=1:distr_size
-        distr_vars(n)=var(temp_distribution.var(:,n));
-    end
+%     distr_vars=zeros(1,distr_size);
+%     
+%     for n=1:distr_size
+%         distr_vars(n)=var(temp_distribution.var(:,n));
+%     end
     
 %     distr_vars_norm=(distr_vars-min(distr_vars))/max(distr_vars-min(distr_vars));
 %     try

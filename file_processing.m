@@ -1313,9 +1313,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %  values and errors
         
         % values
-        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_N2_htank.error,NC.moles_He_htank.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
+        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_h2o_test.value,NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_N2_test.error,NC.moles_He_test.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
         NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
-        NC.moles_total_init.value=NC.moles_N2_htank.value+NC.moles_He_htank.value;
+        NC.moles_total_init.value=NC.moles_N2_test.value+NC.moles_He_test.value;
         
         % estimate tube length occupied by NC mixture, based on NC moles estimate calculated with recorded temperature
         %initialize
@@ -1323,7 +1323,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         if centerline_flag~=0
             for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
-                distributions.centerline_NC_moles_per_height.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_init.value,eos_type);  
+                distributions.centerline_NC_moles_per_height.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);  
             end
             
             for mole_ctr=1:numel(distributions.centerline_temp.value.cal)-1
@@ -1332,17 +1332,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 NC.moles_total_est.value=NC.moles_total_est.value+(distributions.centerline_NC_moles_per_height.value.cal(mole_ctr+1)+distributions.centerline_NC_moles_per_height.value.cal(mole_ctr))*distance/2;  %sum all the calculated NC moles from temperatures
             end
         end
-     
+        
+        %get NC mole fraction based on mole amount based on estimation
+        NC.NC_molefraction_est.value=NC.moles_total_est.value/(NC.moles_total_init.value+NC.moles_h2o_test.value);
+        NC.NC_molefraction_est.error=1;  % &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         % estimate tube length occupied by NC mixture, based on initial conditions estimate of total NC moles
-        NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_init.value,eos_type);      
+        NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);      
         % and based on deduced amount of NC moles from temeprature measurements
-        NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_htank.value,NC.moles_He_htank.value,NC.moles_total_est.value,eos_type);      
+        NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_est.value,eos_type);      
         
         %errors
         NC.N2_molefraction_init.error=NC.N2_molefraction.error;
         NC.He_molefraction_init.error=NC.He_molefraction.error;
         NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
-        NC.moles_total_init.error=NC.moles_N2_htank.error+NC.moles_He_htank.error;
+        NC.moles_total_init.error=NC.moles_N2_test.error+NC.moles_He_test.error;
         NC.moles_total_est.error=1; %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         try   %try because in old recordings there is no TF9603
             NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
@@ -1365,7 +1368,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.NC_length_init.value.cal=[0,0,1,1];
         distributions.NC_length_est.value.cal=[0,0,1,1];
                
-        
+        % compare assumed values and actual values of NC moles in the
+        % facility
+        file.NCratio=NC.moles_total_est.value/NC.moles_total_init.value; %this value is used to figure out if the recording has any value at all
         
         %% Boundary conditions ==============================================================================================================
         %  values and errors
@@ -1472,8 +1477,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.NC_molefraction.unit='1';
         NC.N2_molefraction_init.unit='1';
         NC.He_molefraction_init.unit='1';
-        NC.moles_N2_htank.unit='mol';
-        NC.moles_He_htank.unit='mol';
+        NC.NC_molefraction_est.unit='1';
+        %AAAAAAAAAAAAAAAAAAAAAAAAAAa
+        NC.moles_h2o_test.error=1;  % XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        NC.moles_h2o_test.unit='mol';
+        NC.moles_N2_test.unit='mol';
+        NC.moles_He_test.unit='mol';
         NC.moles_total_init.unit='mol';
         NC.moles_total_est.unit='mol';
         NC.length_init.unit='1';
@@ -1628,7 +1637,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             RELAP{2,1}='NC';
             RELAP{3,1}='Helium';
             RELAP{4,1}='Pss';
-            RELAP{5,1}='Superheat';
+            RELAP{5,1}='Tss';
             RELAP{6,1}='Mflowss';
             RELAP{7,1}='Power';
             RELAP{1,2}=steam.press_init.value;

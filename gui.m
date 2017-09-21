@@ -1231,18 +1231,35 @@ function toolbar_time_dep_ClickedCallback(hObject, eventdata, handles)
     %code below extracts elements from the main struct array that have the
     %field "vars" storing time dependant experimental data and forwards it
     %to another GUI
-    
-    vars={'steam','coolant','facility','GHFS','MP','RELAP'};
+    try
+        vars={'steam','coolant','facility','GHFS','MP','RELAP'};
 
-    for k=1:numel(vars)
-    field_names=fields(handles.(vars{k}));
-        for i=1:numel(field_names)
-            for j=1:numel(handles.(vars{k}))
-                if isfield(handles.(vars{k})(j).(field_names{i}),'var')
-                    time_dep_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
-                    time_dep_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
-                    time_dep_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
-                end        
+        for k=1:numel(vars)
+        field_names=fields(handles.(vars{k}));
+            for i=1:numel(field_names)
+                for j=1:numel(handles.(vars{k}))
+                    if isfield(handles.(vars{k})(j).(field_names{i}),'var')
+                        time_dep_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
+                        time_dep_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
+                        time_dep_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+                    end        
+                end
+            end
+        end
+        
+    catch  % disgusting way around
+        vars={'steam','coolant','facility','GHFS','MP'};
+
+        for k=1:numel(vars)
+        field_names=fields(handles.(vars{k}));
+            for i=1:numel(field_names)
+                for j=1:numel(handles.(vars{k}))
+                    if isfield(handles.(vars{k})(j).(field_names{i}),'var')
+                        time_dep_var.(vars{k})(j).(field_names{i}).var=handles.(vars{k})(j).(field_names{i}).var;
+                        time_dep_var.(vars{k})(j).(field_names{i}).unit=handles.(vars{k})(j).(field_names{i}).unit;
+                        time_dep_var.(vars{k})(j).(field_names{i}).error=handles.(vars{k})(j).(field_names{i}).error;
+                    end        
+                end
             end
         end
     end
@@ -1362,29 +1379,33 @@ function toolbar_init_estimator_ClickedCallback(hObject, eventdata, handles)
 function table_pushbutton_Callback(hObject, eventdata, handles)
     %prepare data for tbale display
     data4table=0;
-    for tabCounter=1:numel(handles.x_dat)
-        if data4table==0
-            data4table=[handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
-        else
-            data4table=[data4table,handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
+    try
+        for tabCounter=1:numel(handles.x_dat)
+            if data4table==0
+                data4table=[handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
+            else
+                data4table=[data4table,handles.x_dat{tabCounter}',handles.y_dat{tabCounter}'];
+            end
         end
+
+        %create and populate the table
+        tableFig=figure;
+        tableTab=uitable;
+        tableTab.Position=[0 0 560 400];
+        tableTab.Data=data4table;
+
+        %fix column naming
+        for nameCntr=1:numel(handles.graph_name)
+            nameTemp=cell2mat(handles.graph_name(nameCntr));
+            spacePos=strfind(nameTemp,' ');
+            name4table_x{nameCntr}=['<HTML>X_dat ',num2str(nameCntr),'<br />',nameTemp(1:spacePos(1)-1),'<HTML/>'];
+            name4table_y{nameCntr}=['<HTML>Y_dat ',num2str(nameCntr),'<br />',nameTemp(spacePos(1)+1:end),'<HTML/>'];
+        end
+
+        tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));
+    catch
+        msgbox('No data to be displayed - chose and plot data first')
     end
-    
-    %create and populate the table
-    tableFig=figure;
-    tableTab=uitable;
-    tableTab.Position=[0 0 560 400];
-    tableTab.Data=data4table;
-    
-    %fix column naming
-    for nameCntr=1:numel(handles.graph_name)
-        nameTemp=cell2mat(handles.graph_name(nameCntr));
-        spacePos=strfind(nameTemp,' ');
-        name4table_x{nameCntr}=['<HTML>X_dat ',num2str(nameCntr),'<br />',nameTemp(1:spacePos(1)-1),'<HTML/>'];
-        name4table_y{nameCntr}=['<HTML>Y_dat ',num2str(nameCntr),'<br />',nameTemp(spacePos(1)+1:end),'<HTML/>'];
-    end
-    
-    tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));
   
 % --- Executes on button press in AdvPlot_pushbutton.
 function AdvPlot_pushbutton_Callback(hObject, eventdata, handles)
@@ -1418,3 +1439,36 @@ function MenuDataProcessing_Callback(hObject, eventdata, handles)
 
 
 
+% --- Executes on button press in filterPushbutton.
+function filterPushbutton_Callback(hObject, eventdata, handles)
+    
+    dir={handles.file.directory};
+    dir=unique(dir,'stable');
+    filterMask=[];
+    for dirCntr=1:numel(dir)
+        fid=fopen([dir{dirCntr},'\filterMask.txt'], 'r' );
+        fgetl(fid);
+        fgetl(fid);
+        fgetl(fid);
+%         clr{2}=logical(fgetl(fid)'-'0');
+%         clr{3}=logical(fgetl(fid)'-'0');
+        filterMask=[filterMask;logical(fgetl(fid)'-'0')];
+        fclose(fid);
+    end
+    
+    
+    handles.plot_exclude.Value=find(filterMask);
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+% --- Executes on button press in editfilterPushbutton.
+function editfilterPushbutton_Callback(hObject, eventdata, handles)
+
+    gui_fileFilter(handles)
+
+
+% --- Executes on button press in selectallPushbutton.
+function selectallPushbutton_Callback(hObject, eventdata, handles)
+    allFiles=numel(handles.plot_exclude.String);
+    handles.plot_exclude.Value=1:1:allFiles;

@@ -72,8 +72,22 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
         handles.custom(expressionCntr).name=name{expressionCntr};
         handles.custom(expressionCntr).expression=expression{expressionCntr};
     end
+    
+    %set post callback function to zoom utility
+    set(zoom,'ActionPostCallback',@(x,y) adjustLimits(handles));
+    set(pan,'ActionPostCallback',@(x,y) adjustLimits(handles));
+
     % Update handles structure
     guidata(hObject, handles);
+
+function adjustLimits(handles)
+    x=round(xlim(handles.var_axes),1);
+    y=round(ylim(handles.var_axes),2);
+
+    handles.xmin_edit.String=num2str(x(1));
+    handles.xmax_edit.String=num2str(x(2));
+    handles.ymin_edit.String=num2str(y(1));
+    handles.ymax_edit.String=num2str(y(2));
 % profile viewer
     % UIWAIT makes gui wait for user response (see UIRESUME)
     % uiwait(handles.main_gui);
@@ -638,6 +652,8 @@ function plot_button_Callback(hObject, eventdata, handles)
 %         handles.plotcounter=handles.plotcounter+2;
 %     end
         
+    %adjustLimits
+    adjustLimits(handles)
     
     guidata(hObject, handles)
 %  profile viewer

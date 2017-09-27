@@ -79,23 +79,13 @@ function gui_timedependant_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.property_popupmenu,'String',fieldnames(handles.data.(vars{1})))
     
     %set post callback function to zoom utility
-    set(zoom,'ActionPostCallback',@(x,y) adjustLimits(handles));
-    set(pan,'ActionPostCallback',@(x,y) adjustLimits(handles));
+    set(zoom(handles.var_axes),'ActionPostCallback',@(x,y) adjustLimits(handles.var_axes));
 
     % Update handles structure
     guidata(hObject, handles);
 
-function adjustLimits(handles)
-    x=round(xlim(handles.var_axes),1);
-    y=round(ylim(handles.var_axes),2);
-
-    handles.xmin_edit.String=num2str(x(1));
-    handles.xmax_edit.String=num2str(x(2));
-    handles.ymin_edit.String=num2str(y(1));
-    handles.ymax_edit.String=num2str(y(2));
-  
-   
-
+ 
+    
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_timedependant_OutputFcn(hObject, eventdata, handles) 
     varargout{1} = handles.output;
@@ -446,10 +436,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     set(handles.aq_freq,'String',num2str(sample_rate));
     set(handles.points_no,'String',num2str(y_amount));
     set(handles.data_name,'String',handles.graph_name{handles.plotcounter});
-    
-    %adjustLimits
-    adjustLimits(handles)
-        
+
     %send updated handles back up
     guidata(hObject, handles);
 
@@ -648,43 +635,20 @@ function FFT_Callback(hObject, eventdata, handles)
     end
     
     current_graph=get(handles.graph_list,'Value');
-    y_dat=handles.y_dat{current_graph};
-    x_dat=handles.x_dat{current_graph};
-    sample_rate=handles.sample_rate{current_graph};
+    y=handles.y_dat{current_graph};
+    x=handles.x_dat{current_graph};
 
-    %adjust data to only visible window if desired
-    if handles.useVisibleCheckbox.Value
-        x=xlim;
-        x=round(x);
-        if x(1)==0
-            xmin=1;
-        else
-            xmin=x(1)*sample_rate;
-        end
-        
-        if x(2)*sample_rate>numel(x_dat)
-            xmax=numel(x_dat);
-        else
-             xmax=x(2)*sample_rate;
-        end
-
-        x_dat=x_dat(xmin:xmax);
-        
-        y_dat=y_dat(xmin:xmax);
-        
-    end   
-
-    T = x_dat(2)-x_dat(1);      % Sampling period
+    T = x(2)-x(1);      % Sampling period
     Fs = 1/T;           % Sampling frequency
 
-    L = numel(y_dat);       % Length of signal
+    L = numel(y);       % Length of signal
     % t = x;              % Time vector
 
-    Y=fft(y_dat);           % calculates fft
+    Y=fft(y);           % calculates fft
     P2 = abs(Y/L);
-    P1 = P2(1:round(L/2)+1);
+    P1 = P2(1:L/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
-    f = Fs*(0:(round(L/2)))/L;
+    f = Fs*(0:(L/2))/L;
 
     % remove spike at 0
     P1(1)=0;
@@ -1020,7 +984,7 @@ function cross_cor_btn_Callback(hObject, eventdata, handles)
     %adjust data to only visible window if desired
     if handles.useVisibleCheckbox.Value
         x=xlim;
-        x=round(x);
+        
         if x(1)==0
             xmin=1;
         else
@@ -1233,6 +1197,7 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
+end
 
 % --- Executes on button press in useVisibleCheckbox.
 function useVisibleCheckbox_Callback(hObject, eventdata, handles)
@@ -1242,4 +1207,4 @@ function useVisibleCheckbox_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of useVisibleCheckbox
 
-
+end

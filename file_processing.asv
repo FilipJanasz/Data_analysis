@@ -759,13 +759,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                         pos_std=std(MP_temp_sorted(1:interval(end)));
                         %average voltage signal for all 4 electrodes
                         pos_MP1=mean(MP1resamplSorted(1:interval(end)));
-                        pos_MP1_std=std(MP1resamplSorted(1:interval(end)));
+                        pos_MP1_std=std(pos_MP1);
                         pos_MP2=mean(MP2resamplSorted(1:interval(end)));
-                        pos_MP2_std=std(MP2resamplSorted(1:interval(end)));
+                        pos_MP2_std=std(pos_MP2);
                         pos_MP3=mean(MP3resamplSorted(1:interval(end)));
-                        pos_MP3_std=std(MP3resamplSorted(1:interval(end)));
+                        pos_MP3_std=std(pos_MP3);
                         pos_MP4=mean(MP4resamplSorted(1:interval(end)));
-                        pos_MP4_std=std(MP4resamplSorted(1:interval(end)));
+                        pos_MP4_std=std(pos_MP4);
                         
                         %store all for the glorious future
                         MP_Temp_averaged.(directions{ctr})(n,:)=[processed_pos pos_temp pos_temp_smooth pos_std pos_MP1 pos_MP2 pos_MP3 pos_MP4 pos_MP1_std pos_MP2_std pos_MP3_std pos_MP4_std];
@@ -890,10 +890,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             if backward_flag
                 distributions.MP_backward_temp.var=MP_Temp_averaged.backward(:,2);               
                 distributions.MP_backward_temp_smooth.var=MP_Temp_averaged.backward(:,3);
-                distributions.MP_backward_MP1.var=MP_Temp_averaged.backward(:,5);
-                distributions.MP_backward_MP2.var=MP_Temp_averaged.backward(:,6);
-                distributions.MP_backward_MP3.var=MP_Temp_averaged.backward(:,7);
-                distributions.MP_backward_MP4.var=MP_Temp_averaged.backward(:,8);
             end 
             short_flag=0;
         end

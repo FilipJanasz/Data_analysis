@@ -52,8 +52,21 @@ function gui_distributions_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.cal_popupmenu,'String',calibration_option)
     set(handles.cal_popupmenu,'Value',1);
 
+    %set post callback function to zoom utility
+    set(zoom,'ActionPostCallback',@(x,y) adjustLimits(handles));
+    set(pan,'ActionPostCallback',@(x,y) adjustLimits(handles));
+
     % Update handles structure
     guidata(hObject, handles);
+
+function adjustLimits(handles)
+    x=round(xlim(handles.var_axes),1);
+    y=round(ylim(handles.var_axes),2);
+
+    handles.xmin_edit.String=num2str(x(1));
+    handles.xmax_edit.String=num2str(x(2));
+    handles.ymin_edit.String=num2str(y(1));
+    handles.ymax_edit.String=num2str(y(2));
 
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_distributions_OutputFcn(hObject, eventdata, handles) 
@@ -61,6 +74,15 @@ varargout{1} = handles.output;
 
 % --- Executes on selection change in var_popupmenu.
 function var_popupmenu_Callback(hObject, eventdata, handles)
+    
+    if strfind(handles.var_popupmenu.String{handles.var_popupmenu.Value},'MP_')
+        handles.uipanel6.Visible='on';
+    else
+        handles.uipanel6.Visible='off';
+    end
+    
+    % Update handles structure
+    guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function var_popupmenu_CreateFcn(hObject, eventdata, handles)
@@ -390,6 +412,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     handles.value_dat{handles.plotcounter}=value_dat;
     handles.x_dat{handles.plotcounter}=x_dat;
   
+    %adjustLimits
+    adjustLimits(handles)
     
     %send updated handles back up
     guidata(hObject, handles);
@@ -488,7 +512,7 @@ function line_delete_Callback(hObject, eventdata, handles)
         del_choice=get(handles.graph_list,'Value');
 
         %delete
-        delete(handles.graph{del_choice})
+        delete(handles.graph{del_choice});
         handles.graph{del_choice}=[];
         handles.graph=handles.graph(~cellfun('isempty',handles.graph));
 
@@ -672,6 +696,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         handles.graph_list.String=handles.graph_name;  
         
         %Plotting processing graphs
+        handles.bl_graph.Value
         if handles.bl_graph.Value
             figure
             subplot(2,1,1)

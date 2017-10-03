@@ -681,14 +681,70 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
             
             %resample voltage signal to match temperature signal
-            MP1resampl=resample(MP.MP1.var,numel(MP.Temp.var),numel(MP.MP1.var));
-            MP2resampl=resample(MP.MP2.var,numel(MP.Temp.var),numel(MP.MP2.var));
-            MP3resampl=resample(MP.MP3.var,numel(MP.Temp.var),numel(MP.MP3.var));
-            MP4resampl=resample(MP.MP4.var,numel(MP.Temp.var),numel(MP.MP4.var));
+            % the p * q must be lower than 2^31, due to nature of resample,
+            % so check first
+            amntSlow=numel(MP.Temp.var);
+            amntMP(1)=numel(MP.MP1.var);
+            amntMP(2)=numel(MP.MP2.var);
+            amntMP(3)=numel(MP.MP3.var);
+            amntMP(4)=numel(MP.MP4.var);
+            MPnostring={'MP1','MP2','MP3','MP4'};
             
+            for rCntr=1:numel(amntMP)
+                try
+                    MPresampl{rCntr}=resample(MP.(MPnostring{rCntr}).var,amntSlow,amntMP(rCntr));
+                catch
+                    %probably fails because too many data points, try to do
+                    %in parts, number of parts depends on ratio to 2^31
+                    nParts=ceil(amntSlow*amntMP(rCntr)/2^31);
+                    
+                    %define span of each part
+                    sizeSlow=ceil(amntSlow/nParts);
+                    sizeMP=ceil(amntMP(rCntr)/nParts);
+                    
+                    %define begining records
+                    stRec=1;
+                    endRec=sizeMP;
+                    
+                    %define flags and counter
+                    empty=0;  %shows when all records were processed
+                    lastIter=0; %signidies last iteration
+                    pCntr=1;
+                    resampBin=[];
+%                     for pCntr=1:nParts
+                    while ~empty
+                        try   
+                            resampBin{pCntr}=resample(MP.(MPnostring{rCntr}).var(stRec:endRec),sizeSlow,sizeMP);
+                        catch
+                            disp('error')
+                        end
+                        %define new 
+                        stRec=endRec+1;
+                        endRec=stRec+sizeMP-1;
+                        
+                        if lastIter
+                            empty=1;
+                        end
+                        
+                        if endRec>=amntMP(rCntr)
+                            endRec=amntMP(rCntr);
+                            lastIter=1;                            
+                        end
+                        pCntr=pCntr+1;
+                    end
+                     resamplTemp=[];
+                     for cntr=1:numel(resampBin)
+                         resamplTemp=[resamplTemp,resampBin{cntr}'];
+                     end
+                     tooMuch=numel(resamplTemp)-amntSlow; %stupid stupid stupid XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                     resamplTemp=resamplTemp(1:end-tooMuch);                    
+                     MPresampl{rCntr}=resamplTemp';
+                end
+%                 [amntSlow, amntMP(resampCntr)]=varSizeCutter(amntSlow, amntMP(resampCntr));
+            end
             
             %combine all into one matrix for further processing
-            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MP1resampl MP2resampl MP3resampl MP4resampl MP_direction'];
+            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MPresampl{1} MPresampl{2} MPresampl{3} MPresampl{4} MP_direction'];
 
             %sort by movement direction and separate in two matrices
             MP_matrix=sortrows(MP_matrix,8);
@@ -782,6 +838,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     MP3resamplSorted(1:interval(end))=[];
                     MP4resamplSorted(1:interval(end))=[];
                 end
+
             end
         else
             disp('Warning, no movable probe position and temperature data available')
@@ -973,10 +1030,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP2.value.cal=MP_Temp_averaged.backward(:,6);
                 distributions.MP_backward_MP3.value.cal=MP_Temp_averaged.backward(:,7);
                 distributions.MP_backward_MP4.value.cal=MP_Temp_averaged.backward(:,8);
-                distributions.MP_backward_MP1.std=MP_Temp_averaged.forward(:,9);
-                distributions.MP_backward_MP2.std=MP_Temp_averaged.forward(:,10);
-                distributions.MP_backward_MP3.std=MP_Temp_averaged.forward(:,11);
-                distributions.MP_backward_MP4.std=MP_Temp_averaged.forward(:,12);
+                distributions.MP_backward_MP1.std=MP_Temp_averaged.backward(:,9);
+                distributions.MP_backward_MP2.std=MP_Temp_averaged.backward(:,10);
+                distributions.MP_backward_MP3.std=MP_Temp_averaged.backward(:,11);
+                distributions.MP_backward_MP4.std=MP_Temp_averaged.backward(:,12);
             end 
             short_flag=0;
         end

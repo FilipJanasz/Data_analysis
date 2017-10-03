@@ -22,7 +22,7 @@ function varargout = gui_timedependant(varargin)
 
     % Edit the above text to modify the response to help gui_timedependant
 
-    % Last Modified by GUIDE v2.5 27-Sep-2017 15:12:12
+    % Last Modified by GUIDE v2.5 03-Oct-2017 14:44:06
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -351,6 +351,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         % set the desired axes to plot and restore the axis to be visible
         yyaxis left
         handles.var_axes.YTickMode='auto';
+        handles.axischoice{handles.plotcounter}=1;
     else
         % if clause below clears y axis on the opposite axis if hold flag
         % is off
@@ -360,7 +361,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         end
         % set the desired axes to plot and restore the axis to be visible
         yyaxis right
-        handles.var_axes.YTickMode='auto'; 
+        handles.var_axes.YTickMode='auto';
+        handles.axischoice{handles.plotcounter}=2;
     end
     
     % plot with nice color and get user defined line style
@@ -522,7 +524,7 @@ function line_delete_Callback(hObject, eventdata, handles)
         del_choice=get(handles.graph_list,'Value');
 
         %delete
-        delete(handles.graph{del_choice})
+        delete(handles.graph{del_choice});
         handles.graph{del_choice}=[];
         handles.graph=handles.graph(~cellfun('isempty',handles.graph));
 
@@ -546,7 +548,10 @@ function line_delete_Callback(hObject, eventdata, handles)
 
         handles.graph_name{del_choice}=[]; %first set desired cell to empty
         handles.graph_name=handles.graph_name(~cellfun('isempty',handles.graph_name)); %remove empty cells
-
+        
+        handles.axischoice{del_choice}=[]; %first set desired cell to empty
+        handles.axischoice=handles.axischoice(~cellfun('isempty',handles.axischoice)); %remove empty cells
+        
         %redraw updated legend
         handles.legend=legend(handles.graph_name{1:end});
         set(handles.legend,'interpreter','none')
@@ -913,10 +918,32 @@ function smooth_enable_Callback(hObject, eventdata, handles)
 function graph_list_Callback(hObject, eventdata, handles)
 
     current_graph=get(handles.graph_list,'Value');
-    set(handles.aq_period,'String',num2str(handles.period{current_graph}));
-    set(handles.aq_freq,'String',num2str(handles.sample_rate{current_graph}));
-    set(handles.points_no,'String',num2str(handles.y_amount{current_graph}));
-    set(handles.data_name,'String',handles.graph_name{current_graph});
+    try
+        handles.aq_period.String=num2str(handles.period{current_graph});
+    catch
+        handles.aq_period.String='NA';
+    end
+    
+    try
+        handles.aq_freq.String=num2str(handles.sample_rate{current_graph});
+    catch
+        handles.aq_freq.String='NA';
+    end
+    
+    try
+        handles.points_no.String=num2str(handles.y_amount{current_graph});
+    catch
+        handles.points_no.String='NA';
+    end
+    
+    try
+        handles.data_name.String=handles.graph_name{current_graph};
+    catch
+        handles.data_name.String='NA';
+    end
+    
+    
+    
 
 % --- Executes during object creation, after setting all properties.
 function graph_list_CreateFcn(hObject, eventdata, handles)
@@ -1243,3 +1270,104 @@ function useVisibleCheckbox_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of useVisibleCheckbox
 
 
+
+
+% --- Executes on button press in CIApushbutton.
+function CIApushbutton_Callback(hObject, eventdata, handles)
+        %get user choice
+    graph_choice=handles.graph_list.Value;
+    graph=handles.graph_name{graph_choice};
+    yaxis=handles.axischoice{graph_choice};
+    
+    %set appropriate y axis
+    if yaxis==1
+        yyaxis left
+    elseif yaxis==2
+        yyaxis right
+    end
+    
+    %verify the choice
+%     if isempty(strfind(graph,'MP')) 
+%         errordlg('Boundary layer can only be estimated for data from movable probe - pick correct data')
+%     else         
+        %get user preference
+%         av_window=str2double(handles.av_window.String);
+%         lim_factor=str2double(handles.lim_factor.String);
+%         position_lim=str2double(handles.position_lim.String);
+        av_window=20;
+        lim_factor=2;
+        position_lim=-10;
+        handles.bl_graph.Value=0;
+        
+        %get data
+        y_dat=handles.y_dat{graph_choice};
+        x_dat=handles.x_dat{graph_choice};
+        
+        %check if user choice is appropriate
+        if av_window>numel(x_dat)
+            errordlg('Avg window is larger than the data set - may artificailly underpredict boundary layer thickness')
+        end
+        
+        %call function that does the magic (based on bits and pieces from steady_state.m)
+        [boundary_layer,calc_data_norm,calc_data_norm_lower,calc_data_norm_upper,x_dat,y_dat]=boundary_layer_calc(y_dat,x_dat,av_window,lim_factor,position_lim);
+       
+        %point to main axes
+        axes(handles.var_axes);
+        hold on
+%         hold_flag=get(handles.hold_checkbox, 'Value');
+%         if ~hold_flag
+%             hold off
+%         else
+%             hold on
+%         end
+        
+        %increase plot counter
+        handles.plotcounter=handles.plotcounter+1;
+        
+        %PLOTTING PLOTTING PLOTTING
+        %plot boundary layer on main graph
+        handles.graph{handles.plotcounter}=plot([boundary_layer boundary_layer], ylim,'g');
+        box off
+        
+        %update variables
+        handles.x_dat{handles.plotcounter}=[boundary_layer boundary_layer];
+        handles.value_dat{handles.plotcounter}=ylim;
+        handles.graph_name{handles.plotcounter}=[graph,' boundary_layer'];
+        handles.axischoice{handles.plotcounter}=yaxis;
+
+        %update legend
+        handles.legend=legend(handles.graph_name{1:end});
+        set(handles.legend,'interpreter','none')
+        legend_state=get(handles.legend_on,'Value');
+        if (legend_state && handles.plotcounter>0)
+            handles.legend.Visible='On';   
+        elseif handles.plotcounter>0
+            handles.legend.Visible='Off';
+        end
+
+        %update list of graphs
+        handles.graph_list.String=handles.graph_name;  
+        
+        %Plotting processing graphs
+        if handles.bl_graph.Value
+            figure
+            subplot(2,1,1)
+            hold on
+            plot(x_dat,y_dat,'.')
+            plot([boundary_layer boundary_layer], ylim,'g')
+            
+            subplot(2,1,2)
+            hold on
+            plot(x_dat,calc_data_norm,'.')
+            plot([boundary_layer boundary_layer], ylim*0.991,'g')
+            plot(xlim,[calc_data_norm_lower calc_data_norm_lower],'--k')
+            plot(xlim,[calc_data_norm_upper calc_data_norm_upper],'--k')
+            plot(xlim,[median(calc_data_norm) median(calc_data_norm)],'m') 
+        end
+        
+        %update gui
+        handles.bl_calc.String=num2str(boundary_layer);        
+        %forward changes
+        guidata(hObject, handles);
+%     end
+    guidata(hObject, handles);

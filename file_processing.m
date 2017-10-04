@@ -692,7 +692,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             for rCntr=1:numel(amntMP)
                 try
-                    MPresampl{rCntr}=resample(MP.(MPnostring{rCntr}).var,amntSlow,amntMP(rCntr));
+                    MPresampl{rCntr}=resample(MP.(MPnostring{rCntr}).var,amntSlow,amntMP(rCntr));            
                 catch
                     %probably fails because too many data points, try to do
                     %in parts, number of parts depends on ratio to 2^31
@@ -1716,7 +1716,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.MP_forward_MP4.unit=[char(176),'V'];
         distributions.MP_backward_MP4.unit=[char(176),'V'];
 
-%% calculate standard deviations for steam cooland facility
+%% calculate standard deviations
         disp('6. Calculating standard deviations')
         paramList={'steam','coolant','facility','GHFS','MP'};
         
@@ -1741,6 +1741,120 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         try
             distributions.centerline_temp.std=[steam.TF9603.std,steam.TF9604.std,steam.TF9605.std,steam.TF9606.std,steam.TF9607.std,steam.TF9608.std,steam.TF9609.std,steam.TF9610.std,steam.TF9611.std,steam.TF9612.std,steam.TF9613.std,steam.TF9614.std];
         catch
+        end
+      
+%% Analyze dynamic behaviour of NC mixing front only in continous injection tests
+
+        if ~st_state_flag
+            %calculate the onset of mixing front passage for every sensor
+            av_window=1;
+            hold on
+            lim_factor=2;
+
+            sensorList={'TF9603','TF9604','TF9605','TF9606','TF9608','TF9610','TF9611','TF9612','TF9613'}; %,'TF9614'};
+            sensorPos=[220,320,420,520,670,820,920,1020,1120];%,1220];
+            sensorDist=diff(sensorPos);
+            h=figure;
+            
+            for sensCntr=1:numel(sensorList)
+
+                currSens=sensorList{sensCntr};
+                currYData=steam.(currSens).var(400:end);
+                smoothYData=smooth(currYData,10);
+
+                yAmount=numel(currYData);
+                % This part, based on variable name, assign appropriate period
+                % (GHFS1, GHFS2, GHFS3, GHFS4, MP1, MP2, MP3, MP4 - fast period)
+                % rest slow, but not MP_Pos, MP_Temp, GHFS1_temp etc
+                if contains(currSens,'GHFS')
+                    period=timing.fast;
+                else
+                    period=timing.slow;
+                end
+
+                currXData=period:period:yAmount*period;
+
+                %call function that does the magic (based on bits and pieces from steady_state.m)
+                [frontArrivalMiddle(sensCntr),frontArrivalDev(sensCntr),frontArrivalStart(sensCntr),frontArrivalEnd(sensCntr),frontDataTime{sensCntr}]=mixingFrontDynamics(smoothYData,currXData,av_window,lim_factor);
+                figure(h)
+                hold on
+                plot(frontDataTime{sensCntr})                 
+            end
+            title([file_list,' NC Front in time'])
+            ylabel('Temp')
+            xlabel('Time [s]')
+            legend(sensorList)
+%                 figure
+%                 plot(difference(avCntr,:)) 
+%                 avLeg{avCntr}=num2str(av_window(avCntr));
+            %calculate time it takes for the front to travel from one
+            %sensor to another
+            frontArrivalMidDiff=-diff(frontArrivalMiddle);
+            frontArrivalDevDiff=-diff(frontArrivalDev);
+            frontArrivalStartDiff=-diff(frontArrivalStart);
+            frontArrivalEndDiff=-diff(frontArrivalEnd);
+            %fix zeros
+            frontArrivalMidDiff(frontArrivalMidDiff==0)=1;
+            frontArrivalDevDiff(frontArrivalDevDiff==0)=1;
+            frontArrivalStartDiff(frontArrivalStartDiff==0)=1;
+            frontArrivalEndDiff(frontArrivalEndDiff==0)=1;
+            %based on the time and distnace between sensors estimate
+            %velocity
+            frontVelMid=sensorDist./frontArrivalMidDiff;
+            frontVelDev=sensorDist./frontArrivalDevDiff;
+            frontVelSt=sensorDist./frontArrivalStartDiff;
+            frontVelEnd=sensorDist./frontArrivalEndDiff;
+
+            frontVelAvg=(frontVelMid+frontVelDev+frontVelSt+frontVelEnd)./4;
+
+%             figure
+%             hold on
+%             plot(frontVelMid)
+%             plot(frontVelDev)
+%             plot(frontVelSt)
+%             plot(frontVelEnd)
+%             plot(frontVelAvg)
+%             title('NC front velocities based on different parameters')
+%             ylabel('Velocity mm/s')
+%             xlabel('Sensor')
+%             legend('Mid','Dev','St','End','Avg');
+
+            %add one velocity for last / first sensor
+            frontVelAvg(end+1)=frontVelAvg(end);
+            
+            %get NC front size in time as seen by the sensor
+            frontResidenceTime=frontArrivalEnd-frontArrivalStart;
+            %convert time to mm, based on estimated front velocity
+            frontSize=abs(round(frontResidenceTime.*frontVelAvg)); %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
+            %resample front data to fit virtual length coordinates
+            h2=figure;
+            hold on
+            for frontCntr=1:numel(frontSize)
+                %add padding to get right of edge effects
+                x=frontDataTime{frontCntr}';
+                padding=30;
+                dataPad=[repmat(x(1), 1, padding), x, repmat(x(end), 1, padding) ];
+%                 noPaddingResamp=resample(frontDataTime{frontCntr},frontSize(frontCntr), numel(frontDataTime{frontCntr}));
+
+                resampledDataPad=resample(dataPad,frontSize(frontCntr), numel(frontDataTime{frontCntr}));
+                padding_mod=ceil(padding*frontSize(frontCntr)/numel(frontDataTime{frontCntr}));
+                frontDataEulerian{frontCntr}=resampledDataPad(padding_mod+1:end-padding_mod);
+               
+                %padding distorts final data by 1 mm shortening
+                %sometimes
+                plot(frontDataEulerian{frontCntr})
+                
+                steam.(['mixFront_',sensorList{frontCntr}]).value=frontSize(frontCntr);
+                steam.(['mixFront_',sensorList{frontCntr}]).var=frontDataEulerian{frontCntr};
+                steam.(['mixFront_',sensorList{frontCntr}]).error=1;
+                steam.(['mixFront_',sensorList{frontCntr}]).unit='various';
+                
+            end
+            legend(sensorList)
+            title([file_list,' NC Front in mm'])
+            ylabel('Temp')
+            xlabel('Size [mm]')                
+              
         end
         
 %% Sort variables and save

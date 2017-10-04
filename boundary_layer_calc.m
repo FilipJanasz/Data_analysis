@@ -3,7 +3,7 @@ function [boundary_layer,calc_dat_norm,calc_data_norm_lower,calc_data_norm_upper
     %initialize flags
     flag_st=0;
   
-    %calc cutoff - process only restricted positions
+    %calc cutoff - process only nonrestricted positions
     x_dat(x_dat<position_lim)=[];
     y_dat=y_dat(end-numel(x_dat)+1:end);
     

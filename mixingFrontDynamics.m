@@ -1,4 +1,4 @@
-function [frontArrivalMiddle,frontArrivalDev,frontArrivalStart,frontArrivalEnd,frontData]=mixingFrontDynamics(y_dat,x_dat,av_window,lim_factor)
+function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEnd,frontData]=mixingFrontDynamics(y_dat,x_dat,av_window,lim_factor)
    
     %initialize flags
     flag_st=0;
@@ -36,128 +36,90 @@ function [frontArrivalMiddle,frontArrivalDev,frontArrivalStart,frontArrivalEnd,f
         
         %calculate st_dev for this interval and store it
         st_dev_local(i-1)=std(sub_var);
-
     end
     
-%     figure
-%     hold on
-%     yyaxis left
-%     plot(st_dev_local)
-    middleSt=find(st_dev_local==max(st_dev_local));
-%     plot([middleSt middleSt], ylim,'--k')
-%     yyaxis right
-%     hold on
-    y_dat_norm=(y_dat-min(y_dat))/max(y_dat-min(y_dat));
-%     plot(x_dat,y_dat_norm)
-    y_MOD=abs(y_dat_norm-0.5);
-    middle=find(y_MOD==min(y_MOD));
-    middleUnique=middle(1);
-%     plot([middleUnique middleUnique], ylim,'.-g')
     
-    st_dev_local_norm=(st_dev_local-min(st_dev_local))/max(st_dev_local-min(st_dev_local));
+    y_dat_norm=(y_dat-min(y_dat))/max(y_dat-min(y_dat)); %normalize to 0:1 values 
+    high=find(y_dat_norm>0.99);
+    low=find(y_dat_norm<0.01);
+    layer_start=high(end);
+    tempLow=low(low>layer_start);
+    layer_end=tempLow(1);
+    
+    frontArrivalStart=layer_start;
+    frontArrivalEnd=layer_end;
+    
+    frontData=y_dat(frontArrivalStart:frontArrivalEnd);
+    frontDataNorm=y_dat_norm(frontArrivalStart:frontArrivalEnd);
+    y_MOD=abs(y_dat_norm-0.5);
+    frontArrivalMiddle=find(y_MOD==min(y_MOD))+frontArrivalStart;
+    if numel(frontArrivalMiddle)>1
+       frontArrivalMiddle=frontArrivalMiddle(1);
+    end
+
+    st_devFront=st_dev_local(frontArrivalStart:frontArrivalEnd);
+    frontArrivalDevMax=find(st_devFront==max(st_devFront))+frontArrivalStart;
+    
+    figure
+    plot(st_dev_local)
+    hold on
+    yyaxis right
+    plot(x_dat,y_dat_norm)
+    plot([frontArrivalMiddle frontArrivalMiddle], ylim,'.-r')
+    plot([frontArrivalDevMax frontArrivalDevMax], ylim,'.-g')
+    plot([frontArrivalStart frontArrivalStart], ylim,'--k')
+    plot([frontArrivalEnd frontArrivalEnd], ylim,'--b')
+    
+%     
+%     %find highest st dev, which coincides with the middle of mixing front
+%     frontArrivalDevMax=find(st_dev_local==max(st_dev_local));
+%     
+%     %find middle of mixing point
+%     y_dat_norm=(y_dat-min(y_dat))/max(y_dat-min(y_dat)); %normalize to 0:1 values   
+%     y_MOD=abs(y_dat_norm-0.5); %we want to look for 0.5, so substract, abs() and look for minimum
+%     frontArrivalMiddle=find(y_MOD==min(y_MOD));
+%     figure
+%     plot(y_MOD)
+%     if numel(frontArrivalMiddle)>1
+%         devDist=abs(frontArrivalMiddle-frontArrivalDevMax);
+%         frontArrivalMiddle=min(devDist==min(devDist));
+%     end
+% 
+% 
+%     %normalize st dev for easy of analysis
+%     st_dev_local_norm=(st_dev_local-min(st_dev_local))/max(st_dev_local-min(st_dev_local));
+%     
+%     %find where st dev norm rises to 0.1 or more, LEFT side of the front middle
+%     stDevLeft=st_dev_local_norm(1:frontArrivalDevMax)-0.1;  % substractdesired value (0.1) and find all negative values, and then negative value closest to the mixing front center
+%     frontArrivalStart=find(stDevLeft<0);
+%     if isempty(frontArrivalStart)
+%         frontArrivalStart=find(stDevLeft==min(stDevLeft));
+%     end
+%     frontArrivalStart=frontArrivalStart(end);  %take last value, as it's closest to front center
+% 
+%        
+%     
+%     %find where st dev norm rises to 0.1 or more, RIGHT side of the front middle
+%     stDevRight=st_dev_local_norm(frontArrivalDevMax:end)-0.1; % substractdesired value (0.1) and find all negative values, and then negative value closest to the mixing front center
+%     frontArrivalEnd=find(stDevRight<0);
+%      if isempty(frontArrivalEnd)
+%         frontArrivalEnd=find(stDevRight==min(stDevRight));
+%     end
+%     frontArrivalEnd=frontArrivalEnd(1)+frontArrivalDevMax-1; %take first value, as it's closest to fronte center, add the left distance that was removed by dividing data in two vectors
+%     
+%     
+%     %get only front shape
+%     frontData=y_dat(frontArrivalStart:frontArrivalEnd);    
+    
 %     figure
 %     plot(st_dev_local_norm)
 %     hold on
 %     yyaxis right
 %     plot(x_dat,y_dat_norm)
+%     plot([frontArrivalMiddle frontArrivalMiddle], ylim,'.-r')
+%     plot([frontArrivalStart frontArrivalStart], ylim,'--k')
+%     plot([frontArrivalEnd frontArrivalEnd], ylim,'--b')
     
-    stDevLeft=abs(st_dev_local_norm(1:middleSt)-0.1);
-    stDevRight=abs(st_dev_local_norm(middleSt:end)-0.1);
-    frontArrivalStart=find(stDevLeft==min(stDevLeft));
-    frontArrivalEnd=find(stDevRight==min(stDevRight))+middleSt-1;
-    frontArrivalStartUnique=frontArrivalStart(1);
-    frontArrivalEndUnique=frontArrivalEnd(1);
-    
-    %get only front shape
-    frontData=y_dat(frontArrivalStart:frontArrivalEnd);
-%     plot([frontArrivalStartUnique frontArrivalStartUnique], ylim,'.-k')
-%     plot([frontArrivalEndUnique frontArrivalEndUnique], ylim,'.-g')
-    
-%     difference=middleUnique-middleSt;
-    
-    
-    frontArrivalMiddle=middleUnique;
-    frontArrivalDev=middleSt;
-    
-    % get the mode of all st_devs (more resistant than median)
-%     st_dev_mode=mode(st_dev_local);
 
-    %while loop flag
-%     flag=1;
-%     
-%     % points_min=1/3*numel(calc_data_norm);
-%     while_count=0;
-%     while flag==1 && while_count<10
-%         
-%         %safety switch to exit the loop
-%         while_count=while_count+1;
-%         
-%         % get lower and upper bonds for the data
-%         calc_data_norm_lower=median(calc_dat_norm)-lim_factor*st_dev_mode;
-%         calc_data_norm_upper=median(calc_dat_norm)+lim_factor*st_dev_mode;
-% 
-%         % if those values are to low
-%         if calc_data_norm_lower>0.99925
-%             calc_data_norm_lower=0.99925;
-%         end
-% 
-%         if calc_data_norm_upper<1.00075
-%             calc_data_norm_upper=1.00075;
-%         end
-% 
-%         bl_points=find(calc_dat_norm<calc_data_norm_lower);  %points that lie below assumed border belong to boudnary layer
-% 
-%         %in case none of the points fit the desired conditions, lessen the
-%         %restriction (in form of lim_factor_effective
-% 
-%         if ~isempty(bl_points)% && numel(points)>points_min
-%             flag=0;
-%         else
-%             lim_factor=lim_factor+0.1;
-%         end
-%     end
-%     
-%     %transpose points vector
-%     bl_points=bl_points';
-%     try
-%         bl_points_extra=[bl_points(2:end) bl_points(end)-1];
-%     catch
-% %         errordlg('Boundary layer not found - adjust parameters and check the data')
-%         error('Boundary layer not found - adjust parameters and check the data')
-%     end
-%     % substract values from those two vectors of positions 
-%     % you get zeros in the result, where the points where consecutive
-%     substr=abs(bl_points-bl_points_extra)-1;
-%     if substr(1)==0
-%         substr(1)=1;
-%     end
-% 
-%     % locate where are all non zero elements
-%     % basically, keep the structure of vector substr but replace all non
-%     % zero values with ones
-%     position_vec=substr~=0;
-%     
-%     % make sure there's at least one starting and ending point pair
-%     if position_vec(1)==0 && position_vec(2)==0
-%         position_vec(1)=1;
-%         flag_st=1;
-%     end
-% 
-%     % find starts of each chain of zeros
-%     boundary_layer_start=strfind(position_vec,[1 0])+1;
-%     if flag_st
-%         boundary_layer_start(1)=boundary_layer_start(1)-1;
-%     end
-% 
-%     % if no chain exists
-%     if isempty(boundary_layer_start)
-% %         errordlg('Boundary layer not found - adjust parameters and check the data')
-%         error('Boundary layer not found - adjust parameters and check the data')
-%     end
-%     
-%     % max added to ensure that code only finds right - most position
-%     % (closest to the wall in PRECISE)
-%     % the others are false - positives
-%     boundary_layer=max(x_dat(bl_points(boundary_layer_start)-1));
     
 end

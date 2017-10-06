@@ -1759,7 +1759,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             for sensCntr=1:numel(sensorList)
 
                 currSens=sensorList{sensCntr};
-                currYData=steam.(currSens).var(400:end);
+                currYData=steam.(currSens).var;
                 smoothYData=smooth(currYData,10);
 
                 yAmount=numel(currYData);
@@ -1780,7 +1780,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 hold on
                 plot(frontDataTime{sensCntr})                 
             end
-            title([file_list,' NC Front in time'])
+            title([file_list,' NC Front in time'],'interpreter', 'none')
             ylabel('Temp')
             xlabel('Time [s]')
             legend(sensorList)
@@ -1851,7 +1851,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 
             end
             legend(sensorList)
-            title([file_list,' NC Front in mm'])
+            title([file_list,' NC Front in mm'],'interpreter', 'none')
             ylabel('Temp')
             xlabel('Size [mm]')                
               

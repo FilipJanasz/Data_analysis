@@ -57,19 +57,19 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             else
                 temp_dat=load([UNsteady_data_file_name,'.mat']);
                 %below is so the rest of the code works fine
-                steady_data=temp_dat.UNsteady_data;
+                experimentalData=temp_dat.UNsteady_data;
                 disp('Proccessed data not found but UNsteady state data found, loading without looking for steady state period and recalculating')
                 disp('Check if "steady state" checkbox is in the right state')
             end
             
             % verify which types of data are available
-            if isfield(steady_data,'GHFS1')
+            if isfield(experimentalData,'GHFS1')
                 fast_flag=1;
             else
                 fast_flag=0;
             end
 
-            if isfield(steady_data,'MP_Pos')
+            if isfield(experimentalData,'MP_Pos')
                 MP_flag=1;
             else
                 MP_flag=0;
@@ -274,33 +274,33 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                             if fast_end>numel(data.(curr_channel))
                                 fast_end=numel(data.(curr_channel));
                             end
-                            steady_data.(curr_channel)=data.(curr_channel)(fast_start:fast_end);
+                            experimentalData.(curr_channel)=data.(curr_channel)(fast_start:fast_end);
                         elseif ~isempty(strfind(curr_channel,'MP_TF')) || ~isempty(strfind(curr_channel,'MP_Pos')) 
 %                             eval(['steady_data.',curr_channel,'=data.',curr_channel,'(st_state_start_relative/period_MP:st_state_end_relative/period_MP);']);                          
                             st_state_start_MP=floor(st_state_start_relative/numel(data.TF9602)*numel(data.(curr_channel)));
                             st_state_end_MP=floor(st_state_end_relative/numel(data.TF9602)*numel(data.(curr_channel)));                            
-                            steady_data.(curr_channel)=data.(curr_channel)(st_state_start_MP:st_state_end_MP);
+                            experimentalData.(curr_channel)=data.(curr_channel)(st_state_start_MP:st_state_end_MP);
 %                             steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative/period_MP:st_state_end_relative/period_MP);
                         else
 %                             eval(['steady_data.',curr_channel,'=data.',curr_channel,'(st_state_start_relative:st_state_end_relative);']);
                             try
-                                steady_data.(curr_channel)=data.(curr_channel)(st_state_start_relative:st_state_end_relative);
+                                experimentalData.(curr_channel)=data.(curr_channel)(st_state_start_relative:st_state_end_relative);
                             catch
                                 disp(['Problematic channel: ',curr_channel,' - not extracting steady state from it. Check the data'])
-                                steady_data.(curr_channel)=data.(curr_channel);
+                                experimentalData.(curr_channel)=data.(curr_channel);
                             end
                         end
                     end
     %                 st_state_data=steady_data.PA9601;
                     % SECOND PARAMTER FOR STEADY STATE SEARCH
-                    st_state_data=steady_data.TF9503;
+                    st_state_data=experimentalData.TF9503;
                 end
                 % append power
-                steady_data.power=joule_heating(steady_data.HE9601_I,230);
+                experimentalData.power=joule_heating(experimentalData.HE9601_I,230);
                 % append timing
-                steady_data.timing=timing;
+                experimentalData.timing=timing;
                 %save
-                save(steady_data_file_name,'steady_data');
+                save(steady_data_file_name,'experimentalData');
             else
                 disp('1. Not looking for steady state - check box not ticked')
                 for i=1:channel_amount
@@ -315,7 +315,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 save(UNsteady_data_file_name,'UNsteady_data');
                 
                 %below is so the rest of the code works fine
-                steady_data=UNsteady_data;
+                experimentalData=UNsteady_data;
             end
          
 
@@ -323,12 +323,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
     
         %% Apply any calibration data previosly obtained to the raw data (especially thermoelements)
         disp('2. Applying any avaialble calibration look up tables')
-        interp_data=cal_data_interpolate(steady_data);
+        interp_data=cal_data_interpolate(experimentalData);
         cal_fields=fields(interp_data);
-        cal_steady_data=steady_data;
+        calibratedData=experimentalData;
         for cal_cntr=1:numel(cal_fields)
             try
-            cal_steady_data.(cal_fields{cal_cntr})=cal_steady_data.(cal_fields{cal_cntr})+interp_data.(cal_fields{cal_cntr});
+            calibratedData.(cal_fields{cal_cntr})=calibratedData.(cal_fields{cal_cntr})+interp_data.(cal_fields{cal_cntr});
             catch
             end
         end
@@ -358,47 +358,47 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         file.directory=directory;
         
         % timing - it's necessary in case steady state was already found
-        timing=steady_data.timing;
+        timing=experimentalData.timing;
         
         % coolant side
-        coolant.vflow.var=cal_steady_data.FV3801;  
+        coolant.vflow.var=calibratedData.FV3801;  
         coolant.velocity.var=coolant.vflow.var/3600/0.008641587;
 %         coolant_water_residence_time=1.5/mean(coolant.velocity.var); % how long does it take coolant water to travel the height of the facility
         % facility height (1.5 m) divide by velocity [m/s]
-        coolant.temp.var=(cal_steady_data.TF9502+cal_steady_data.TF9501)/2;
-        coolant.press.var=cal_steady_data.PA9501;  
-        coolant.temp_inlet.var=cal_steady_data.TF9501;
-        coolant.temp_inlet_TC.var=(cal_steady_data.TF9503+cal_steady_data.TF9504)/2;
-        coolant.temp_outlet.var=cal_steady_data.TF9502;
-        coolant.temp_outlet_TC.var=(cal_steady_data.TF9507+cal_steady_data.TF9508)/2;
+        coolant.temp.var=(calibratedData.TF9502+calibratedData.TF9501)/2;
+        coolant.press.var=calibratedData.PA9501;  
+        coolant.temp_inlet.var=calibratedData.TF9501;
+        coolant.temp_inlet_TC.var=(calibratedData.TF9503+calibratedData.TF9504)/2;
+        coolant.temp_outlet.var=calibratedData.TF9502;
+        coolant.temp_outlet_TC.var=(calibratedData.TF9507+calibratedData.TF9508)/2;
         coolant.dT.var=coolant.temp_outlet.var-coolant.temp_inlet.var;
         
         % GHFS var & MP var
         if  fast_flag==1
                         
-            GHFS.GHFS1_raw.var=cal_steady_data.GHFS1;
-            GHFS.GHFS2_raw.var=cal_steady_data.GHFS2;
-            GHFS.GHFS3_raw.var=cal_steady_data.GHFS3;
-            GHFS.GHFS4_raw.var=cal_steady_data.GHFS4;                    
+            GHFS.GHFS1_raw.var=calibratedData.GHFS1;
+            GHFS.GHFS2_raw.var=calibratedData.GHFS2;
+            GHFS.GHFS3_raw.var=calibratedData.GHFS3;
+            GHFS.GHFS4_raw.var=calibratedData.GHFS4;                    
             
             % thermocouple cal_steady_data.TCH2_2W is broken
             % as a workaround, use average between two thermocouples
-            if ~isfield(cal_steady_data,'TCH2_2W')
-                cal_steady_data.TCH2_2W=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
-            elseif isnan(cal_steady_data.TCH2_2W)
-                cal_steady_data.TCH2_2W=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;
+            if ~isfield(calibratedData,'TCH2_2W')
+                calibratedData.TCH2_2W=(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2;
+            elseif isnan(calibratedData.TCH2_2W)
+                calibratedData.TCH2_2W=(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2;
             end
-            GHFS.GHFS1_temp.var=cal_steady_data.TCH1_2W;
-            GHFS.GHFS2_temp.var=cal_steady_data.TCH2_2W;
+            GHFS.GHFS1_temp.var=calibratedData.TCH1_2W;
+            GHFS.GHFS2_temp.var=calibratedData.TCH2_2W;
 %             GHFS.GHFS2_temp.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2;  % one TC is broken, this is a work around that might fail
-            GHFS.GHFS3_temp.var=cal_steady_data.TCH3_2W;
-            GHFS.GHFS4_temp.var=cal_steady_data.TCH4_2W;
+            GHFS.GHFS3_temp.var=calibratedData.TCH3_2W;
+            GHFS.GHFS4_temp.var=calibratedData.TCH4_2W;
                
-            GHFS.wall_dT_GHFS1.var=cal_steady_data.TCH1_2W-cal_steady_data.TCH1_3W;
-            GHFS.wall_dT_GHFS2.var=cal_steady_data.TCH2_2W-(cal_steady_data.TCH1_3W+cal_steady_data.TCH3_3W)./2;
+            GHFS.wall_dT_GHFS1.var=calibratedData.TCH1_2W-calibratedData.TCH1_3W;
+            GHFS.wall_dT_GHFS2.var=calibratedData.TCH2_2W-(calibratedData.TCH1_3W+calibratedData.TCH3_3W)./2;
 %             GHFS.wall_dT_GHFS2.var=(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2-cal_steady_data.TCH2_3W; % one TC is broken, this is a work around that might fail
-            GHFS.wall_dT_GHFS3.var=cal_steady_data.TCH3_2W-cal_steady_data.TCH3_3W;
-            GHFS.wall_dT_GHFS4.var=cal_steady_data.TCH4_2W-cal_steady_data.TCH4_3W;
+            GHFS.wall_dT_GHFS3.var=calibratedData.TCH3_2W-calibratedData.TCH3_3W;
+            GHFS.wall_dT_GHFS4.var=calibratedData.TCH4_2W-calibratedData.TCH4_3W;
             
             % HEATFLUXES
             % from GHFS
@@ -439,32 +439,32 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_heatflux_GHFS4.var=GHFS.wall_dT_GHFS4.var.*GHFS_wall_htc;
             
             %movable probe
-            MP.MP1.var=cal_steady_data.MP1;
-            MP.MP2.var=cal_steady_data.MP2;
-            MP.MP3.var=cal_steady_data.MP3;
-            MP.MP4.var=cal_steady_data.MP4;
+            MP.MP1.var=calibratedData.MP1;
+            MP.MP2.var=calibratedData.MP2;
+            MP.MP3.var=calibratedData.MP3;
+            MP.MP4.var=calibratedData.MP4;
         end
                 
         % steam side thermodynamic codnitions - measured
-        steam.press.var=cal_steady_data.PA9601; % [bar]        
-        steam.power.var=cal_steady_data.power;        
-        steam.temp.var=cal_steady_data.TF9602; % [C]  
-        steam.heater_temp.var=cal_steady_data.TW9602; % [C] 
+        steam.press.var=calibratedData.PA9601; % [bar]        
+        steam.power.var=calibratedData.power;        
+        steam.temp.var=calibratedData.TF9602; % [C]  
+        steam.heater_temp.var=calibratedData.TW9602; % [C] 
         
         % steam side thermocouples - centerline
         try
-            steam.TF9603.var=cal_steady_data.TF9603;
-            steam.TF9604.var=cal_steady_data.TF9604;
-            steam.TF9605.var=cal_steady_data.TF9605;
-            steam.TF9606.var=cal_steady_data.TF9606;
-            steam.TF9607.var=cal_steady_data.TF9606.*(1/3)+cal_steady_data.TF9608.*(2/3);
-            steam.TF9608.var=cal_steady_data.TF9608;
-            steam.TF9609.var=cal_steady_data.TF9608.*(2/3)+cal_steady_data.TF9610.*(1/3);
-            steam.TF9610.var=cal_steady_data.TF9610;
-            steam.TF9611.var=cal_steady_data.TF9611;
-            steam.TF9612.var=cal_steady_data.TF9612;
-            steam.TF9613.var=cal_steady_data.TF9613;
-            steam.TF9614.var=cal_steady_data.TF9614;
+            steam.TF9603.var=calibratedData.TF9603;
+            steam.TF9604.var=calibratedData.TF9604;
+            steam.TF9605.var=calibratedData.TF9605;
+            steam.TF9606.var=calibratedData.TF9606;
+            steam.TF9607.var=calibratedData.TF9606.*(1/3)+calibratedData.TF9608.*(2/3);
+            steam.TF9608.var=calibratedData.TF9608;
+            steam.TF9609.var=calibratedData.TF9608.*(2/3)+calibratedData.TF9610.*(1/3);
+            steam.TF9610.var=calibratedData.TF9610;
+            steam.TF9611.var=calibratedData.TF9611;
+            steam.TF9612.var=calibratedData.TF9612;
+            steam.TF9613.var=calibratedData.TF9613;
+            steam.TF9614.var=calibratedData.TF9614;
         catch
             disp('No data for thermocouples TF9603-TF9614 - old recording probably')
         end
@@ -473,20 +473,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.wall_dT.var=steam.temp.var-coolant.temp.var;   
         
 %         facility.voltage.var=cal_steady_data.HE9601_U;
-        facility.current.var=cal_steady_data.HE9601_I;
-        facility.NCtank_press.var=cal_steady_data.PA9701;
-        facility.NCtank_temp.var=cal_steady_data.TF9701;
+        facility.current.var=calibratedData.HE9601_I;
+        facility.NCtank_press.var=calibratedData.PA9701;
+        facility.NCtank_temp.var=calibratedData.TF9701;
         
         
         %% mean values
         % coolant thermodynamic conditions - measured               
-        coolant.vflow.value=mean(cal_steady_data.FV3801);        
-        coolant.temp.value=(mean(cal_steady_data.TF9502)+mean(cal_steady_data.TF9501))/2;
-        coolant.press.value=mean(cal_steady_data.PA9501);  
-        coolant.temp_inlet.value=mean(cal_steady_data.TF9501);
-        coolant.temp_outlet.value=mean(cal_steady_data.TF9502);
-        coolant.temp_inlet_TC.value=(mean(cal_steady_data.TF9503)+mean(cal_steady_data.TF9504))/2;
-        coolant.temp_outlet_TC.value=(mean(cal_steady_data.TF9507)+mean(cal_steady_data.TF9508))/2;
+        coolant.vflow.value=mean(calibratedData.FV3801);        
+        coolant.temp.value=(mean(calibratedData.TF9502)+mean(calibratedData.TF9501))/2;
+        coolant.press.value=mean(calibratedData.PA9501);  
+        coolant.temp_inlet.value=mean(calibratedData.TF9501);
+        coolant.temp_outlet.value=mean(calibratedData.TF9502);
+        coolant.temp_inlet_TC.value=(mean(calibratedData.TF9503)+mean(calibratedData.TF9504))/2;
+        coolant.temp_outlet_TC.value=(mean(calibratedData.TF9507)+mean(calibratedData.TF9508))/2;
         
         % coolant properties - calculated (some with IAPWS_IF97)
         coolant.dT.value=coolant.temp_outlet.value-coolant.temp_inlet.value; 
@@ -507,9 +507,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.htc_gnielinski.value=htc_gnielinski(coolant.reynolds.value,coolant.thermcond.value,coolant.prandtl.value,0.0791);
                 
         % steam side thermodynamic codnitions - measured
-        steam.press.value=mean(cal_steady_data.PA9601); % [bar]        
+        steam.press.value=mean(calibratedData.PA9601); % [bar]        
         steam.power.value=mean(steam.power.var);        
-        steam.temp.value=mean(cal_steady_data.TF9602); % [C] 
+        steam.temp.value=mean(calibratedData.TF9602); % [C] 
         steam.heater_temp.value=mean(steam.heater_temp.var); % [C] 
         
         %steam side thermocouples - centerline
@@ -597,14 +597,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         %% MOVABLE PROBE POSITION AND TEMEPRATURE CALCULATION
         if MP_flag %this is not available for all the calculations
-            for rounding_counter=1:numel(cal_steady_data.MP_Pos)
-                MP.Pos.var(rounding_counter,1)=round(cal_steady_data.MP_Pos(rounding_counter)*10);  %rounding to the first digit to the right of the decimal point
+            for rounding_counter=1:numel(calibratedData.MP_Pos)
+                MP.Pos.var(rounding_counter,1)=round(calibratedData.MP_Pos(rounding_counter)*10);  %rounding to the first digit to the right of the decimal point
                 MP.Pos.var(rounding_counter,1)=MP.Pos.var(rounding_counter,1)/10;
             end
 %             MP.Pos.var=cal_steady_data.MP_Pos;
             MP.Pos.value=mean(MP.Pos.var); %[mm, wall with fixed probe is 0]
             % MOD THIS ACCORDINGLY TO PROPER CHANNELS
-            MP.Temp.var=cal_steady_data.MP_TF;
+            MP.Temp.var=calibratedData.MP_TF;
             MP.Temp.value=mean(MP.Temp.var); %[deg C]
             
             %make sure that the while loop executes at least once
@@ -929,8 +929,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         % thermocouple steady_data.TCH2_2W is broken
         % as a workaround, use average between two thermocouples
-        if ~isfield(steady_data,'TCH2_2W')
-            steady_data.TCH2_2W=(steady_data.TCH1_2W+steady_data.TCH3_2W)./2;
+        if ~isfield(experimentalData,'TCH2_2W')
+            experimentalData.TCH2_2W=(experimentalData.TCH1_2W+experimentalData.TCH3_2W)./2;
         end
         
         %time-varying data
@@ -962,27 +962,27 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             centerline_flag=1;
         catch
             try
-                distributions.centerline_temp.var=[cal_steady_data.TCH1_1F,MP.Temp.var,cal_steady_data.TCH2_1F,cal_steady_data.TCH3_1F,cal_steady_data.TCH4_1F];
+                distributions.centerline_temp.var=[calibratedData.TCH1_1F,MP.Temp.var,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
                 short_flag=0;
                 centerline_flag=1;
             catch
-                distributions.centerline_temp.var=[cal_steady_data.TCH1_1F,cal_steady_data.TCH2_1F,cal_steady_data.TCH3_1F,cal_steady_data.TCH4_1F];
+                distributions.centerline_temp.var=[calibratedData.TCH1_1F,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
                 short_flag=1;
                 centerline_flag=1;
             end
         end
         
         % the layout of TC's is the same for old and new files, hence no if /try catch structures
-        distributions.coolant_temp_0deg.var=[cal_steady_data.TF9503,cal_steady_data.TF9505,cal_steady_data.TF9507];
-        distributions.coolant_temp_180deg.var=[cal_steady_data.TF9504,cal_steady_data.TF9506,cal_steady_data.TF9508];
-        distributions.outer_wall_temp_0deg.var=[cal_steady_data.TW9501,cal_steady_data.TW9503,cal_steady_data.TW9505,cal_steady_data.TW9507,cal_steady_data.TW9509,cal_steady_data.TW9511];
-        distributions.outer_wall_temp_180deg.var=[cal_steady_data.TW9502,cal_steady_data.TW9504,cal_steady_data.TW9506,cal_steady_data.TW9508,cal_steady_data.TW9510,cal_steady_data.TW9512];
+        distributions.coolant_temp_0deg.var=[calibratedData.TF9503,calibratedData.TF9505,calibratedData.TF9507];
+        distributions.coolant_temp_180deg.var=[calibratedData.TF9504,calibratedData.TF9506,calibratedData.TF9508];
+        distributions.outer_wall_temp_0deg.var=[calibratedData.TW9501,calibratedData.TW9503,calibratedData.TW9505,calibratedData.TW9507,calibratedData.TW9509,calibratedData.TW9511];
+        distributions.outer_wall_temp_180deg.var=[calibratedData.TW9502,calibratedData.TW9504,calibratedData.TW9506,calibratedData.TW9508,calibratedData.TW9510,calibratedData.TW9512];
         
         %GHFS thermocouples
         try
-            distributions.GHFS_TC.var=[cal_steady_data.HFS1TC,cal_steady_data.HFS2TC,cal_steady_data.HFS3TC,cal_steady_data.HFS4TC];
+            distributions.GHFS_TC.var=[calibratedData.HFS1TC,calibratedData.HFS2TC,calibratedData.HFS3TC,calibratedData.HFS4TC];
         catch
-            distributions.GHFS_TC.var=[cal_steady_data.TCH1_2W,(cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2,cal_steady_data.TCH3_2W,cal_steady_data.TCH4_2W];
+            distributions.GHFS_TC.var=[calibratedData.TCH1_2W,(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2,calibratedData.TCH3_2W,calibratedData.TCH4_2W];
         end
         
         %inner wall thermocouples
@@ -995,7 +995,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         %outer wall thermocouples
         try
-            distributions.wall_outer.var=[cal_steady_data.TCH1_3W,cal_steady_data.TCH2_3W,cal_steady_data.TCH3_3W,cal_steady_data.TCH4_3W];
+            distributions.wall_outer.var=[calibratedData.TCH1_3W,calibratedData.TCH2_3W,calibratedData.TCH3_3W,calibratedData.TCH4_3W];
         catch
         end
         
@@ -1045,27 +1045,27 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             centerline_flag=1;
         catch
             try
-                distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),MP.Temp.value,mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
+                distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),MP.Temp.value,mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
                 short_flag=0;
                 centerline_flag=1;
             catch
-                distributions.centerline_temp.value.cal=[mean(cal_steady_data.TCH1_1F),mean(cal_steady_data.TCH2_1F),mean(cal_steady_data.TCH3_1F),mean(cal_steady_data.TCH4_1F)];
+                distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
                 short_flag=1;
                 centerline_flag=1;
             end
         end
         
         % the layout of TC's is the same for old and new files, hence no if /try catch structures
-        distributions.coolant_temp_0deg.value.cal=[mean(cal_steady_data.TF9503),mean(cal_steady_data.TF9505),mean(cal_steady_data.TF9507)];
-        distributions.coolant_temp_180deg.value.cal=[mean(cal_steady_data.TF9504),mean(cal_steady_data.TF9506),mean(cal_steady_data.TF9508)];
-        distributions.outer_wall_temp_0deg.value.cal=[mean(cal_steady_data.TW9501),mean(cal_steady_data.TW9503),mean(cal_steady_data.TW9505),mean(cal_steady_data.TW9507),mean(cal_steady_data.TW9509),mean(cal_steady_data.TW9511)];
-        distributions.outer_wall_temp_180deg.value.cal=[mean(cal_steady_data.TW9502),mean(cal_steady_data.TW9504),mean(cal_steady_data.TW9506),mean(cal_steady_data.TW9508),mean(cal_steady_data.TW9510),mean(cal_steady_data.TW9512)];
+        distributions.coolant_temp_0deg.value.cal=[mean(calibratedData.TF9503),mean(calibratedData.TF9505),mean(calibratedData.TF9507)];
+        distributions.coolant_temp_180deg.value.cal=[mean(calibratedData.TF9504),mean(calibratedData.TF9506),mean(calibratedData.TF9508)];
+        distributions.outer_wall_temp_0deg.value.cal=[mean(calibratedData.TW9501),mean(calibratedData.TW9503),mean(calibratedData.TW9505),mean(calibratedData.TW9507),mean(calibratedData.TW9509),mean(calibratedData.TW9511)];
+        distributions.outer_wall_temp_180deg.value.cal=[mean(calibratedData.TW9502),mean(calibratedData.TW9504),mean(calibratedData.TW9506),mean(calibratedData.TW9508),mean(calibratedData.TW9510),mean(calibratedData.TW9512)];
         
         %GHFS thermocouples
         try
-            distributions.GHFS_TC.value.cal=[mean(cal_steady_data.HFS1TC),mean(cal_steady_data.HFS2TC),mean(cal_steady_data.HFS3TC),mean(cal_steady_data.HFS4TC)];
+            distributions.GHFS_TC.value.cal=[mean(calibratedData.HFS1TC),mean(calibratedData.HFS2TC),mean(calibratedData.HFS3TC),mean(calibratedData.HFS4TC)];
         catch
-            distributions.GHFS_TC.value.cal=[mean(cal_steady_data.TCH1_2W),mean((cal_steady_data.TCH1_2W+cal_steady_data.TCH3_2W)./2),mean(cal_steady_data.TCH3_2W),mean(cal_steady_data.TCH4_2W)];
+            distributions.GHFS_TC.value.cal=[mean(calibratedData.TCH1_2W),mean((calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2),mean(calibratedData.TCH3_2W),mean(calibratedData.TCH4_2W)];
         end
         
         %inner wall thermocouples
@@ -1078,7 +1078,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         %outer wall thermocouples
         try
-            distributions.wall_outer.value.cal=[mean(cal_steady_data.TCH1_3W),mean(cal_steady_data.TCH2_3W),mean(cal_steady_data.TCH3_3W),mean(cal_steady_data.TCH4_3W)];
+            distributions.wall_outer.value.cal=[mean(calibratedData.TCH1_3W),mean(calibratedData.TCH2_3W),mean(calibratedData.TCH3_3W),mean(calibratedData.TCH4_3W)];
         catch
         end
         
@@ -1116,40 +1116,40 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         end
         
         %the layout of TC's in the coolant water and outer jacket is the same for old and new files, hence no if /try catch structures
-        distributions.coolant_temp_0deg.value.non_cal=[mean(steady_data.TF9503),mean(steady_data.TF9505),mean(steady_data.TF9507)];
-        distributions.coolant_temp_180deg.value.non_cal=[mean(steady_data.TF9504),mean(steady_data.TF9506),mean(steady_data.TF9508)];
-        distributions.outer_wall_temp_0deg.value.non_cal=[mean(steady_data.TW9501),mean(steady_data.TW9503),mean(steady_data.TW9505),mean(steady_data.TW9507),mean(steady_data.TW9509),mean(steady_data.TW9511)];
-        distributions.outer_wall_temp_180deg.value.non_cal=[mean(steady_data.TW9502),mean(steady_data.TW9504),mean(steady_data.TW9506),mean(steady_data.TW9508),mean(steady_data.TW9510),mean(cal_steady_data.TW9512)];
+        distributions.coolant_temp_0deg.value.non_cal=[mean(experimentalData.TF9503),mean(experimentalData.TF9505),mean(experimentalData.TF9507)];
+        distributions.coolant_temp_180deg.value.non_cal=[mean(experimentalData.TF9504),mean(experimentalData.TF9506),mean(experimentalData.TF9508)];
+        distributions.outer_wall_temp_0deg.value.non_cal=[mean(experimentalData.TW9501),mean(experimentalData.TW9503),mean(experimentalData.TW9505),mean(experimentalData.TW9507),mean(experimentalData.TW9509),mean(experimentalData.TW9511)];
+        distributions.outer_wall_temp_180deg.value.non_cal=[mean(experimentalData.TW9502),mean(experimentalData.TW9504),mean(experimentalData.TW9506),mean(experimentalData.TW9508),mean(experimentalData.TW9510),mean(calibratedData.TW9512)];
         try
-            distributions.centerline_temp.value.non_cal=[mean(steady_data.TCH1_1F),MP.Temp.value,mean(steady_data.TCH2_1F),mean(steady_data.TCH3_1F),mean(steady_data.TCH4_1F)];     
+            distributions.centerline_temp.value.non_cal=[mean(experimentalData.TCH1_1F),MP.Temp.value,mean(experimentalData.TCH2_1F),mean(experimentalData.TCH3_1F),mean(experimentalData.TCH4_1F)];     
         catch
            
         end
         
         %GHFS thermocouples - non calibrated  
         try
-            distributions.GHFS_TC.value.non_cal=[mean(steady_data.HFS1TC),mean(steady_data.HFS2TC),mean(steady_data.HFS3TC),mean(steady_data.HFS4TC)];
+            distributions.GHFS_TC.value.non_cal=[mean(experimentalData.HFS1TC),mean(experimentalData.HFS2TC),mean(experimentalData.HFS3TC),mean(experimentalData.HFS4TC)];
             %GHFS_TC_flag=1;
         catch
-            distributions.GHFS_TC.value.non_cal=[mean(steady_data.TCH1_2W),mean(steady_data.TCH2_2W),mean(steady_data.TCH3_2W),mean(steady_data.TCH4_2W)];
+            distributions.GHFS_TC.value.non_cal=[mean(experimentalData.TCH1_2W),mean(experimentalData.TCH2_2W),mean(experimentalData.TCH3_2W),mean(experimentalData.TCH4_2W)];
             %GHFS_TC_flag=0;
         end
         
         %inner wall thermocouples
         try
-            distributions.wall_inner.value.non_cal=[mean(steady_data.TCH1_2W),mean(steady_data.TCH2_2W),mean(steady_data.TCH3_2W),mean(steady_data.TCH4_2W)];
+            distributions.wall_inner.value.non_cal=[mean(experimentalData.TCH1_2W),mean(experimentalData.TCH2_2W),mean(experimentalData.TCH3_2W),mean(experimentalData.TCH4_2W)];
         catch
         end
         
         %outer wall thermocouples
         try
-            distributions.wall_outer.value.non_cal=[mean(steady_data.TCH1_3W),mean(steady_data.TCH2_3W),mean(steady_data.TCH3_3W),mean(steady_data.TCH4_3W)];
+            distributions.wall_outer.value.non_cal=[mean(experimentalData.TCH1_3W),mean(experimentalData.TCH2_3W),mean(experimentalData.TCH3_3W),mean(experimentalData.TCH4_3W)];
         catch
         end
         
         %wall dT at GHFS positions
         try
-            distributions.wall_dT.value.non_cal=[mean(steady_data.TCH1_2W-steady_data.TCH1_3W),mean(steady_data.TCH2_2W-steady_data.TCH2_3W),mean(steady_data.TCH3_2W-steady_data.TCH3_3W),mean(steady_data.TCH4_2W-steady_data.TCH4_3W)];
+            distributions.wall_dT.value.non_cal=[mean(experimentalData.TCH1_2W-experimentalData.TCH1_3W),mean(experimentalData.TCH2_2W-experimentalData.TCH2_3W),mean(experimentalData.TCH3_2W-experimentalData.TCH3_3W),mean(experimentalData.TCH4_2W-experimentalData.TCH4_3W)];
         catch
         end
 
@@ -1335,7 +1335,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.enthalpy.error =0.005*steam.enthalpy.value; %ooooooooooooooooo
         steam.enthalpy_liquid.error =0.001*steam.enthalpy_liquid.value; %ooooooooooooooooo
         steam.evap_heat.error =0.001*steam.evap_heat.value; %ooooooooooooooooo
-        steam.power.error =error_steam_power(mean(230),mean(cal_steady_data.HE9601_I),steam.power.value);  %XXXXXXXXXXXXXXXXXXX
+        steam.power.error =error_steam_power(mean(230),mean(calibratedData.HE9601_I),steam.power.value);  %XXXXXXXXXXXXXXXXXXX
         steam.mflow.error =error_mflow_steam(steam.power.value,steam.evap_heat.value,steam.mflow.value,steam.power.error ,steam.evap_heat.error );
         steam.density.error =error_dens(steam.temp.value,steam.press.value,steam.temp.error ,steam.press.error );
         steam.vflow.error =error_volflow_steam(steam.vflow.value,steam.mflow.value,steam.density.value,steam.mflow.error ,steam.density.error );
@@ -1480,8 +1480,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.moles_total_init.error=NC.moles_N2_test.error+NC.moles_He_test.error;
         NC.moles_total_est.error=1; %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         try   %try because in old recordings there is no TF9603
-            NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
-            NC.length_est.error=error_NC_length(NC.length_init.value,NC.moles_total_est.value,mean(cal_steady_data.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_est.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+            NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+            NC.length_est.error=error_NC_length(NC.length_init.value,NC.moles_total_est.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_est.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
         catch
         end
         
@@ -1758,8 +1758,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             sensorList={'TF9603','TF9604','TF9605','TF9606','TF9608','TF9610','TF9611','TF9612','TF9613'}; %,'TF9614'};
             sensorPos=[220,320,420,520,670,820,920,1020,1120];%,1220];
             sensorDist=diff(sensorPos);
-            h=figure;
-            hold on
+           
             for sensCntr=1:numel(sensorList)
 
                 currSens=sensorList{sensCntr};
@@ -1780,17 +1779,23 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 
                 %call function that does the magic (based on bits and pieces from steady_state.m)
                 [frontArrivalMiddle(sensCntr),frontArrivalDev(sensCntr),frontArrivalStart(sensCntr),frontArrivalEnd(sensCntr),frontDataTime{sensCntr}]=mixingFrontDynamics(smoothYData,currXData,av_window,currSens,pathPrint,file_list);
-                figure(h)
-                hold on
-                plot(frontDataTime{sensCntr})                 
+                
+                             
+            end
+            
+            h1=figure('visible','off');
+            hold on
+            for sensCntr=1:numel(sensorList)     
+                plot(frontDataTime{sensCntr})    
             end
             title([file_list,' NC Front in time'],'interpreter', 'none')
             ylabel('Temp')
             xlabel('Time [s]')
             legend(sensorList)
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIME'];
-            saveas(h,pathPrintName,'png')
-            close(h)
+            saveas(h1,pathPrintName,'png')
+            close(h1)
+            
 %                 figure
 %                 plot(difference(avCntr,:)) 
 %                 avLeg{avCntr}=num2str(av_window(avCntr));
@@ -1858,7 +1863,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             close(h2)
             
             %resample front data to fit virtual length coordinates
-            h3=figure;
+            h3=figure('visible','off');
             hold on
             
             for frontCntr=1:numel(frontSize)
@@ -1892,16 +1897,49 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             %calculate velocity from pressure drop in NC tank           
             frontTime=[frontArrivalStart(end),frontArrivalEnd(1)];
-            volNCtank=0.005;
-            pressSteam=steam.press.var(frontTime(1):frontTime(2)).*10^5;  %10^5 to convert bar to Pa
-            tempSteam=steam.temp.var(frontTime(1):frontTime(2));  %10^5 to convert bar to Pa
+            frontTime=[1,numel(facility.NCtank_temp.var)];
+            volNCtank=0.005; % m3
+            pressTotal=steam.press.var(frontTime(1):frontTime(2)).*10^5;  %10^5 to convert bar to Pa
+            tempSteam=steam.temp.var(frontTime(1):frontTime(2))+273.15; %K
             pressNCtank=facility.NCtank_press.var(frontTime(1):frontTime(2)).*10^5;  %10^5 to convert bar to Pa
-            tempNCtank=smooth(facility.NCtank_temp.var(frontTime(1):frontTime(2)),100);
+            tempNCtank=smooth(facility.NCtank_temp.var(frontTime(1):frontTime(2)),100)+273.15;
             NCtankMoles=pressNCtank.*volNCtank./(tempNCtank.*8.31);  %n=PV/RT
             molesTube=-(NCtankMoles-max(NCtankMoles));
-            tubeFillVol=molesTube.*8.31.*tempSteam./pressSteam;  %V=nRT/P
-            tubeFillLength=tubeFillVol./(pi*0.01^2);
+            
+            %top is not pure NC gas, assume some residual steam at
+            %saturation
+            tempTop=steam.TF9613.var(frontTime(1):frontTime(2))+273.15;
+            PpartSteamTop=IAPWS_IF97('psat_T',tempTop)*10^6;
+            PpartNCTop=pressTotal-PpartSteamTop;
+            PpartNCTop(PpartNCTop<0)=0.1;
+            tubeFillVol=molesTube.*8.314.*tempSteam./pressTotal;  %V=nRT/P
+            moleRatio=PpartNCTop./pressTotal;  %assuming saturation conditions
+            tubeFillVolFixed=tubeFillVol./moleRatio;
+            tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
             molesPumped=diff(NCtankMoles);
+            
+%             tempTop=steam.TF9613.var(end)+273.15;
+%             PpartSteamTop=IAPWS_IF97('psat_T',tempTop(end))*10^6;
+%             PpartNCTop=pressTotal-PpartSteamTop;
+% %             PpartNCTop(PpartNCTop<0)=0.1;
+%             tubeFillVol=molesTube.*8.314.*tempSteam./pressTotal;  %V=nRT/P
+%             moleRatio=PpartNCTop/pressTotal(end);  %assuming saturation conditions
+%             tubeFillVolFixed=tubeFillVol./moleRatio;
+%             tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
+%             molesPumped=diff(NCtankMoles);
+            h4=figure('visible','off');
+            plot(tubeFillLength)
+            hold on
+            sensorPosBackward=-(sensorPos-sensorPos(end))+110; %because we observe last one first, we have to start counting backward
+            plot(frontArrivalStart, sensorPosBackward,'x')
+            title([file_list,' NC Front advancement in time'],'interpreter', 'none')
+            ylabel('NC gas length')
+            xlabel('Time [s]')
+            legend('NC length based on P drop in NC tank','NC front observed at TC position')
+            pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'];
+            saveas(h4,pathPrintName,'png')
+            close(h4)
+            
         end
         
 %% Sort variables and save

@@ -412,7 +412,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     %assign and store a name to the graph
     processing_string=[notch_str,lowpass_str,smooth_str,norm_str,flip_str];
-    handles.graph_name{handles.plotcounter}=[handles.files{file_choice},' ',y_param,' ',y_param_var,' ',processing_string];
+    handles.graph_name{handles.plotcounter}=[handles.files{file_choice},' | ',y_param,' | ',y_param_var,' | ',processing_string];
     
     %add legend
     handles.legend=legend(handles.graph_name{1:end});

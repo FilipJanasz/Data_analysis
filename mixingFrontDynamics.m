@@ -1,7 +1,4 @@
-function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEnd,frontData]=mixingFrontDynamics(y_dat,x_dat,av_window,lim_factor)
-   
-    %initialize flags
-    flag_st=0;
+function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEnd,frontData]=mixingFrontDynamics(y_dat,x_dat,av_window,currSens,pathPrint,file_list)
  
 %     %calc cutoff - process only nonrestricted positions
 %     x_dat(x_dat<position_lim)=[];
@@ -40,8 +37,8 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     
     
     y_dat_norm=(y_dat-min(y_dat))/max(y_dat-min(y_dat)); %normalize to 0:1 values 
-    high=find(y_dat_norm>0.99);
-    low=find(y_dat_norm<0.01);
+    high=find(y_dat_norm>0.96);
+    low=find(y_dat_norm<0.1 );
     layer_start=high(end);
     tempLow=low(low>layer_start);
     layer_end=tempLow(1);
@@ -51,8 +48,9 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     
     frontData=y_dat(frontArrivalStart:frontArrivalEnd);
     frontDataNorm=y_dat_norm(frontArrivalStart:frontArrivalEnd);
+    
     y_MOD=abs(y_dat_norm-0.5);
-    frontArrivalMiddle=find(y_MOD==min(y_MOD))+frontArrivalStart;
+    frontArrivalMiddle=find(y_MOD==min(y_MOD));
     if numel(frontArrivalMiddle)>1
        frontArrivalMiddle=frontArrivalMiddle(1);
     end
@@ -60,7 +58,7 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     st_devFront=st_dev_local(frontArrivalStart:frontArrivalEnd);
     frontArrivalDevMax=find(st_devFront==max(st_devFront))+frontArrivalStart;
     
-    figure
+    fx=figure('visible','off');
     plot(st_dev_local)
     hold on
     yyaxis right
@@ -69,6 +67,9 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     plot([frontArrivalDevMax frontArrivalDevMax], ylim,'.-g')
     plot([frontArrivalStart frontArrivalStart], ylim,'--k')
     plot([frontArrivalEnd frontArrivalEnd], ylim,'--b')
+    pathPrintName=[pathPrint,'\',file_list,'_',currSens];
+    saveas(fx,pathPrintName,'png')
+    close(fx)
     
 %     
 %     %find highest st dev, which coincides with the middle of mixing front

@@ -529,7 +529,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
             disp('No data for thermocouples TF9603-TF9614 - old recording probably')
         end
-
+        
+        % continous steam properties
+        steam.boiling_point.var=IAPWS_IF97('Tsat_p',steam.press.var./10)-273.15; 
+        steam.density.var=1./IAPWS_IF97('v_pT',steam.press.var./10,steam.boiling_point.var+273.15+1); 
+        steam.enthalpy.var=IAPWS_IF97('hV_p',steam.press.var./10);        
+        steam.enthalpy_liquid.var=IAPWS_IF97('hL_p',steam.press.var./10);        
+        steam.evap_heat.var=(steam.enthalpy.var-steam.enthalpy_liquid.var).*1000; %again, multiply by 1000 so unit is J/kg
+        steam.mflow.var=steam.power.var./steam.evap_heat.var;        
+        steam.vflow.var=steam.mflow.var./steam.density.var;
+        steam.velocity.var=steam.vflow.var./(pi*(0.021/2)^2);  %last term is test tube crossection area
+        
         % steam properties - calculated (some with IAPWS_IF97)
         steam.boiling_point.value=IAPWS_IF97('Tsat_p',steam.press.value/10)-273.15; 
         steam.density.value=1/IAPWS_IF97('v_pT',steam.press.value/10,steam.boiling_point.value+273.15+1);    
@@ -1895,50 +1905,112 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             saveas(h3,pathPrintName,'png')
             close(h3)
             
-            %calculate velocity from pressure drop in NC tank           
-            frontTime=[frontArrivalStart(end),frontArrivalEnd(1)];
-            frontTime=[1,numel(facility.NCtank_temp.var)];
-            volNCtank=0.005; % m3
-            pressTotal=steam.press.var(frontTime(1):frontTime(2)).*10^5;  %10^5 to convert bar to Pa
-            tempSteam=steam.temp.var(frontTime(1):frontTime(2))+273.15; %K
-            pressNCtank=facility.NCtank_press.var(frontTime(1):frontTime(2)).*10^5;  %10^5 to convert bar to Pa
-            tempNCtank=smooth(facility.NCtank_temp.var(frontTime(1):frontTime(2)),100)+273.15;
-            NCtankMoles=pressNCtank.*volNCtank./(tempNCtank.*8.31);  %n=PV/RT
-            molesTube=-(NCtankMoles-max(NCtankMoles));
+            %calculate velocity from pressure drop in NC tank
             
+            %find NC feeding onset            
+            volNCtank=0.005; % m3
+            pressNCtank=facility.NCtank_press.var.*10^5;  %10^5 to convert bar to Pa
+            tempNCtank=smooth(facility.NCtank_temp.var,100)+273.15;
+            NCtankMoles=pressNCtank.*volNCtank./(tempNCtank.*8.31);  %n=PV/RT
+            
+            NCtankDiff=smooth(diff(NCtankMoles),20);
+            %find where moles are falling
+            NCtankDiffMask(NCtankDiff>=0)=0;
+            NCtankDiffMask(NCtankDiff<0)=1;
+            %this require image processing toolbox
+            % Make measurements of lengths of connected "1" regions.
+            measurements = regionprops(logical(NCtankDiffMask), 'Area', 'PixelIdxList');
+            % Sort them to find the longest one.
+            [~, sortIndexes] = sort([measurements.Area], 'Descend');
+            % Get the starting and ending indexes of the largest one.
+            NCfeedStart = measurements(sortIndexes(1)).PixelIdxList(1);
+            if strcmp(file_list,'NC-MFR-ABS-He-4_LEAK')
+                NCfeedStart=820;
+            end
+            
+%             figure
+%             plot(NCtankMoles)
+%             hold on
+%             plot([NCfeedStart NCfeedStart],ylim,'--r')
+            
+           
+            
+            %calculate tube fill with NC gases
+            feedingTime=NCfeedStart:1:numel(steam.press.var);
+            molesTube=-(NCtankMoles-max(NCtankMoles));
+            molesTube=molesTube(NCfeedStart:end);
+            NCdelay=NCfeedStart-frontArrivalStart(end);
+            molesTubewhenstart=molesTube(abs(NCdelay));
+            molesTube=molesTube-molesTubewhenstart;   %dirty trick
+            
+%             figure
+%             plot(molesTube)
+%             title([file_list,' Moles in Tube'],'interpreter', 'none')
             %top is not pure NC gas, assume some residual steam at
             %saturation
-            tempTop=steam.TF9613.var(frontTime(1):frontTime(2))+273.15;
+            pressTotal=steam.press.var(NCfeedStart:end).*10^5;  %10^5 to convert bar to Pa
+            tempSteam=steam.temp.var(NCfeedStart:end)+273.15; %K
+            tempTop=steam.TF9613.var(NCfeedStart:end)+273.15;
             PpartSteamTop=IAPWS_IF97('psat_T',tempTop)*10^6;
             PpartNCTop=pressTotal-PpartSteamTop;
             PpartNCTop(PpartNCTop<0)=0.1;
             tubeFillVol=molesTube.*8.314.*tempSteam./pressTotal;  %V=nRT/P
             moleRatio=PpartNCTop./pressTotal;  %assuming saturation conditions
-            tubeFillVolFixed=tubeFillVol./moleRatio;
-            tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
-            molesPumped=diff(NCtankMoles);
-            
-%             tempTop=steam.TF9613.var(end)+273.15;
-%             PpartSteamTop=IAPWS_IF97('psat_T',tempTop(end))*10^6;
-%             PpartNCTop=pressTotal-PpartSteamTop;
-% %             PpartNCTop(PpartNCTop<0)=0.1;
-%             tubeFillVol=molesTube.*8.314.*tempSteam./pressTotal;  %V=nRT/P
-%             moleRatio=PpartNCTop/pressTotal(end);  %assuming saturation conditions
+%             figure
+%             plot(moleRatio)
+%             title([file_list,' Mole Ratio'],'interpreter', 'none')
 %             tubeFillVolFixed=tubeFillVol./moleRatio;
 %             tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
 %             molesPumped=diff(NCtankMoles);
+            
+%             tempTop=steam.TF9613.var(frontArrivalStart(1))+273.15;
+%             PpartSteamTop=IAPWS_IF97('psat_T',tempTop)*10^6;
+%             PpartNCTop=pressTotal-PpartSteamTop;
+%             PpartNCTop(PpartNCTop<0)=0.1;
+%             tubeFillVol=molesTube.*8.314.*tempSteam./pressTotal;  %V=nRT/P
+%             moleRatio=PpartNCTop/pressTotal(frontArrivalStart(1));  %assuming saturation conditions
+            tubeFillVolFixed=tubeFillVol./moleRatio;
+            tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
+            
+                      
             h4=figure('visible','off');
-            plot(tubeFillLength)
+            plot(feedingTime,tubeFillLength)
             hold on
             sensorPosBackward=-(sensorPos-sensorPos(end))+110; %because we observe last one first, we have to start counting backward
             plot(frontArrivalStart, sensorPosBackward,'x')
+            xlim([frontArrivalStart(end)-10 frontArrivalStart(1)+10])
+            ylim([0 tubeFillLength(frontArrivalStart(1)+10-NCfeedStart)]+10)
             title([file_list,' NC Front advancement in time'],'interpreter', 'none')
             ylabel('NC gas length')
             xlabel('Time [s]')
             legend('NC length based on P drop in NC tank','NC front observed at TC position')
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'];
             saveas(h4,pathPrintName,'png')
-            close(h4)
+%             close(h4)
+
+            %velocity vs front size
+            NCmoleFlow=smooth(diff(molesTube),20);  % pseudo mole over s
+            NCmoleFlowSnapshots=NCmoleFlow(frontArrivalStart-NCfeedStart);
+            steamMoleFlow=steam.mflow.var.*(1000/18.01528);  % times 1000 to move from kg/s to g/s and divide by molar mass of steam to move to moles over second
+            steamMoleFlow=smooth(steamMoleFlow,50);
+            steamMoleFlowSnapshots=steamMoleFlow(frontArrivalStart);
+            moleRatio=steamMoleFlowSnapshots./NCmoleFlowSnapshots;
+            
+            h5=figure('visible','off');
+            title([file_list,' Front Size vs mixture mole ratio'],'interpreter', 'none')
+            subplot(2,1,1)
+            plot(moleRatio,frontSize,'.')
+            xlim([min(moleRatio) max(moleRatio)])   
+            ylabel('Front Size')
+            xlabel('Mole ratio')
+            subplot(2,1,2)
+            plot(steamMoleFlowSnapshots,frontSize,'.')
+            xlim([min(steamMoleFlowSnapshots) max(steamMoleFlowSnapshots)])
+            ylabel('Front Size')
+            xlabel('Steam Moleflow')
+            pathPrintName=[pathPrint,'\',file_list,'_NCFrontSizevsMolarRatio'];
+            saveas(h5,pathPrintName,'png')
+            close(h5)
             
         end
         

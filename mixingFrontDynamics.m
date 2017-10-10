@@ -37,11 +37,17 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     
     
     y_dat_norm=(y_dat-min(y_dat))/max(y_dat-min(y_dat)); %normalize to 0:1 values 
-    high=find(y_dat_norm>0.96);
-    low=find(y_dat_norm<0.1 );
-    layer_start=high(end);
-    tempLow=low(low>layer_start);
-    layer_end=tempLow(1);
+    
+    if strcmp(currSens,'TF9603') && strcmp(file_list,'NC-MFR-ABS-He-4_LEAK')
+        layer_start=854;
+        layer_end=910;
+    else
+        high=find(y_dat_norm>0.96);
+        low=find(y_dat_norm<0.1 );
+        layer_start=high(end);
+        tempLow=low(low>layer_start);
+        layer_end=tempLow(1);
+    end
     
     frontArrivalStart=layer_start;
     frontArrivalEnd=layer_end;

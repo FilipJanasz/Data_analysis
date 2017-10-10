@@ -1,9 +1,9 @@
 clc
 clear all
 
-trimAt=3500;
+trimAt=1300;
 
-file='D:\Data\data4analysis\2016.11.18 Marton Leak Tests\DATA\NC-MFR-ABS-N2-4_LEAK_45.mat';
+file='D:\data\2016.11.18 ContInj\DATA\NC-MFR-ABS-He-4_LEAK.mat';
 
 data=load(file);
 

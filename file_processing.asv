@@ -1983,8 +1983,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                     fullFront(frontCntr)=0;
                     frontSizeMod(frontCntr)=NCfrontPosition(frontCntr);
                     deadZoneSize(frontCntr)=0;
-                    a(frontCntr)=NCfrontPosition(frontCntr)/NCfrontSize(frontCntr)*(tempSteam(frontCntr)-tempTop(frontArrivalEnd(1)));
-                    deadZoneTemp(frontCntr)=tempSteam(frontCntr)-NCfrontPosition(frontCntr)/NCfrontSize(frontCntr)*(tempSteam(frontCntr)-tempTop(frontArrivalEnd(1)));
+                    deadZoneTemp(frontCntr)=frontSizeMod(frontCntr)
                 else
                     fullFront(frontCntr)=1;
                     frontSizeMod(frontCntr)=NCfrontSize(frontCntr);

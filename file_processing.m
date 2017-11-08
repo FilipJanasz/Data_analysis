@@ -1179,22 +1179,30 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %==================================================================================================================
         %geometry - vertical distribution of sensors
         if MP_flag
-            distributions.MP_forward_temp.position_y=ones(length(distributions.MP_forward_temp.value.cal),1)*(360+27.5);      
-            distributions.MP_backward_temp.position_y=ones(length(distributions.MP_backward_temp.value.cal),1)*(360+27.5);
-            distributions.MP_forward_temp_smooth.position_y=ones(length(distributions.MP_forward_temp_smooth.value.cal),1)*(360+27.5);
-            distributions.MP_backward_temp_smooth.position_y=ones(length(distributions.MP_backward_temp_smooth.value.cal),1)*(360+27.5);
-            distributions.MP_forward_partpress_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);    
-            distributions.MP_backward_partpress_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);
-            distributions.MP_forward_molefr_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);    
-            distributions.MP_backward_molefr_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);
-            distributions.MP_forward_MP1.position_y=ones(length(distributions.MP_forward_MP1.value),1)*(360+27.5); 
-            distributions.MP_forward_MP2.position_y=ones(length(distributions.MP_forward_MP2.value),1)*(360+27.5); 
-            distributions.MP_forward_MP3.position_y=ones(length(distributions.MP_forward_MP3.value),1)*(360+27.5); 
-            distributions.MP_forward_MP4.position_y=ones(length(distributions.MP_forward_MP4.value),1)*(360+27.5); 
-            distributions.MP_backward_MP1.position_y=ones(length(distributions.MP_backward_MP1.value),1)*(360+27.5); 
-            distributions.MP_backward_MP2.position_y=ones(length(distributions.MP_backward_MP2.value),1)*(360+27.5); 
-            distributions.MP_backward_MP3.position_y=ones(length(distributions.MP_backward_MP3.value),1)*(360+27.5); 
-            distributions.MP_backward_MP4.position_y=ones(length(distributions.MP_backward_MP4.value),1)*(360+27.5); 
+            
+            if forward_flag
+                distributions.MP_forward_temp.position_y=ones(length(distributions.MP_forward_temp.value.cal),1)*(360+27.5);
+                distributions.MP_forward_temp_smooth.position_y=ones(length(distributions.MP_forward_temp_smooth.value.cal),1)*(360+27.5);
+                distributions.MP_forward_partpress_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);  
+                distributions.MP_forward_molefr_h2o.position_y=ones(length(distributions.MP_forward_partpress_h2o.value.cal),1)*(360+27.5);    
+
+                distributions.MP_forward_MP1.position_y=ones(length(distributions.MP_forward_MP1.value),1)*(360+27.5); 
+                distributions.MP_forward_MP2.position_y=ones(length(distributions.MP_forward_MP2.value),1)*(360+27.5); 
+                distributions.MP_forward_MP3.position_y=ones(length(distributions.MP_forward_MP3.value),1)*(360+27.5); 
+                distributions.MP_forward_MP4.position_y=ones(length(distributions.MP_forward_MP4.value),1)*(360+27.5); 
+            end
+            
+            if backward_flag
+                distributions.MP_backward_temp.position_y=ones(length(distributions.MP_backward_temp.value.cal),1)*(360+27.5);
+                distributions.MP_backward_temp_smooth.position_y=ones(length(distributions.MP_backward_temp_smooth.value.cal),1)*(360+27.5);           
+                distributions.MP_backward_partpress_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);           
+                distributions.MP_backward_molefr_h2o.position_y=ones(length(distributions.MP_backward_partpress_h2o.value.cal),1)*(360+27.5);
+
+                distributions.MP_backward_MP1.position_y=ones(length(distributions.MP_backward_MP1.value),1)*(360+27.5); 
+                distributions.MP_backward_MP2.position_y=ones(length(distributions.MP_backward_MP2.value),1)*(360+27.5); 
+                distributions.MP_backward_MP3.position_y=ones(length(distributions.MP_backward_MP3.value),1)*(360+27.5); 
+                distributions.MP_backward_MP4.position_y=ones(length(distributions.MP_backward_MP4.value),1)*(360+27.5); 
+            end
             
             %centerline geometry
             distributions.centerline_temp.position_y=[220 320 420 520 620 670 720 820 920 1020 1120 1220];
@@ -1962,37 +1970,37 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             tubeFillVol=molesTubefixed.*8.314.*tempSteam./pressTotal;  %V=nRT/P
             
             %Complicated way
-            frontThickfit=fit(frontArrivalStart',frontSize','poly1');           
-            NCfrontSize=frontThickfit(feedingTime);
-%             figure
-%             hold on
-%             plot(frontThickfit, frontArrivalStart',frontSize')
-%             plot(feedingTime,NCfrontThickness )
-
-            %counting from top of the tube
-            sensorPosfromTop=abs(sensorPos-1120)+110;
-            frontPosfit=fit(frontArrivalStart',sensorPosfromTop','poly1'); 
-            NCfrontPosition=frontPosfit(feedingTime);
-%             figure
-%             hold on
-%             plot(frontPosfit, frontArrivalStart,sensorPosfromTop)
-%             plot(feedingTime,NCfrontPosition)
-            
-            for frontCntr=1:numel(NCfrontSize)
-                if NCfrontPosition(frontCntr)<NCfrontSize(frontCntr)
-                    fullFront(frontCntr)=0;
-                    frontSizeMod(frontCntr)=NCfrontPosition(frontCntr);
-                    deadZoneSize(frontCntr)=0;
-                    a(frontCntr)=NCfrontPosition(frontCntr)/NCfrontSize(frontCntr)*(tempSteam(frontCntr)-tempTop(frontArrivalEnd(1)));
-                    deadZoneTemp(frontCntr)=tempSteam(frontCntr)-NCfrontPosition(frontCntr)/NCfrontSize(frontCntr)*(tempSteam(frontCntr)-tempTop(frontArrivalEnd(1)));
-                else
-                    fullFront(frontCntr)=1;
-                    frontSizeMod(frontCntr)=NCfrontSize(frontCntr);
-                    deadZoneSize(frontCntr)=NCfrontPosition(frontCntr)-frontSizeMod(frontCntr);
-                    deadZoneTemp(frontCntr)=tempTop(frontCntr);
-                end
-            end
-
+            %--------------------------------------------------------------------------------------------------------------------------------------------------------
+%             frontThickfit=fit(frontArrivalStart',frontSize','poly1');           
+%             NCfrontSize=frontThickfit(feedingTime);
+% %             figure
+% %             hold on
+% %             plot(frontThickfit, frontArrivalStart',frontSize')
+% %             plot(feedingTime,NCfrontThickness )
+% 
+%             %counting from top of the tube
+%             sensorPosfromTop=abs(sensorPos-1120)+110;
+%             frontPosfit=fit(frontArrivalStart',sensorPosfromTop','poly1'); 
+%             NCfrontPosition=frontPosfit(feedingTime);
+% %             figure
+% %             hold on
+% %             plot(frontPosfit, frontArrivalStart,sensorPosfromTop)
+% %             plot(feedingTime,NCfrontPosition)
+%             
+%             for frontCntr=1:numel(NCfrontSize)
+%                 if NCfrontPosition(frontCntr)<NCfrontSize(frontCntr)
+%                     fullFront(frontCntr)=0;
+%                     frontSizeMod(frontCntr)=NCfrontPosition(frontCntr);
+%                     deadZoneSize(frontCntr)=0;
+%                     deadZoneTemp(frontCntr)=tempSteam(frontCntr)-NCfrontPosition(frontCntr)/NCfrontSize(frontCntr)*(tempSteam(frontCntr)-tempTop(frontArrivalEnd(1)));
+%                 else
+%                     fullFront(frontCntr)=1;
+%                     frontSizeMod(frontCntr)=NCfrontSize(frontCntr);
+%                     deadZoneSize(frontCntr)=NCfrontPosition(frontCntr)-frontSizeMod(frontCntr);
+%                     deadZoneTemp(frontCntr)=tempTop(frontCntr);
+%                 end
+%             end
+            %------------------------------------------------------------------------------------------------------------------------------------------------
             %Based on last measurement only
 %             tempSteam=steam.temp.var(frontArrivalStart(1))+273.15; %K
 %             tempTop=steam.TF9613.var(frontArrivalStart(1))+273.15;
@@ -2005,7 +2013,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             tubeFillVol=molesTubefixed.*8.314.*tempSteam./pressTotal;  %V=nRT/P
             
             %
-            tubeFillLength=tubeFillVolFixed./(pi*0.01^2)*1000;  % to mm
+            tubeFillLength=tubeFillVol./(pi*0.01^2)*1000;  % to mm
             
                       
             h4=figure('visible','off');

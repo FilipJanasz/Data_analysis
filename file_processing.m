@@ -432,7 +432,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
             
             % from dT (0.003 is distance between thermocouples in mm)
-            GHFS_wall_htc=2*15/(0.023*log(0.03/0.023));
+            currTc=steel_316L_thermcond(mean(GHFS.GHFS1_temp.var));
+            GHFS_wall_htc=2*currTc/(0.023*log(0.03/0.023));
             GHFS.wall_heatflux_GHFS1.var=GHFS.wall_dT_GHFS1.var.*GHFS_wall_htc;
             GHFS.wall_heatflux_GHFS2.var=GHFS.wall_dT_GHFS2.var.*GHFS_wall_htc;
             GHFS.wall_heatflux_GHFS3.var=GHFS.wall_dT_GHFS3.var.*GHFS_wall_htc;
@@ -558,7 +559,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.wall_htc.value=2*15/(0.02*log(0.03/0.02));
         facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
         facility.wall_heatflow_dT.value=facility.wall_heatflux_dT.value*2*pi*0.021/2*1;  %last term is inner wall area of the test tube
-        facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*1.3); %delivered power over tube area
+        
         %         facility.voltage.value=mean(facility.voltage.var);
         facility.current.value=mean(facility.current.var);
         facility.NCtank_press.value=mean(facility.NCtank_press.var);
@@ -1490,6 +1491,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);      
         % and based on deduced amount of NC moles from temeprature measurements
         NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_est.value,eos_type);      
+        
+        
+%         facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*1.3); %delivered power over tube area
+        facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*(1.3-NC.length_est.value)); %delivered power over tube area
         
         %errors
         NC.N2_molefraction_init.error=NC.N2_molefraction.error;

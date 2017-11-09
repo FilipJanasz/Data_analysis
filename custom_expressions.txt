@@ -13,3 +13,6 @@ NC.N2_molefraction_init.value+NC.He_molefraction_init.value handles.NC(x).N2_mol
 NC.length_init.value/NC.length_est.value handles.NC(x).length_init.value/handles.NC(x).length_est.value 
 NC.moles_total_est.value/NC.moles_total_init.value handles.NC(x).moles_total_est.value/handles.NC(x).moles_total_init.value 
 NC.moles_total_init.value-NC.moles_total_est.value handles.NC(x).moles_total_init.value-handles.NC(x).moles_total_est.value 
+1.3-NC.length_est.value 1.3-handles.NC(x).length_est.value 
+1.6-NC.length_est.value 1.6-handles.NC(x).length_est.value 
+abs(GHFS.GHFS1_offset_raw.value)/facility.wall_heatflux_powerbased.value abs(handles.GHFS(x).GHFS1_offset_raw.value)/handles.facility(x).wall_heatflux_powerbased.value 

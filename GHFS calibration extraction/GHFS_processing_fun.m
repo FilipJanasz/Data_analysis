@@ -60,7 +60,7 @@ function [file,data]=GHFS_processing_fun(file_list,directory)
         file.directory=directory;
         
         %transfer data to final struct
-        for variable=vars_list;
+        for variable=vars_list
             curr_var=variable{1};
             data.(curr_var).var=temp.(curr_var);
         end

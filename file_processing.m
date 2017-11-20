@@ -1888,9 +1888,34 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             %resample front data to fit virtual length coordinates
             h3=figure('visible','off');
             hold on
+%             h4=figure('visible','off');
+%             hold on
             
             for frontCntr=1:numel(frontSize)
+                
+                %get stds of front
+                frontStd(frontCntr)=mean(movstd(frontDataTime{frontCntr},round(numel(frontDataTime{frontCntr})/20)));%/mean(frontDataTime{frontCntr}));
+                
+%                 %fft
+%                 Y=fft(frontDataTime{frontCntr});
+%                 Fs = 10;                                     % Sampling frequency                    
+%                 T = 1/Fs;                                   % Sampling period       
+%                 L = numel(frontDataTime{frontCntr});        % Length of signal
+%                 t = (0:L-1)*T;  
+%                 P2 = abs(Y/L);
+%                 P1 = P2(1:L/2+1);
+%                 P1(2:end-1) = 2*P1(2:end-1);
+%                 %Define the frequency domain f and plot the single-sided amplitude spectrum P1. The amplitudes are not exactly at 0.7 and 1, as expected, because of the added noise. On average, longer signals produce better frequency approximations.
+% 
+%                 f = Fs*(0:(L/2))/L;
+%                 set(0, 'CurrentFigure', h4)
+%                 plot(f,P1) 
+%                 title('Single-Sided Amplitude Spectrum of X(t)')
+%                 xlabel('f (Hz)')
+%                 ylabel('|P1(f)|')
+
                 %add padding to get right of edge effects
+                set(0, 'CurrentFigure', h3)
                 x=frontDataTime{frontCntr}';
                 padding=30;
                 dataPad=[repmat(x(1), 1, padding), x, repmat(x(end), 1, padding) ];
@@ -1915,6 +1940,21 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             ylabel('Temp')
             xlabel('Size [mm]')
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontLENGTH'];
+            saveas(h3,pathPrintName,'png')
+            close(h3)
+            
+%             pathPrintName=[pathPrint,'\',file_list,'_NCFrontFFT'];
+%             saveas(h4,pathPrintName,'png')
+%             close(h4)
+            
+            h3=figure('visible','off');
+            hold on
+            plot(frontStd,'.');
+%             legend(sensorList)
+            title([file_list,' NC Front norm std'],'interpreter', 'none')
+            ylabel('Norm std')
+            xlabel('sensor')
+            pathPrintName=[pathPrint,'\',file_list,'_NCFrontStd'];
             saveas(h3,pathPrintName,'png')
             close(h3)
             
@@ -2048,17 +2088,30 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             title([file_list,' Front Size vs mixture mole ratio'],'interpreter', 'none')
             subplot(2,1,1)
             plot(moleRatio,frontSize,'.')
-            xlim([min(moleRatio) max(moleRatio)])   
+            xlim(-[min(moleRatio) max(moleRatio)])   
             ylabel('Front Size')
             xlabel('Mole ratio')
             subplot(2,1,2)
             plot(steamMoleFlowSnapshots,frontSize,'.')
             xlim([min(steamMoleFlowSnapshots) max(steamMoleFlowSnapshots)])
+            
+            fitParam=polyfit(steamMoleFlowSnapshots,frontSize',1);
+            txt1=['y = ',num2str(fitParam(1)),' * x + ',num2str(fitParam(2))];
+            yL=get(gca,'YLim'); 
+            xL=get(gca,'XLim');   
+            text((xL(1)+xL(2))/2,yL(2),txt1,...
+              'HorizontalAlignment','left',...
+              'VerticalAlignment','top',...
+              'BackgroundColor',[1 1 1],...
+              'FontSize',12);
+            
             ylabel('Front Size')
             xlabel('Steam Moleflow')
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontSizevsMolarRatio'];
             saveas(h5,pathPrintName,'png')
             close(h5)
+            
+            %front std's
             
         end
         

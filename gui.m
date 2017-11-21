@@ -313,16 +313,30 @@ function reprocess_btn_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function load_RELAP_dat_Callback(hObject, eventdata, handles)
 
-    clear RELAP_dat
-    RELAP_dat=load_relap(handles);
-    handles.RELAP=RELAP_dat;
-    assignin('base','RELAP',handles.RELAP)
+    clear RELAP_dat_primary RELAP_dat_secondary 
+    [RELAP_datPrimary,RELAP_datSecondary,RELAP_datExt]=load_relap(handles);
+    handles.RELAP_primary=RELAP_datPrimary;
+    handles.RELAP_secondary=RELAP_datSecondary;
+    handles.RELAP_ext=RELAP_datExt;
+    assignin('base','RELAP_primary',handles.RELAP_primary)
+    assignin('base','RELAP_secondary',handles.RELAP_secondary)
+    assignin('base','RELAP_ext',handles.RELAP_ext)
     
     vars=handles.popupmenu_x_axis.String;
     
-    if isempty(find(strcmp(vars,'RELAP'), 1))
-        vars{end+1}='RELAP';        
+    if isempty(find(strcmp(vars,'RELAP_primary'), 1))
+        vars{end+1}='RELAP_primary';        
     end
+    
+    if isempty(find(strcmp(vars,'RELAP_secondary'), 1))
+        vars{end+1}='RELAP_secondary';        
+    end
+    
+    if isempty(find(strcmp(vars,'RELAP_ext'), 1))
+        vars{end+1}='RELAP_ext';        
+    end
+    
+    
     
     handles.popupmenu_x_axis.String=vars;
     handles.popupmenu_y_axis.String=vars;
@@ -1376,7 +1390,7 @@ function toolbar_init_ClickedCallback(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function relap_ClickedCallback(hObject, eventdata, handles)
-    addpath('D:\Data\Relap5\2016ClosedTubeSimulator')
+    addpath('D:\Data\Relap5\2017ClosedTubeSimulator')
     RelapGUI;
 
 % --- Executes on button press in stdev_checkbox.

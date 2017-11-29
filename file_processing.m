@@ -963,7 +963,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP3.var=MP_Temp_averaged.backward(:,7);
                 distributions.MP_backward_MP4.var=MP_Temp_averaged.backward(:,8);
             end 
-            short_flag=0;
         end
           
         %centerline - 3 options are for legacy data file structure from
@@ -974,11 +973,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
             try
                 distributions.centerline_temp.var=[calibratedData.TCH1_1F,MP.Temp.var,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
-                short_flag=0;
                 centerline_flag=1;
             catch
                 distributions.centerline_temp.var=[calibratedData.TCH1_1F,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
-                short_flag=1;
                 centerline_flag=1;
             end
         end
@@ -1046,7 +1043,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP3.std=MP_Temp_averaged.backward(:,11);
                 distributions.MP_backward_MP4.std=MP_Temp_averaged.backward(:,12);
             end 
-            short_flag=0;
         end
           
         %centerline - 3 options are for legacy data file structure from
@@ -1057,11 +1053,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
             try
                 distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),MP.Temp.value,mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
-                short_flag=0;
                 centerline_flag=1;
             catch
                 distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
-                short_flag=1;
                 centerline_flag=1;
             end
         end
@@ -1204,15 +1198,18 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP3.position_y=ones(length(distributions.MP_backward_MP3.value),1)*(360+27.5); 
                 distributions.MP_backward_MP4.position_y=ones(length(distributions.MP_backward_MP4.value),1)*(360+27.5); 
             end
-            
+                       
+        end
+        
+        if numel(distributions.centerline_temp.value.cal)==12
             %centerline geometry
             distributions.centerline_temp.position_y=[220 320 420 520 620 670 720 820 920 1020 1120 1220];
             distributions.GHFS_TC.position_y=[220 420 670 920];  %position of sensors in mm
-        else
-            if short_flag
-                distributions.centerline_temp.position_y=[210+27.5 360+27.5 733+27.5 1035+27.5];
-            else
+        else             
+            if numel(distributions.centerline_temp.value.cal)==5 
                 distributions.centerline_temp.position_y=[210+27.5 360+27.5 431+27.5 733+27.5 1035+27.5];
+            else
+                distributions.centerline_temp.position_y=[210+27.5 360+27.5 733+27.5 1035+27.5];
             end
             distributions.GHFS_TC.position_y=[210+27.5 431+27.5 733+27.5 1035+27.5];  %position of sensors in mm
         end

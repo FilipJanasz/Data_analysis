@@ -1488,3 +1488,36 @@ function editfilterPushbutton_Callback(hObject, eventdata, handles)
 function selectallPushbutton_Callback(hObject, eventdata, handles)
     allFiles=numel(handles.plot_exclude.String);
     handles.plot_exclude.Value=1:1:allFiles;
+
+
+% --------------------------------------------------------------------
+function writeCFD_Callback(hObject, eventdata, handles)
+
+if ~isfield(handles,'steam')
+    msgbox('No data to write Fluent BC''s. Load data first!')
+    return
+end
+for n=1:numel(handles.steam)
+    steamFlow(n)=handles.steam(n).mflow.value;
+    steamTemp(n)=handles.steam(n).temp.value;
+    clntFlow(n)=handles.coolant(n).mflow.value;
+    clntTemp(n)=handles.coolant(n).temp_inlet.value;
+    clntPress(n)=handles.coolant(n).press.value;
+    initPress(n)=handles.steam(n).press_init.value;
+    initN2(n)=handles.NC(n).N2_molefraction_init.value;
+    initHe(n)=handles.NC(n).He_molefraction_init.value;
+    
+    fid=fopen(['D:\CFD\Inputs\',handles.file(n).name,'_FluentBC'],'w');
+    fprintf(fid,'Steam flow \t\t\t %f \n',steamFlow(n)/(2*pi));
+    fprintf(fid,'Stean temp \t\t\t %f \n',steamTemp(n)+273.15);
+    fprintf(fid,'Coolant flow \t\t %f \n',clntFlow(n)/(2*pi));
+    fprintf(fid,'Coolant temp \t\t %f \n',clntTemp(n)+273.15);
+    fprintf(fid,'Coolant press \t\t %f \n',clntPress(n)*10000);
+    fprintf(fid,'Init press \t\t\t %f \n',initPress(n)*10000);
+    fprintf(fid,'Init N2 \t\t\t %f \n',initN2(n));
+    fprintf(fid,'Init He \t\t\t %f \n',initHe(n));
+    fclose(fid);
+
+end
+% writeCFD(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,initPress,initN2,initHe)
+disp('Done')

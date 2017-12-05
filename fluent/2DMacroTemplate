@@ -5,8 +5,8 @@
 	/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.5 n 400 n 0 y n 1 n 0 n n y 5 10 y
 	/solve/monitors/surface/clear-monitors
 	/solve/monitors/volume/clear-monitors
-	/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 5 () n n yes \"/home/janasz_f/xxx/udm4.out\" 1 n flow-time
-	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure 13 () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/xxx/udm4.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure coolant () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
 	/solve/initialize/initialize-flow
 	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
 	/solve/initialize/initialize-flow ok

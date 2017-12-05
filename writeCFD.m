@@ -36,8 +36,8 @@ function writeCFD(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,clntVel,initPr
         temp{16}=['/solve/patch coolant () x-velocity n ',ctVel];   
         
         %define monitors
-        temp{8}=['/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 5 () n n yes \"/home/janasz_f/',fileName{n},'/udm4.out\" 1 n flow-time'];
-        temp{9}=['/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure 13 () n n yes \"/home/janasz_f/',fileName{n},'/press.out\" 1 n flow-time'];
+        temp{8}=['/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/',fileName{n},'/udm4.out\" 1 n flow-time'];
+        temp{9}=['/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure coolant () n n yes \"/home/janasz_f/',fileName{n},'/press.out\" 1 n flow-time'];
         
         %define storage and autosave
         temp{17}=['/file/write-case \"/home/janasz_f/',fileName{n},'/',fileName{n},'.cas\" ok'];

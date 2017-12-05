@@ -1,0 +1,21 @@
+(cx-macro-define
+ '( (runmacr . "
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30k.cas\" ok
+	/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00015 n 429 n 0 y n 1 n 0 n n y 5 10 n n 1 y
+	/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.5 n 400 n 0 y n 1 n 0 n n y 5 10 y
+	/solve/monitors/surface/clear-monitors
+	/solve/monitors/volume/clear-monitors
+	/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 5 () n n yes \"/home/janasz_f/xxx/udm4.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure 13 () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/initialize/initialize-flow
+	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+	/solve/initialize/initialize-flow ok
+	/solve/patch steam () species-0 0.95
+	/define/operating-conditions/operating-pressure 2801.1
+	/solve/patch coolant () pressure 600000
+	/solve/patch coolant () x-velocity n 0.1
+	/file/write-case \"/home/janasz_f/xxx/yyy.cas\" ok
+	/file/auto-save/root-name \"yyy\"
+	/solve/dual-time-iterate 36000 20 n ok n ok n ok 
+	")
+   ))

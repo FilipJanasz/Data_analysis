@@ -1,0 +1,30 @@
+(cx-macro-define
+ '( (runmacr . "
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30k.cas\" ok
+/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00013732 n 429.4717 n 0 y n 1 n 0 n n y 5 10 n n 1 y
+/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.081421 n 409.8058 n 0 y n 1 n 0 n n y 5 10 y
+	/solve/monitors/surface/clear-monitors
+	/solve/monitors/volume/clear-monitors
+/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/NC-MFR-ABS-N2-6_0/udm4.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/NC-MFR-ABS-N2-6_0/press.out\" 1 n flow-time
+(rp-var-define 'cttemp 409.8058 'real #f)
+(rp-var-define 'steamtemp 429.4717 'real #f)
+	/solve/initialize/initialize-flow
+	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+	/solve/initialize/initialize-flow ok
+/solve/patch steam () species-0 1
+/define/operating-conditions/operating-pressure 96.7471
+/solve/patch coolant () pressure 63699.5839
+/solve/patch coolant () x-velocity n 0.063721
+/file/write-case \"/home/janasz_f/NC-MFR-ABS-N2-6_0/NC-MFR-ABS-N2-6_0.cas\" ok
+/file/auto-save/root-name \"/home/janasz_f/NC-MFR-ABS-N2-6_0/NC-MFR-ABS-N2-6_0.cas\"
+	/solve/dual-time-iterate 1000 20 n ok n ok 
+	/solve/set/time-step 1
+	/solve/dual-time-iterate 3500 20 y y 
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_0/h2o_centerline\" yes n n h2o y 1 0 symmetry ()
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_0/temp_centerline\" yes n n temperature y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_0/temp_wall\" yes n n temperature y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_0/h2o_wall\" y n n h2o y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_0/udm4_wall\" y n n udm-4 y 1 0 steam_tube ()
+	")
+   ))

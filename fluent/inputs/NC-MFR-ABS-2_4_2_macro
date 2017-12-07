@@ -1,0 +1,31 @@
+(cx-macro-define
+ '( (runmacr . "
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30k.cas\" ok
+/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.0001113 n 416.6159 n 0 y n 1 n 0 n n y 5 10 n n 1 y
+/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.082602 n 394.5598 n 0 y n 1 n 0 n n y 5 10 y
+	/solve/monitors/surface/clear-monitors
+	/solve/monitors/volume/clear-monitors
+/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/NC-MFR-ABS-2_4_2/udm4.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/NC-MFR-ABS-2_4_2/press.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"/home/janasz_f/NC-MFR-ABS-2_4_2/h2o.out\" 1 n flow-time
+(rp-var-define 'cttemp 394.5598 'real #f)
+(rp-var-define 'steamtemp 416.6159 'real #f)
+	/solve/initialize/initialize-flow
+	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+	/solve/initialize/initialize-flow ok
+/solve/patch steam () species-0 0.13359
+/define/operating-conditions/operating-pressure 1546.21
+/solve/patch coolant () pressure 39327.324
+/solve/patch coolant () x-velocity n 0.063758
+/file/write-case \"/home/janasz_f/NC-MFR-ABS-2_4_2/NC-MFR-ABS-2_4_2.cas\" ok
+/file/auto-save/root-name \"/home/janasz_f/NC-MFR-ABS-2_4_2/NC-MFR-ABS-2_4_2.cas\"
+	/solve/dual-time-iterate 1000 20 n ok n ok 
+	/solve/set/time-step 1
+	/solve/dual-time-iterate 3500 20 y y 
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-2_4_2/h2o_centerline\" yes n n h2o y 1 0 symmetry ()
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-2_4_2/temp_centerline\" yes n n temperature y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-2_4_2/temp_wall\" yes n n temperature y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-2_4_2/h2o_wall\" y n n h2o y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-2_4_2/udm4_wall\" y n n udm-4 y 1 0 steam_tube ()
+	")
+   ))

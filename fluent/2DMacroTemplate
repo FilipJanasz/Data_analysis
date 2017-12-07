@@ -6,7 +6,10 @@
 	/solve/monitors/surface/clear-monitors
 	/solve/monitors/volume/clear-monitors
 	/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/xxx/udm4.out\" 1 n flow-time
-	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure coolant () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	(rp-var-define 'cttemp 408 'real #f)
+	(rp-var-define 'steamtemp 500 'real #f)
 	/solve/initialize/initialize-flow
 	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
 	/solve/initialize/initialize-flow ok
@@ -16,6 +19,13 @@
 	/solve/patch coolant () x-velocity n 0.1
 	/file/write-case \"/home/janasz_f/xxx/yyy.cas\" ok
 	/file/auto-save/root-name \"yyy\"
-	/solve/dual-time-iterate 36000 20 n ok n ok n ok 
+	/solve/dual-time-iterate 1000 20 n ok n ok 
+	/solve/set/time-step 1
+	/solve/dual-time-iterate 3500 20 y y 
+	/plot/plot/plot n \"xxx\" yes n n h2o y 1 0 symmetry () 
+	/plot/plot/plot n \"xxx\" yes n n temperature y 1 0 symmetry () 
+	/plot/plot n \"xxxz\" yes n n temperature y 1 0 steam_tube () 
+	/plot/plot n \"xxxddd\" y n n temperature y 1 0 steam_tube () 
+	/plot/plot n \"xxxgghg\" y n n udm-4 y 1 0 steam_tube ()
 	")
    ))

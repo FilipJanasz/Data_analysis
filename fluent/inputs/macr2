@@ -1,0 +1,18 @@
+(cx-macro-define
+'( (master . "
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_1_5_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_1_5_2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_2_2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_2_5_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_2_5v2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_3_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-N2-6_4_macro\"
+/file/execute-macro runmacr
+")
+))

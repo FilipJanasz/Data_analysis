@@ -1,38 +1,32 @@
 (cx-macro-define
 '( (master . "
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_4-HF_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-1_v1_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_4-LF_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-1_v1real_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_4_2_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-1_v2_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_5_4-HF1_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-1_v2real_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_5_4-LF1_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-1_v3_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-1_5_4-LF2_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-2_v1_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-2_4_1_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-2_v3_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-2_4_2_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-3_v1_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-2_5_4_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-3_v2_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-2_5_4_2_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-4_v1_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-3_4_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-4_v2_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-3_4_2_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-5_v1_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-4_4_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-5_v1real_macro\"
 /file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-4_4_2_macro\"
-/file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-5_4_macro\"
-/file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-5_4_2_macro\"
-/file/execute-macro runmacr
-/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-6_4_macro\"
+/file/read-macro \"/home/janasz_f/macros/NC-CMP-5_v2real_macro\"
 /file/execute-macro runmacr
 ")
 ))

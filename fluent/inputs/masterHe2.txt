@@ -1,0 +1,22 @@
+(cx-macro-define
+'( (master . "
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_2_3v2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_2_4_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_2_5_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_2_5_2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_2_5_2v2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_3_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_3_2_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_4_macro\"
+/file/execute-macro runmacr
+/file/read-macro \"/home/janasz_f/macros/NC-MFR-ABS-He-4_5_macro\"
+/file/execute-macro runmacr
+")
+))

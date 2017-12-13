@@ -1,0 +1,34 @@
+(cx-macro-define
+ '( (runmacr . "
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30kHe.cas\" ok
+/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 9.6594e-05 n 416.6159 n 0 y n 1 n 0 n n y 5 10 n n 1 n 0 y 
+/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.082778 n 391.8542 n 0 y n 1 n 0 n n y 5 10 y
+	/solve/monitors/surface/clear-monitors
+	/solve/monitors/volume/clear-monitors
+/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/udm4.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/press.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/h2o.out\" 1 n flow-time
+(rp-var-define 'cttemp 391.8542 'real #f)
+(rp-var-define 'steamtemp 416.6159 'real #f)
+	/solve/initialize/initialize-flow
+	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+	/solve/initialize/initialize-flow ok
+/solve/patch steam () species-0 0.090037
+/solve/patch steam () species-1 0.089383
+/define/operating-conditions/operating-pressure 3714.66
+/solve/patch coolant () pressure 34763.2771
+/solve/patch coolant () x-velocity n 0.063744
+/file/write-case \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/NC-MFR-ABS-He-4_2_5.cas\" ok
+/file/auto-save/root-name \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/NC-MFR-ABS-He-4_2_5.cas\"
+	/solve/dual-time-iterate 1000 20 n ok n ok 
+	/solve/set/time-step 1
+	/solve/dual-time-iterate 3500 20 y y 
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/h2o_centerline.txt\" yes n n h2o y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/temp_centerline.txt\" yes n n temperature y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/temp_wall.txt\" yes n n temperature y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/h2o_wall.txt\" y n n h2o y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/udm4_wall.txt\" y n n udm-4 y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/N2_wall.txt\" y n n n2 y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-He-4_2_5/N2_centerline.txt\" y n n n2 y 1 0 symmetry ()
+	")
+   ))

@@ -1,7 +1,7 @@
 (cx-macro-define
  '( (runmacr . "
-	/file/read-case \"/home/janasz_f/2017_2D_template/template30k.cas\" ok
-	/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00015 n 429 n 0 y n 1 n 0 n n y 5 10 n n 1 y
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30kHe.cas\" ok
+	/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00015 n 429 n 0 y n 1 n 0 n n y 5 10 n n 1 n 0 y 
 	/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.5 n 400 n 0 y n 1 n 0 n n y 5 10 y
 	/solve/monitors/surface/clear-monitors
 	/solve/monitors/volume/clear-monitors
@@ -14,6 +14,7 @@
 	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
 	/solve/initialize/initialize-flow ok
 	/solve/patch steam () species-0 0.95
+	/solve/patch steam () species-1 0.95
 	/define/operating-conditions/operating-pressure 2801.1
 	/solve/patch coolant () pressure 600000
 	/solve/patch coolant () x-velocity n 0.1
@@ -25,7 +26,9 @@
 	/plot/plot n \"xxx\" yes n n h2o y 1 0 symmetry () 
 	/plot/plot n \"xxx\" yes n n temperature y 1 0 symmetry () 
 	/plot/plot n \"xxxz\" yes n n temperature y 1 0 steam_tube () 
-	/plot/plot n \"xxxddd\" y n n temperature y 1 0 steam_tube () 
-	/plot/plot n \"xxxgghg\" y n n udm-4 y 1 0 steam_tube ()
+	/plot/plot n \"xxxddd\" y n n temperature y 1 0 steam_tube ()
+	/plot/plot n \"xxxddd\" y n n udm-4 y 1 0 steam_tube ()	
+	/plot/plot n \"xxxgghg\" y n n n2 y 1 0 steam_tube ()
+	/plot/plot n \"xxxgghg\" y n n n2 y 1 0 symmetry ()
 	")
    ))

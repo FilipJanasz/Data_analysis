@@ -1521,7 +1521,7 @@ function cfdGen_ClickedCallback(hObject, eventdata, handles)
     %     fclose(fid);
 
 end
-writeCFD(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,clntVel,initPress,initN2,initHe,fileName)
+writeCFDHe(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,clntVel,initPress,initN2,initHe,fileName)  %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 msgbox('Fluent input macros for currently loaded files succesfully created')
 
 
@@ -1563,9 +1563,9 @@ function cfdRead_ClickedCallback(hObject, eventdata, handles)
     handles.popupmenu_x_axis_var.Value=1;
     handles.popupmenu_y_axis_var.Value=1;
 % 
-%     %update variables popupmenus
-%     handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));    %the () around vars{1} allows for dynamic field name usage
-%     handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
+    %update variables popupmenus
+    handles.popupmenu_x_axis_var.String=fieldnames(handles.(vars{1}));    %the () around vars{1} allows for dynamic field name usage
+    handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
 %     
 %     %update data selector listbox
 %     file_list={handles.file(1:end).name};

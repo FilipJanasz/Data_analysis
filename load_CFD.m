@@ -1,7 +1,7 @@
 function [CFD_time,CFD_dist]=load_CFD(handles)
      try   
-        default_dir='D:\CFD\Results';
-
+%         default_dir='D:\CFD\Results';
+        default_dir=uigetdir('D:\CFD');
         try
             %find files based on characteristic
             [directoryTime, file_listTime]=fileFinder('.out',1,default_dir,0);    % files with time-resolved data        
@@ -36,7 +36,7 @@ function [CFD_time,CFD_dist]=load_CFD(handles)
                 elseif contains(currFile,'press')
                     timeVar=timeVar./100000;  
                 elseif contains(currFile,'udm4')
-                    timeVar=-timeVar;  
+                    timeVar=-timeVar.*(2*pi);  
                 end
                 
                 CFD_time(dirCnt).(currFile).var=timeVar;
@@ -61,7 +61,7 @@ function [CFD_time,CFD_dist]=load_CFD(handles)
                 elseif contains(currFile,'press')
                     distribution=distribution./100000;
                 elseif contains(currFile,'udm4')
-                    timeVar=-timeVar;  
+                    timeVar=-timeVar.*(2*pi); 
                 end
                 
                 CFD_dist(dirCnt).(currFile).value.cal=distribution;

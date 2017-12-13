@@ -22,10 +22,10 @@
 	/solve/dual-time-iterate 1000 20 n ok n ok 
 	/solve/set/time-step 1
 	/solve/dual-time-iterate 3500 20 y y 
-/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/h2o_centerline\" yes n n h2o y 1 0 symmetry ()
-/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/temp_centerline\" yes n n temperature y 1 0 symmetry ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/temp_wall\" yes n n temperature y 1 0 steam_tube ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/h2o_wall\" y n n h2o y 1 0 steam_tube ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/udm4_wall\" y n n udm-4 y 1 0 steam_tube ()
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/h2o_centerline.txt\" yes n n h2o y 1 0 symmetry ()
+/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/temp_centerline.txt\" yes n n temperature y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/temp_wall.txt\" yes n n temperature y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/h2o_wall.txt\" y n n h2o y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-MFR-ABS-1_5_4-LF1/udm4_wall.txt\" y n n udm-4 y 1 0 steam_tube ()
 	")
    ))

@@ -18,3 +18,4 @@ NC.moles_total_init.value-NC.moles_total_est.value handles.NC(x).moles_total_ini
 abs(GHFS.GHFS1_offset_raw.value)/facility.wall_heatflux_powerbased.value abs(handles.GHFS(x).GHFS1_offset_raw.value)/handles.facility(x).wall_heatflux_powerbased.value 
 RELAP_secondary.tempf.value-273.15 handles.RELAP_secondary(x).tempf.value-273.15 
 CFD.press.value-steam.press.value handles.CFD(x).press.value-handles.steam(x).press.value 
+1-CFD.h2o.value 1-handles.CFD(x).h2o.value 

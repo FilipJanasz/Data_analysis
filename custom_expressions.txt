@@ -19,3 +19,4 @@ abs(GHFS.GHFS1_offset_raw.value)/facility.wall_heatflux_powerbased.value abs(han
 RELAP_secondary.tempf.value-273.15 handles.RELAP_secondary(x).tempf.value-273.15 
 CFD.press.value-steam.press.value handles.CFD(x).press.value-handles.steam(x).press.value 
 1-CFD.h2o.value 1-handles.CFD(x).h2o.value 
+NC.N2_molefraction.value/NC.NC_molefraction.value handles.NC(x).N2_molefraction.value/handles.NC(x).NC_molefraction.value 

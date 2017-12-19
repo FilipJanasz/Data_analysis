@@ -1,5 +1,4 @@
 function [timeStep, value,varName]=CFDreadDist(fileName)
-    
     %open file
     fid=fopen(fileName);
     

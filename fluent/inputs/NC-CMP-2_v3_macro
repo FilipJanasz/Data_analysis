@@ -1,13 +1,16 @@
 (cx-macro-define
  '( (runmacr . "
 	/file/read-case \"/home/janasz_f/2017_2D_template/template30kHe.cas\" ok
-/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00010491 n 416.6175 n 0 y n 1 n 0 n n y 5 10 n n 1 n 0 y 
+/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00010491 y y \"udf\" \"inlet_temp::libudf_2D\" n 0 y n 1 n 0 n n y 5 10 n n 1 n 0 y 
 /define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.082654 n 393.4932 n 0 y n 1 n 0 n n y 5 10 y
 	/solve/monitors/surface/clear-monitors
 	/solve/monitors/volume/clear-monitors
 /solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/NC-CMP-2_v3/udm4.out\" 1 n flow-time
+/solve/monitors/surface/set-monitor inletTemp \"Area-Weighted Average\" temperature steam_inlet () n n yes \"/home/janasz_f/NC-CMP-2_v3/inletTemp.out\" 1 n flow-time
 /solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/NC-CMP-2_v3/press.out\" 1 n flow-time
 /solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"/home/janasz_f/NC-CMP-2_v3/h2o.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor n2mass \"Volume Integral\" n2 steam () n n yes \"/home/janasz_f/NC-CMP-2_v3/n2mass.out\" 1 n flow-time
+/solve/monitors/volume/set-monitor heMass \"Volume Integral\" he steam () n n yes \"/home/janasz_f/NC-CMP-2_v3/heMass.out\" 1 n flow-time
 (rp-var-define 'cttemp 393.4932 'real #f)
 (rp-var-define 'steamtemp 416.6175 'real #f)
 	/solve/initialize/initialize-flow
@@ -15,6 +18,8 @@
 	/solve/initialize/initialize-flow ok
 /solve/patch steam () species-0 0.10257
 /solve/patch steam () species-1 0.3067
+	/solve/patch steam () x-velocity n 0
+/solve/patch steam tube insulation_cone coolant () temperature 309.904
 /define/operating-conditions/operating-pressure 3058.56
 /solve/patch coolant () pressure 55816.0983
 /solve/patch coolant () x-velocity n 0.063732
@@ -30,5 +35,7 @@
 /plot/plot n \"/home/janasz_f/NC-CMP-2_v3/udm4_wall.txt\" y n n udm-4 y 1 0 steam_tube ()
 /plot/plot n \"/home/janasz_f/NC-CMP-2_v3/N2_wall.txt\" y n n n2 y 1 0 steam_tube ()
 /plot/plot n \"/home/janasz_f/NC-CMP-2_v3/N2_centerline.txt\" y n n n2 y 1 0 symmetry ()
+/plot/plot n \"/home/janasz_f/NC-CMP-2_v3/He_wall.txt\" y n n he y 1 0 steam_tube ()
+/plot/plot n \"/home/janasz_f/NC-CMP-2_v3/He_centerline.txt\" y n n he y 1 0 symmetry ()
 	")
    ))

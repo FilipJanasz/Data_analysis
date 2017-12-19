@@ -1301,7 +1301,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     % 1. Ask user for the file name
     saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';'*.emf';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);
-      
+    
     % 2. Save .fig file with the name
     hgsave(handles.var_axes,file_name)
 
@@ -1319,10 +1319,12 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
 %         f.Visible='on';
 %         f.Name=saveDataName;
 
-    % 4.save again, to desired format, if it different than fig
+    % 4.save again, to desired format, if it is different than fig
     if ~strcmp(ext,'.fig')
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    else
+        savefig(f,file_name)
     end
     delete(f); % clear figure
     msgbox(['Figure saved succesfully as ',saveDataName])
@@ -1505,6 +1507,7 @@ function cfdGen_ClickedCallback(hObject, eventdata, handles)
         clntPress(n)=handles.coolant(n).press.value;
         clntVel(n)=handles.coolant(n).velocity.value;
         initPress(n)=handles.steam(n).press_init.value;
+        initTemp(n)=handles.steam(n).temp_init.value;
         initN2(n)=handles.NC(n).N2_molefraction_init.value;
         initHe(n)=handles.NC(n).He_molefraction_init.value;
         fileName{n}=handles.file(n).name;
@@ -1521,7 +1524,7 @@ function cfdGen_ClickedCallback(hObject, eventdata, handles)
     %     fclose(fid);
 
 end
-writeCFDHe(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,clntVel,initPress,initN2,initHe,fileName)  %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+writeCFDHe(steamFlow,steamTemp,clntFlow,clntTemp,clntPress,clntVel,initPress,initTemp,initN2,initHe,fileName)  %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 msgbox('Fluent input macros for currently loaded files succesfully created')
 
 
@@ -1538,7 +1541,7 @@ function cfdRead_ClickedCallback(hObject, eventdata, handles)
     %append new distributions to global handles
     allFields=fieldnames(CFDdistr);
     for aCntr=1:numel(allFields)
-        for fCntr=1:numel(handles.distributions)
+        for fCntr=1:numel(CFDdistr)
             handles.distributions(fCntr).(['CFD_',allFields{aCntr}])=CFDdistr(fCntr).(allFields{aCntr});
         end
     end

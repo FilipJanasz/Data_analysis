@@ -564,6 +564,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     saveDataName = uiputfile({'*.png';'*.jpg';'*.pdf';'*.eps';'*.fig';}, 'Save as');
     [~, file_name, ext] = fileparts(saveDataName);
 
+    
     % 2. Save .fig file with the name
     hgsave(handles.var_axes,file_name)
 
@@ -585,6 +586,8 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     if ~strcmp(ext,'.fig')
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+    else
+        savefig(f,file_name)
     end
     msgbox(['Figure saved succesfully as ',saveDataName])
 

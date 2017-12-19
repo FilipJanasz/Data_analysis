@@ -558,7 +558,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.dT_losses.value=(coolant.power.value+facility.heat_losses.value)/(coolant.mflow.value/3600*coolant.spec_heat.value);  % how much more dT should there be in coolant water
         facility.wall_htc.value=2*15/(0.02*log(0.03/0.02));
         facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
-        facility.wall_heatflow_dT.value=facility.wall_heatflux_dT.value*2*pi*0.021/2*1;  %last term is inner wall area of the test tube
+        facility.wall_heatflow_dT.value=facility.wall_heatflux_dT.value*2*pi*0.020/2*1;  %last term is inner wall area of the test tube
         
         %         facility.voltage.value=mean(facility.voltage.var);
         facility.current.value=mean(facility.current.var);
@@ -1326,8 +1326,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                       
         %steam - measured values
         steam.press.error=error_press(steam.press.value);
-        steam.press_init.error=steam.press.error;
         steam.temp.error=error_PT100;
+        steam.press_init.error=steam.press.error;
+        steam.temp_init.error=steam.temp.error;      
         steam.heater_temp.error=error_PT100;
         
         %steam thermocouple centerline
@@ -1461,7 +1462,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %  values and errors
         
         % values
-        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,NC.moles_h2o_test.value,NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_N2_test.error,NC.moles_He_test.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
+        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,steam.temp_init.value,NC.moles_h2o_test.value,NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_N2_test.error,NC.moles_He_test.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
         NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
         NC.moles_total_init.value=NC.moles_N2_test.value+NC.moles_He_test.value;
         
@@ -1578,6 +1579,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         % steam side thermodynamic codnitions - measured
         steam.press.unit='bar'; 
         steam.press_init.unit='bar';
+        steam.temp_init.unit='C';
         steam.power.unit='W';       
         steam.temp.unit=[char(176),'C']; 
         steam.heater_temp.unit=[char(176),'C']; 

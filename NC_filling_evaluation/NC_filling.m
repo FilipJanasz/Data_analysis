@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,moles_h2o_test,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file,eos_flag)
+function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,T_init,moles_h2o_test,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file,eos_flag)
     extensive_error_flag=0;
     % get initial conditions from file
     directory=file.directory;
@@ -16,6 +16,7 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
     
     arg=[p T init_cond'];
     P_init=init_cond(11);
+    T_init=init_cond(12);
     
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)

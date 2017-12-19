@@ -26,61 +26,61 @@ function [CFD_time,CFD_dist]=load_CFD(handles)
         for dirCnt=1:dirAmount
 
             for fcTime=1:numel(uniqueTimefile)
-                currFile=file_listTime{fcTime};
-                currPath=[uniqueDir{dirCnt},'\',currFile,'.out'];
-                [~, timeVar,~]=CFDreadTime(currPath);
-                
-                %fix units
-                if contains(currFile,'temp')
-                    timeVar=timeVar-273.15;  
-                elseif contains(currFile,'press')
-                    timeVar=timeVar./100000;  
-                elseif contains(currFile,'udm4')
-                    timeVar=-timeVar.*(2*pi);  
-                end
-                
-                CFD_time(dirCnt).(currFile).var=timeVar;
-                CFD_time(dirCnt).(currFile).value=mean(timeVar(end-20:end));  %average ten last values
-                CFD_time(dirCnt).(currFile).std=std(timeVar(end-20:end));
-                CFD_time(dirCnt).(currFile).error=1;
-                CFD_time(dirCnt).(currFile).unit='NA';
+                    currFile=file_listTime{fcTime};
+                    currPath=[uniqueDir{dirCnt},'\',currFile,'.out']
+                    [~, timeVar,~]=CFDreadTime(currPath);
 
-                %fancy bling wait bar:
-                waitbar(waitBarCntr/filesTotal,h)
-                waitBarCntr=waitBarCntr+1;
+                    %fix units
+                    if contains(currFile,'temp')
+                        timeVar=timeVar-273.15;  
+                    elseif contains(currFile,'press')
+                        timeVar=timeVar./100000;  
+                    elseif contains(currFile,'udm4')
+                        timeVar=-timeVar.*(2*pi);  
+                    end
+
+                    CFD_time(dirCnt).(currFile).var=timeVar;
+                    CFD_time(dirCnt).(currFile).value=mean(timeVar(end-20:end));  %average ten last values
+                    CFD_time(dirCnt).(currFile).std=std(timeVar(end-20:end));
+                    CFD_time(dirCnt).(currFile).error=1;
+                    CFD_time(dirCnt).(currFile).unit='NA';
+
+                    %fancy bling wait bar:
+                    waitbar(waitBarCntr/filesTotal,h)
+                    waitBarCntr=waitBarCntr+1;
             end
 
             for fcDist=1:numel(uniqueDistfile)
-                currFile=file_listDist{fcDist};
-                currPath=[uniqueDir{dirCnt},'\',currFile,'.txt'];
-                [position, distribution,~]=CFDreadDist(currPath);
-                
-                %fix units
-                if contains(currFile,'temp')
-                    distribution=distribution-273.15; 
-                elseif contains(currFile,'press')
-                    distribution=distribution./100000;
-                elseif contains(currFile,'udm4')
-                    timeVar=-timeVar.*(2*pi); 
-                end
-                
-                CFD_dist(dirCnt).(currFile).value.cal=distribution;
-                if contains(currFile,'wall')
-                    CFD_dist(dirCnt).(currFile).position_x=ones(1,numel(distribution))*10;
-                elseif contains(currFile,'centerline')
-                    CFD_dist(dirCnt).(currFile).position_x=zeros(1,numel(distribution));
-                else
-                    disp('unknown data position type, assiging default x-coordinate, check what is going on')
-                    CFD_dist(dirCnt).(currFile).position_x=zeros(1,numel(distribution));
-                end
-                CFD_dist(dirCnt).(currFile).position_y=position.*1000-200;  %to align with measurements
-                CFD_dist(dirCnt).(currFile).var=distribution;
-                CFD_dist(dirCnt).(currFile).error=1;
-                CFD_dist(dirCnt).(currFile).unit='NA';
+                    currFile=file_listDist{fcDist};
+                    currPath=[uniqueDir{dirCnt},'\',currFile,'.txt']
+                    [position, distribution,~]=CFDreadDist(currPath);
 
-               %fancy bling wait bar:
-                waitbar(waitBarCntr/filesTotal,h)
-                waitBarCntr=waitBarCntr+1;
+                    %fix units
+                    if contains(currFile,'temp')
+                        distribution=distribution-273.15; 
+                    elseif contains(currFile,'press')
+                        distribution=distribution./100000;
+                    elseif contains(currFile,'udm4')
+                        timeVar=-timeVar.*(2*pi); 
+                    end
+
+                    CFD_dist(dirCnt).(currFile).value.cal=distribution;
+                    if contains(currFile,'wall')
+                        CFD_dist(dirCnt).(currFile).position_x=ones(1,numel(distribution))*10;
+                    elseif contains(currFile,'centerline')
+                        CFD_dist(dirCnt).(currFile).position_x=zeros(1,numel(distribution));
+                    else
+                        disp('unknown data position type, assiging default x-coordinate, check what is going on')
+                        CFD_dist(dirCnt).(currFile).position_x=zeros(1,numel(distribution));
+                    end
+                    CFD_dist(dirCnt).(currFile).position_y=position.*1000-200;  %to align with measurements
+                    CFD_dist(dirCnt).(currFile).var=distribution;
+                    CFD_dist(dirCnt).(currFile).error=1;
+                    CFD_dist(dirCnt).(currFile).unit='NA';
+
+                   %fancy bling wait bar:
+                    waitbar(waitBarCntr/filesTotal,h)
+                    waitBarCntr=waitBarCntr+1;
             end
         end
 

@@ -1766,6 +1766,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %% Analyze dynamic behaviour of NC mixing front only in continous injection tests
 
         if ~st_state_flag
+            disp('Calculating NC mixing front behaviour since no steady-state option was chosen')
             %calculate the onset of mixing front passage for every sensor
             av_window=1;
 
@@ -2071,6 +2072,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             legend('NC length based on P drop in NC tank','NC front observed at TC position')
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'];
             saveas(h4,pathPrintName,'png')
+            savefig(h4,[pathPrintName,'.fig'])
 %             close(h4)
 
             %velocity vs front size
@@ -2085,7 +2087,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             title([file_list,' Front Size vs mixture mole ratio'],'interpreter', 'none')
             subplot(2,1,1)
             plot(moleRatio,frontSize,'.')
-            xlim(-[min(moleRatio) max(moleRatio)])   
+            xlim([min(moleRatio) max(moleRatio)])   
             ylabel('Front Size')
             xlabel('Mole ratio')
             subplot(2,1,2)

@@ -43,9 +43,9 @@ f1.MarkerSize=15;
 grid on
 title('Vertical temperature distribution')
 
-f2=plot(distributions(plotPos(2)).centerline_temp.position_y,distributions(plotPos(2)).centerline_temp.value.cal,'r.-');
+f2=plot(distributions(plotPos(2)).centerline_temp.position_y,distributions(plotPos(2)).centerline_temp.value.cal,'rd-.');
 f2.LineWidth=1.5;
-f2.MarkerSize=15;
+f2.MarkerSize=5;
 % f2.MarkerFaceColor='k';
 grid on
 ylabel(['Temp. [',char(176),'C]'])
@@ -66,9 +66,9 @@ grid on
 title('Vertical temperature oscillations')
 
 
-f2=plot(distributions(plotPos(2)).centerline_temp.position_y,distributions(plotPos(2)).centerline_temp.std,'r.-');
+f2=plot(distributions(plotPos(2)).centerline_temp.position_y,distributions(plotPos(2)).centerline_temp.std,'rd-.');
 f2.LineWidth=1.5;
-f2.MarkerSize=15;
+f2.MarkerSize=5;
 % f2.MarkerFaceColor='k';
 grid on
 ylabel(['St. d. [',char(176),'C]'])

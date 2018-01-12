@@ -2069,17 +2069,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             h4=figure('visible','off');
             h4.Position=([500 200 500, 250]);
-            plot(feedingTime-feedingTime(1),tubeFillLength,'LineWidth',2)
+            plot(feedingTime-feedingTime(1),sensorPos(end)-tubeFillLength,'LineWidth',2)
             hold on
             sensorPosBackward=-(sensorPos-sensorPos(end))+110; %because we observe last one first, we have to start counting backward
-            plot(frontStartZeroed, sensorPosBackward-sensorPosBackward(end),'.-','MarkerSize',12,'LineWidth',1.5)  % substract last term, to set it as a starting point
+            plot(frontStartZeroed, sensorPos(end)-(sensorPosBackward-sensorPosBackward(end)),'.-','MarkerSize',12,'LineWidth',1.5)  % substract last term, to set it as a starting point
             xlim([frontStartZeroed(end)-10 frontStartZeroed(1)+10])
-            ylim([-50 tubeFillLength(frontArrivalStart(1)+10-NCfeedStart)]+10)
+            ylim([sensorPos(1)-50 sensorPos(end)+50])
             grid on
-            title(' Mixing layer front advancement in time','interpreter', 'none')
-            ylabel('Position [mm]')
+            title(' NC gas plug downward expansion','interpreter', 'none')
+            ylabel('Vertical position [mm]')
             xlabel('Time [s]')
-            legend('Calculated based on pressure drop','Observed with thermocouples','Location','SouthEast','FontSize','11')
+            legend('Calculated based on pressure drop','Observed with thermocouples','Location','NorthEast','FontSize','11')
             pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'];
             saveas(h4,pathPrintName,'png')
             print(h4,[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'],'-dmeta')

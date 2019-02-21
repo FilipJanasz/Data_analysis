@@ -1,4 +1,4 @@
-function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,T_init,moles_h2o_test,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file,eos_flag)
+function [N2_inNC_mfrac,N2_inNC_mfracErr,h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_frac_error,He_mole_frac_error,N2_mole_frac_init,He_mole_frac_init,P_init,T_init,moles_h2o_test,moles_N2_htank,moles_He_htank,moleN2_error,moleHe_error]=NC_filling(p,T,p_error,T_error,file,eos_flag)
     extensive_error_flag=0;
     % get initial conditions from file
     directory=file.directory;
@@ -18,6 +18,42 @@ function [h2o_mole_frac, N2_mole_frac,He_mole_frac,h2o_mole_frac_error,N2_mole_f
     P_init=init_cond(11);
     T_init=init_cond(12);
     
+    if init_cond(1)<0
+        init_cond(1)=0;
+    end
+    
+    %estimate NC mixture composition, assume adiabatic
+    %init_cond(1)  - residual air after vacuuming, assume pure N2
+    %init_cond(7)  - pressure after filling He
+    %init_cond(9)  - pressure after filling N2
+    
+    if init_cond(3)<0
+        init_cond(3)=0;
+    end
+    
+    HePress=init_cond(7)-init_cond(3);
+    if HePress<0
+        HePress=0;
+    end
+    N2_inNC_mfrac=1-HePress/init_cond(9);
+    
+    %and it's error, as it's based here purely on pressure measurements
+    [Perr1,~]=error_press(init_cond(3));
+    [Perr2,~]=error_press(init_cond(7));
+    [~,Perr3]=error_press(init_cond(9));
+    %first calc error propagation helium pressure (simple addition - sqrt
+    %of sum of absolute errors
+    HePressErr=sqrt(Perr1^2+Perr2^2);
+    %error of N2 fraction - division, sqrt of sum of relative errors *
+    %value
+    if HePress==0
+        N2_inNC_mfracErr=0;
+    else
+        N2_inNC_mfracErr=sqrt((HePressErr/HePress)^2+Perr3^2)*1;
+        if N2_inNC_mfracErr>0.0704
+            N2_inNC_mfracErr=0.0704;
+        end
+    end
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)
     disp_flag=1;

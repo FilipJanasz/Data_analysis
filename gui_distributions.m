@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 21-Nov-2016 15:35:19
+    % Last Modified by GUIDE v2.5 10-Oct-2018 22:17:04
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -67,6 +67,18 @@ function adjustLimits(handles)
     handles.xmax_edit.String=num2str(x(2));
     handles.ymin_edit.String=num2str(y(1));
     handles.ymax_edit.String=num2str(y(2));
+    
+    %fix axes colors
+    yyaxis right
+    handles.var_axes.YColor=[0.1500    0.1500    0.1500];
+    yyaxis left
+    handles.var_axes.YColor=[0.1500    0.1500    0.1500];
+    yyaxis right
+    
+    handles.var_axes.XGrid='on';  
+    handles.var_axes.XMinorGrid='on';
+    handles.var_axes.YGrid='on';
+    handles.var_axes.YMinorGrid='on';
 
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_distributions_OutputFcn(hObject, eventdata, handles) 
@@ -107,37 +119,51 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     val_y=get(handles.var_popupmenu,'Value');
     y_param=list_y{val_y}; 
     
-    %get user choice for averaging period for distributions and obtain data
-    %to plot
-    handles.useMeanFlag=handles.useMean_radiobutton.Value;
-    if handles.useMeanFlag
-        value_dat=handles.data(file).(y_param).value.(calibration_mode);
-    else
-        %get interval parameters entered by user in GUI
-        intervalCenter=str2double(handles.intervalCenter_edit.String);
-        intervalWidth=str2double(handles.intervalWidth_edit.String);
-        %get full time varying data for current distributions and it's size
-        full_matrix=handles.data(file).(y_param).var;
-        [rows,columns]=size(full_matrix);
-        
-        %estimate averaging interval start and end based on user entered
-        %data
-        intervalStart=intervalCenter-floor(intervalWidth/2);
-        intervalEnd=intervalCenter+floor(intervalWidth/2);
-        
-        if intervalStart<1
-            intervalStart=1;
+    
+    if ~contains(y_param,'RELAP')
+        %get user choice for averaging period for distributions and obtain data
+        %to plot
+        handles.useMeanFlag=handles.useMean_radiobutton.Value;
+        if handles.useMeanFlag
+            value_dat=handles.data(file).(y_param).value.(calibration_mode);
+        else
+            %get interval parameters entered by user in GUI
+            intervalCenter=str2double(handles.intervalCenter_edit.String);
+            intervalWidth=str2double(handles.intervalWidth_edit.String);
+            %get full time varying data for current distributions and it's size
+            full_matrix=handles.data(file).(y_param).var;
+            [rows,columns]=size(full_matrix);
+
+            %estimate averaging interval start and end based on user entered
+            %data
+            intervalStart=intervalCenter-floor(intervalWidth/2);
+            intervalEnd=intervalCenter+floor(intervalWidth/2);
+
+            if intervalStart<1
+                intervalStart=1;
+            end
+            if intervalEnd>rows
+                intervalEnd=rows;
+            end
+
+            %calculate average data for given paramteters
+            distribution_avg=zeros(1,columns);
+            for columnCntr=1:columns
+                distribution_avg(columnCntr)=mean(full_matrix(intervalStart:intervalEnd,columnCntr));
+            end
+            value_dat=distribution_avg;
         end
-        if intervalEnd>rows
-            intervalEnd=rows;
-        end
         
-        %calculate average data for given paramteters
-        distribution_avg=zeros(1,columns);
-        for columnCntr=1:columns
-            distribution_avg(columnCntr)=mean(full_matrix(intervalStart:intervalEnd,columnCntr));
-        end
-        value_dat=distribution_avg;
+        % get positions
+        vertical_pos=handles.data(file).(y_param).position_y;
+        horizontal_pos=handles.data(file).(y_param).position_x;
+        
+    else %if values from relap, do something special 
+        value_dat=handles.data(file).(y_param);
+        unitLength=80;
+        vertical_pos=(unitLength:unitLength:numel(value_dat)*unitLength);
+        vertical_pos=vertical_pos-620; %offset proper
+        horizontal_pos=zeros(numel(value_dat),1);
     end
     
     %add standard deviations if desired
@@ -155,9 +181,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         value_dat=y_st_dev;
     end
     
-    % get positions
-    vertical_pos=handles.data(file).(y_param).position_y;
-    horizontal_pos=handles.data(file).(y_param).position_x;
+    
      
     
     % to lessen the computation burden in case of replotting
@@ -294,8 +318,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     end
     
     % plot with nice color and get user defined line style
-    colorstring = 'kbgrmcy';
-
+%     colorstring = 'kbgrmcy';
+    colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
     line_style_all=get(handles.line_style, 'String');
     line_style_no=get(handles.line_style, 'Value');
     line_style=line_style_all{line_style_no};
@@ -310,16 +334,16 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     % arrange user defined styling parameters
     if strcmp(line_color,'auto')
-        line_color=colorstring(handles.plotcounter);
+        line_color=colorstring{handles.plotcounter};
     end
     
-    if strcmp(line_marker,'none')
-        line_marker='';
-    end
-    
-    if strcmp(line_style,'none')
-        line_style='';
-    end
+%     if strcmp(line_marker,'none')
+%         line_marker='';
+%     end
+%     
+%     if strcmp(line_style,'none')
+%         line_style='';
+%     end
     
     %warn if user is about to do something not too smart
     if y_amount>5000 && ~isempty(line_marker)  
@@ -329,8 +353,6 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         end
     end
     
-    %combine input into line specification string
-    line_spec=[line_style,line_color,line_marker];
     
     %PLOTTING PLOTTING PLOTTING==================================================================
     %depending on user choice, plot along chosen axis, 3D, with or without
@@ -353,13 +375,24 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
             grid on
             set(gca, 'XColor', [0.5 0.5 0.5],'YColor',[0.5 0.5 0.5],'ZColor',[0.5 0.5 0.5])  
         else
-            handles.graph{handles.plotcounter}=plot(x_dat,value_dat,line_spec);
+            handles.graph{handles.plotcounter}=plot(x_dat,value_dat);
         end
-    catch
+        
+        
+    catch ME
+        display(ME)
         errordlg('Plotting error, check matlab window for details')
     end
-    box off
     
+    h=handles.graph{handles.plotcounter};
+    h.Color=line_color;
+    h.LineStyle=line_style;
+    h.LineWidth=1.5;
+    h.Marker=line_marker;
+    h.MarkerFaceColor=line_color;
+    h.MarkerEdgeColor=line_color;
+    h.MarkerSize=14;
+    box on
     % add standard deviations if desired
     if st_dev_flag && st_dev_available
         hold on
@@ -373,10 +406,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
             h.LineWidth=1;
             %add horizontal line ends
             lineLength=4;
-            h_horz1=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)-y_st_dev(std_ctr),value_dat(std_ctr)-y_st_dev(std_ctr)]);
-            h_horz2=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)+y_st_dev(std_ctr),value_dat(std_ctr)+y_st_dev(std_ctr)]);
-            h_horz1.LineWidth=1;
-            h_horz2.LineWidth=1;        
+            if handles.axes_flag==1
+                h_horz1=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)-y_st_dev(std_ctr),value_dat(std_ctr)-y_st_dev(std_ctr)]);
+                h_horz2=line([x_dat(std_ctr)-lineLength,x_dat(std_ctr)+lineLength],[value_dat(std_ctr)+y_st_dev(std_ctr),value_dat(std_ctr)+y_st_dev(std_ctr)]);
+                h_horz1.LineWidth=1;
+                h_horz2.LineWidth=1;   
+            end
         end
         
         if ~hold_flag
@@ -400,10 +435,30 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         set(handles.legend,'Visible','Off')
     end
 
-    %label axes
-    ylabel([y_param,'  [',handles.data(file).(y_param).unit,']'], 'interpreter', 'none');
-    xlabel('Position [mm]', 'interpreter', 'none')
+     %create label strings
+    y_paramtxt=strrep(y_param,'_',' ');
+    y_paramtxt=strrep(y_paramtxt,'N2','N_2');
+    %special case for RELAP files
+    if ~contains(y_param,'RELAP') 
+        yLabString=[y_paramtxt,'  [',handles.data(file).(y_param).unit,']'];
+    else
+        yLabString=y_paramtxt;
+    end
+    
+    xLabString='Position [mm]';
 
+    %label axes
+    yLab=ylabel(yLabString);
+    xLab=xlabel(xLabString);
+    
+    %edit labels
+    xLab.FontSize=str2double(handles.fontX.String);
+    yLab.FontSize=str2double(handles.fontY.String);
+    
+    %store labels
+    handles.xLab.String=xLabString;
+    handles.yLab.String=yLabString;
+    
     %update list of graphs
     set(handles.graph_list,'String',handles.graph_name)
     set(handles.graph_list,'Value', handles.plotcounter)
@@ -572,23 +627,39 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     f=figure('Visible','off');
     movegui(f,'center')
     h=hgload(file_name);
-    %VERY CRUCIAL, MAKE SURE THAT AXES BELONG TO THE NEW FIGURE
-    %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
     h.Parent=f;   
-    %adjust figure size so it matches the axes
-    f.Units='characters';
-    f.Position=h.Position.*1.2;
-    %optionally make visible
-%         f.Visible='on';
-%         f.Name=saveDataName;
+    f.Position=[300   200   1250   680];
+    
+    %fix fonts etc
+    h.XAxis(1).FontSize=24;
+    h.XAxis(1).Label.FontSize=24;
+    h.XAxis(1).Label.FontWeight='bold';
+    h.Legend.FontSize=20;
+%     h.Legend.Location='northeast';
+    
+    for axN=1:2
+        h.YAxis(axN).FontSize=24;
+        h.YAxis(axN).Label.FontSize=24;
+        h.YAxis(axN).Label.FontWeight='bold'; 
+    end
+    set(h,'Position',[23 6.8451 201.9200 41.9241])
 
-    % 4.save again, to desired format, if it different than fig
+    for chN=1:numel(h.Children)
+        h.Children(chN).LineWidth=2*h.Children(chN).LineWidth;
+        h.Children(chN).MarkerSize=2*h.Children(chN).MarkerSize;
+    end
+    % 4.save again, to desired format, if it is different than fig
     if ~strcmp(ext,'.fig')
-        delete([file_name,'.fig'])  
+        delete([file_name,'.fig']) 
+%         set(h,'Position',[23 6.8451 201.9200 41.9241])
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+        savefig(f,file_name)
+%         set(h,'Position',[23 6.8451 201.9200 41.9241])
+        print(f,file_name,'-dmeta')
     else
         savefig(f,file_name)
     end
+    delete(f); % clear figure
     msgbox(['Figure saved succesfully as ',saveDataName])
 
 
@@ -677,7 +748,7 @@ function boundary_layer_Callback(hObject, eventdata, handles)
         %PLOTTING PLOTTING PLOTTING
         %plot boundary layer on main graph
         handles.graph{handles.plotcounter}=plot([boundary_layer boundary_layer], ylim,'g');
-        box off
+        box on
         
         %update variables
         handles.x_dat{handles.plotcounter}=[boundary_layer boundary_layer];
@@ -869,6 +940,11 @@ function smooth_enable_Callback(hObject, eventdata, handles)
     
     % --- Executes on button press in rescale_pushbutton.
 function rescale_pushbutton_Callback(hObject, eventdata, handles)
+    if handles.y_axis_primary.Value
+        yyaxis left
+    else
+        yyaxis right
+    end
     xmin=str2double(get(handles.xmin_edit,'String'));
     xmax=str2double(get(handles.xmax_edit,'String'));
     ymin=str2double(get(handles.ymin_edit,'String'));
@@ -1152,3 +1228,248 @@ function analyze_pushbutton_Callback(hObject, eventdata, handles)
     figure
     plot(diff(distribution_avg))
 
+
+
+% --- Executes on button press in pushbutton12.
+function pushbutton12_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%get handle to current line
+    currLine=handles.graph_list.Value;
+    try
+        h=handles.graph{currLine}.hMain;
+    catch
+        h=handles.graph{currLine};
+    end
+
+    % ger parameters
+    colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
+
+    line_style_all=get(handles.line_style, 'String');
+    line_style_no=get(handles.line_style, 'Value');
+    line_style=line_style_all{line_style_no};
+
+    line_marker_all=get(handles.line_marker, 'String');
+    line_marker_no=get(handles.line_marker, 'Value');
+    line_marker=line_marker_all{line_marker_no};
+
+    line_color_all=get(handles.line_color, 'String');
+    line_color_no=get(handles.line_color, 'Value');
+    line_color=line_color_all{line_color_no};
+
+    line_width=str2double(handles.line_width.String);
+
+%     marker_color_all=get(handles.marker_color, 'String');
+%     marker_color_no=get(handles.marker_color, 'Value');
+%     marker_color=marker_color_all{marker_color_no};
+
+    marker_size=str2double(handles.marker_size.String);
+    % arrange user defined styling parameters
+    if strcmp(line_color,'auto')
+        line_color=colorstring{currLine};
+    else
+        line_color=colorstring{line_color_no-1};
+    end
+
+    marker_color=line_color;
+
+    %combine input into line specification string
+    spec={line_color,line_style,line_width,line_marker,marker_color,marker_size};
+
+    h.Color=spec{1};
+    h.LineStyle=spec{2};
+    h.LineWidth=spec{3};
+    h.Marker=spec{4};
+    h.MarkerFaceColor=spec{5};
+    h.MarkerEdgeColor=spec{5};
+    h.MarkerSize=spec{6};
+    h.Parent.XLabel.String=handles.xLab.String;
+    %check which y axis to use for plotting
+    y_axis_flag=get(handles.y_axis_primary,'Value');
+    if y_axis_flag==1
+        yyaxis left
+    else
+        yyaxis right
+    end
+    h.Parent.YLabel.String=handles.yLab.String;
+    
+    h.Parent.XLabel.FontSize=str2double(handles.fontX.String);
+    h.Parent.YLabel.FontSize=str2double(handles.fontY.String);
+    
+    
+    if handles.xOffBox.Value
+        h.XData=h.XData-str2double(handles.xOffset.String);
+    end
+    
+    % Update handles structure
+    guidata(hObject, handles);
+
+
+function xLab_Callback(hObject, eventdata, handles)
+% hObject    handle to xLab (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of xLab as text
+%        str2double(get(hObject,'String')) returns contents of xLab as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function xLab_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to xLab (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function yLab_Callback(hObject, eventdata, handles)
+% hObject    handle to yLab (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of yLab as text
+%        str2double(get(hObject,'String')) returns contents of yLab as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function yLab_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to yLab (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function fontX_Callback(hObject, eventdata, handles)
+% hObject    handle to fontX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of fontX as text
+%        str2double(get(hObject,'String')) returns contents of fontX as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function fontX_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to fontX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function fontY_Callback(hObject, eventdata, handles)
+% hObject    handle to fontY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of fontY as text
+%        str2double(get(hObject,'String')) returns contents of fontY as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function fontY_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to fontY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function line_width_Callback(hObject, eventdata, handles)
+% hObject    handle to line_width (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of line_width as text
+%        str2double(get(hObject,'String')) returns contents of line_width as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function line_width_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to line_width (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function marker_size_Callback(hObject, eventdata, handles)
+% hObject    handle to marker_size (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of marker_size as text
+%        str2double(get(hObject,'String')) returns contents of marker_size as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function marker_size_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to marker_size (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function xOffset_Callback(hObject, eventdata, handles)
+% hObject    handle to xOffset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of xOffset as text
+%        str2double(get(hObject,'String')) returns contents of xOffset as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function xOffset_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to xOffset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in xOffBox.
+function xOffBox_Callback(hObject, eventdata, handles)
+% hObject    handle to xOffBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of xOffBox

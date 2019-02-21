@@ -107,15 +107,15 @@ m_dissair=dens_dissair*m_deminw; % [g]
 n_dissair=m_dissair/mol_m_air;
 p_diss_N2=(0.74*n_dissair*R*(T_room+273.15))/vol_heaterTank;
 
-for n=1:test_amount(1);
-    if mole_fr_NC(n)==0;
+for n=1:test_amount(1)
+    if mole_fr_NC(n)==0
             press_NC_tank_both=0;
             press_NC_tank_He=0;
     else
             [press_NC_tank_both, press_NC_tank_He]=NCfilling_estimation_fun((1-mole_fr_NC(n)),N2_NC_mole_fr(n),T_room,test_press(n),eos);
     end
     y{n,1}=data2{n}; % Hardcopy the experiment name to column 1 from IC table
-    if N2_NC_mole_fr(n) > 0;
+    if N2_NC_mole_fr(n) > 0
         y{n,2}=press_NC_tank_both-p_diss_N2/100000;
     else
         y{n,2}=press_NC_tank_both;  % NC tank pressure [bar]

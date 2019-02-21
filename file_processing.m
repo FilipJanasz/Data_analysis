@@ -1,4 +1,4 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(interactive_flag,file_list,directory,st_state_flag,options)
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=file_processing(interactive_flag,file_list,directory,st_state_flag,frontDynamics_flag,options)
     file_msg=['Loading file: ',file_list];
     disp(file_msg)
     
@@ -332,7 +332,6 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             catch
             end
         end
-
         % assignin('base','cal_steady_data',cal_steady_data);
         %% Initialize structures
         %fast sensors and MP
@@ -371,7 +370,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.temp_inlet_TC.var=(calibratedData.TF9503+calibratedData.TF9504)/2;
         coolant.temp_outlet.var=calibratedData.TF9502;
         coolant.temp_outlet_TC.var=(calibratedData.TF9507+calibratedData.TF9508)/2;
-        coolant.dT.var=coolant.temp_outlet.var-coolant.temp_inlet.var;
+        coolant.dT.var=coolant.temp_outlet.var-coolant.temp_inlet.var; 
         
         % GHFS var & MP var
         if  fast_flag==1
@@ -385,8 +384,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             % as a workaround, use average between two thermocouples
             if ~isfield(calibratedData,'TCH2_2W')
                 calibratedData.TCH2_2W=(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2;
-            elseif isnan(calibratedData.TCH2_2W)
-                calibratedData.TCH2_2W=(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2;
+            end
+            if isnan(calibratedData.TCH2_2W)>0
+                calibratedData.TCH2_2W=calibratedData.TCH3_2W;
+            end
+            
+            if isnan(calibratedData.TCH1_2W)>0
+                calibratedData.TCH1_2W=calibratedData.TCH1_1F;
             end
             GHFS.GHFS1_temp.var=calibratedData.TCH1_2W;
             GHFS.GHFS2_temp.var=calibratedData.TCH2_2W;
@@ -410,10 +414,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS4.area=84.31; % mm^2
             
             %sensitivities
-            GHFS.GHFS1.sensitivity=0.7e-5;
-            GHFS.GHFS2.sensitivity=0.7e-5;
-            GHFS.GHFS3.sensitivity=1.25e-5;
-            GHFS.GHFS4.sensitivity=0.25e-5;
+%             GHFS.GHFS1.sensitivity=0.7e-5;
+%             GHFS.GHFS2.sensitivity=0.7e-5;
+%             GHFS.GHFS3.sensitivity=1.25e-5;
+%             GHFS.GHFS4.sensitivity=0.25e-5;
+            GHFS.GHFS1.sensitivity=GHFSsensitivity(mean(GHFS.GHFS1_temp.var),1);
+            GHFS.GHFS2.sensitivity=GHFSsensitivity(mean(GHFS.GHFS2_temp.var),2);
+            GHFS.GHFS3.sensitivity=GHFSsensitivity(mean(GHFS.GHFS3_temp.var),3);
+            GHFS.GHFS4.sensitivity=GHFSsensitivity(mean(GHFS.GHFS4_temp.var),4);
             
             %based on amplifier tests
             GHFS.GHFS1.amplification=10000; % 
@@ -422,13 +430,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS4.amplification=10000; % 
             
             %based on GHFS response with no heatflux applied
-            GHFS_offset=[-0.032 0.26 0.4 0.20];  
+            GHFS_offset=[-0.032 0.26 0.4 0.21];  
 %             GHFS_offset=[0 0 0 0];  
             
             GHFS_string={'GHFS1','GHFS2','GHFS3','GHFS4'}; %contains names of all sensors in facility
             %call function with appropriate data and recalculate heat flux from meaured voltage
             for ghfs_cntr=1:numel(GHFS_string)
-                [GHFS.(GHFS_string{ghfs_cntr}).var,GHFS.([GHFS_string{ghfs_cntr},'_offset_raw']).var]=GHFS_heatflux(GHFS.([GHFS_string{ghfs_cntr},'_raw']),GHFS.(GHFS_string{ghfs_cntr}).area,GHFS.([GHFS_string{ghfs_cntr},'_temp']),GHFS.(GHFS_string{ghfs_cntr}).amplification,GHFS_offset(ghfs_cntr),GHFS.(GHFS_string{ghfs_cntr}).sensitivity);
+                currS=GHFS_string{ghfs_cntr};
+                [GHFS.(currS).var,GHFS.([currS,'_offset_raw']).var]=GHFS_heatflux(GHFS.([currS,'_raw']),GHFS.(currS).area,GHFS.(currS).amplification,GHFS_offset(ghfs_cntr),GHFS.(currS).sensitivity);
             end
             
             % from dT (0.003 is distance between thermocouples in mm)
@@ -439,8 +448,23 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.wall_heatflux_GHFS3.var=GHFS.wall_dT_GHFS3.var.*GHFS_wall_htc;
             GHFS.wall_heatflux_GHFS4.var=GHFS.wall_dT_GHFS4.var.*GHFS_wall_htc;
             
+            
+            %store calclulated senstivity
+            GHFS.GHFS1sensCALC.value=GHFS.GHFS1.sensitivity;
+            GHFS.GHFS2sensCALC.value=GHFS.GHFS2.sensitivity;
+            GHFS.GHFS3sensCALC.value=GHFS.GHFS3.sensitivity;
+            GHFS.GHFS4sensCALC.value=GHFS.GHFS4.sensitivity;
+            
+            % actual sensitivity
+            GHFS.GHFS1sens.value=mean(GHFS.GHFS1_offset_raw.var)/GHFS.GHFS1.amplification/mean(GHFS.wall_heatflux_GHFS1.var.*GHFS.GHFS1.area/1000000);
+            GHFS.GHFS2sens.value=mean(GHFS.GHFS2_offset_raw.var)/GHFS.GHFS2.amplification/mean(GHFS.wall_heatflux_GHFS2.var.*GHFS.GHFS2.area/1000000);
+            GHFS.GHFS3sens.value=mean(GHFS.GHFS3_offset_raw.var)/GHFS.GHFS3.amplification/mean(GHFS.wall_heatflux_GHFS3.var.*GHFS.GHFS3.area/1000000);
+            GHFS.GHFS4sens.value=mean(GHFS.GHFS4_offset_raw.var)/GHFS.GHFS4.amplification/mean(GHFS.wall_heatflux_GHFS4.var.*GHFS.GHFS4.area/1000000);
+           
+            
             %movable probe
             MP.MP1.var=calibratedData.MP1;
+            MP.MP1_filmthick.var=MP1filmthick(MP.MP1.var);
             MP.MP2.var=calibratedData.MP2;
             MP.MP3.var=calibratedData.MP3;
             MP.MP4.var=calibratedData.MP4;
@@ -448,10 +472,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 
         % steam side thermodynamic codnitions - measured
         steam.press.var=calibratedData.PA9601; % [bar]        
-        steam.power.var=calibratedData.power;        
+        steam.power.var=calibratedData.power;   
         steam.temp.var=calibratedData.TF9602; % [C]  
         steam.heater_temp.var=calibratedData.TW9602; % [C] 
-        
+%         [facility.powerOffset.var,facility.powerOffset_TC.var]=fixHeatLosses(steam.power.var,(coolant.temp_outlet.var-coolant.temp_inlet.var));
+        [facility.powerOffset.var,facility.powerOffset_TC.var]=fixHeatLosses(coolant.temp.var);
+
+        steam.powerOffset.var=steam.power.var-facility.powerOffset.var';
+
         % steam side thermocouples - centerline
         try
             steam.TF9603.var=calibratedData.TF9603;
@@ -482,7 +510,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %% mean values
         % coolant thermodynamic conditions - measured               
         coolant.vflow.value=mean(calibratedData.FV3801);        
-        coolant.temp.value=(mean(calibratedData.TF9502)+mean(calibratedData.TF9501))/2;
+        coolant.temp.value=mean(coolant.temp.var);
         coolant.press.value=mean(calibratedData.PA9501);  
         coolant.temp_inlet.value=mean(calibratedData.TF9501);
         coolant.temp_outlet.value=mean(calibratedData.TF9502);
@@ -498,6 +526,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.spec_heat.value=IAPWS_IF97('cp_ph',coolant.press.value/10,coolant.enthalpy.value)*1000; %multiply by 1000 so unit is J/kg*K
         coolant.power.value=coolant.mflow.value/3600*coolant.spec_heat.value*coolant.dT.value;
         coolant.power_TC.value=coolant.mflow.value/3600*coolant.spec_heat.value*coolant.dT_TC.value;
+        
+        coolant.power_Offset.value=coolant.power.value+mean(facility.powerOffset.var);
+        coolant.power_TC_Offset.value=coolant.power_TC.value+mean(facility.powerOffset_TC.var);
+
         coolant.dynvis.value=IAPWS_IF97('mu_pT',coolant.press.value/10,coolant.temp.value+273.15);
         coolant.kinvis.value=coolant.dynvis.value/coolant.dens.value;
         coolant.thermcond.value=IAPWS_IF97('k_pT',coolant.press.value/10,coolant.temp.value+273.15);
@@ -506,10 +538,16 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.reynolds.value=coolant.velocity.value*coolant.dens.value*0.0791/coolant.dynvis.value;% hydraulic diameter of the annulus = 0.0791 m
         coolant.htc_dittusboleter.value=0.023*coolant.reynolds.value^0.8*coolant.prandtl.value^0.4*coolant.thermcond.value/0.0791;
         coolant.htc_gnielinski.value=htc_gnielinski(coolant.reynolds.value,coolant.thermcond.value,coolant.prandtl.value,0.0791);
-                
+        coolant.htc_laminar.value=7.37*coolant.thermcond.value/0.0791;
+        if coolant.reynolds.value>2300
+            coolant.htc.value=coolant.htc_gnielinski.value;
+        else
+            coolant.htc.value=coolant.htc_laminar.value;
+        end
         % steam side thermodynamic codnitions - measured
         steam.press.value=mean(calibratedData.PA9601); % [bar]        
-        steam.power.value=mean(steam.power.var);        
+        steam.power.value=mean(steam.power.var);   
+        steam.powerOffset.value=mean(steam.powerOffset.var);  
         steam.temp.value=mean(calibratedData.TF9602); % [C] 
         steam.heater_temp.value=mean(steam.heater_temp.var); % [C] 
         
@@ -537,7 +575,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.enthalpy.var=IAPWS_IF97('hV_p',steam.press.var./10);        
         steam.enthalpy_liquid.var=IAPWS_IF97('hL_p',steam.press.var./10);        
         steam.evap_heat.var=(steam.enthalpy.var-steam.enthalpy_liquid.var).*1000; %again, multiply by 1000 so unit is J/kg
-        steam.mflow.var=steam.power.var./steam.evap_heat.var;        
+        steam.mflow.var=steam.power.var./steam.evap_heat.var;   
+        
         steam.vflow.var=steam.mflow.var./steam.density.var;
         steam.velocity.var=steam.vflow.var./(pi*(0.021/2)^2);  %last term is test tube crossection area
         
@@ -552,12 +591,15 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.velocity.value=steam.vflow.value/(pi*(0.021/2)^2);  %last term is test tube crossection area
                 
         % steam - coolant interface - facility
-        facility.wall_dT.value=steam.temp.value-coolant.temp.value;        
+        facility.wall_dT.value=steam.temp.value-coolant.temp.value;    
+        facility.powerOffset.value=mean(facility.powerOffset.var);
+        facility.powerOffset_TC.value=mean(facility.powerOffset_TC.var);
         facility.heat_losses.value=steam.power.value-coolant.power.value;
         facility.heat_losses_TC.value=steam.power.value-coolant.power_TC.value;
         facility.dT_losses.value=(coolant.power.value+facility.heat_losses.value)/(coolant.mflow.value/3600*coolant.spec_heat.value);  % how much more dT should there be in coolant water
         facility.wall_htc.value=2*15/(0.02*log(0.03/0.02));
-        facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
+%         facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
+        facility.wall_heatflux_dT.value=mean(GHFS.wall_heatflux_GHFS1.var+GHFS.wall_heatflux_GHFS2.var+GHFS.wall_heatflux_GHFS3.var+GHFS.wall_heatflux_GHFS4.var)/4;
         facility.wall_heatflow_dT.value=facility.wall_heatflux_dT.value*2*pi*0.020/2*1;  %last term is inner wall area of the test tube
         
         %         facility.voltage.value=mean(facility.voltage.var);
@@ -600,6 +642,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
             % Movable probe - electrodes
             MP.MP1.value=mean(MP.MP1.var);
+            MP.MP1_filmthick.value=mean(MP.MP1_filmthick.var);
             MP.MP2.value=mean(MP.MP2.var);
             MP.MP3.value=mean(MP.MP3.var);
             MP.MP4.value=mean(MP.MP4.var);
@@ -704,6 +747,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             for rCntr=1:numel(amntMP)
                 try
                     MPresampl{rCntr}=resample(MP.(MPnostring{rCntr}).var,amntSlow,amntMP(rCntr));            
+                    tooMuch=numel(MPresampl{rCntr})-amntSlow; 
+                    MPresampl{rCntr}=MPresampl{rCntr}(1:end-tooMuch);
                 catch
                     %probably fails because too many data points, try to do
                     %in parts, number of parts depends on ratio to 2^31
@@ -755,8 +800,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             end
             
             %combine all into one matrix for further processing
-            MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MPresampl{1} MPresampl{2} MPresampl{3} MPresampl{4} MP_direction'];
-
+            if strcmp(file_list,'NC-MFR-ABS-He-4_2_2')
+                cf=5000;
+                MP_matrix=[MP.Pos.var(1:cf) MP.Temp.var(1:cf) MP.Temp_smooth.var(1:cf) MPresampl{1}(1:cf) MPresampl{2}(1:cf) MPresampl{3}(1:cf) MPresampl{4}(1:cf) MP_direction(1:cf)'];
+            else
+                MP_matrix=[MP.Pos.var MP.Temp.var MP.Temp_smooth.var MPresampl{1} MPresampl{2} MPresampl{3} MPresampl{4} MP_direction'];
+            end
             %sort by movement direction and separate in two matrices
             MP_matrix=sortrows(MP_matrix,8);
             direction_forward=find(MP_matrix(:,8)==1);
@@ -881,7 +930,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
             try
                 [MP.T_boundlayer_forward.value,fwd_data_norm,fwd_lower,fwd_upper,x_dat_forward,~]=boundary_layer_calc(MP_Temp_averaged.forward(:,2),MP_Temp_averaged.forward(:,1),avg_window,limiting_factor,x_limit);
-                if MP.T_boundlayer_forward.value < -5
+                if MP.T_boundlayer_forward.value < -2.4
                     MP.T_boundlayer_forward.value=0;
                 end
                 MP.T_boundlayer_forward.value=-MP.T_boundlayer_forward.value;
@@ -940,7 +989,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         
         % thermocouple steady_data.TCH2_2W is broken
         % as a workaround, use average between two thermocouples
-        if ~isfield(experimentalData,'TCH2_2W')
+        if ~isfield(experimentalData,'TCH2_2W') && isfield(experimentalData,'TCH1_2W')
             experimentalData.TCH2_2W=(experimentalData.TCH1_2W+experimentalData.TCH3_2W)./2;
         end
         
@@ -964,7 +1013,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP4.var=MP_Temp_averaged.backward(:,8);
             end 
         end
-          
+        
+       
         %centerline - 3 options are for legacy data file structure from
         %runs done in 2014 and 2015
         try
@@ -975,8 +1025,13 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.centerline_temp.var=[calibratedData.TCH1_1F,MP.Temp.var,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
                 centerline_flag=1;
             catch
-                distributions.centerline_temp.var=[calibratedData.TCH1_1F,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
-                centerline_flag=1;
+                try
+                    distributions.centerline_temp.var=[calibratedData.TCH1_1F,calibratedData.TCH2_1F,calibratedData.TCH3_1F,calibratedData.TCH4_1F];
+                    centerline_flag=1;
+                catch
+                    distributions.centerline_temp.var=[0,0,0,0];
+                    centerline_flag=0;
+                end
             end
         end
         
@@ -990,7 +1045,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         try
             distributions.GHFS_TC.var=[calibratedData.HFS1TC,calibratedData.HFS2TC,calibratedData.HFS3TC,calibratedData.HFS4TC];
         catch
+            try
             distributions.GHFS_TC.var=[calibratedData.TCH1_2W,(calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2,calibratedData.TCH3_2W,calibratedData.TCH4_2W];
+            catch
+                distributions.GHFS_TC.var=[0,0,0,0];
+            end
         end
         
         %inner wall thermocouples
@@ -1029,6 +1088,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_forward_MP2.std=MP_Temp_averaged.forward(:,10);
                 distributions.MP_forward_MP3.std=MP_Temp_averaged.forward(:,11);
                 distributions.MP_forward_MP4.std=MP_Temp_averaged.forward(:,12);
+                
+                 %dirty fix
+%                 if max(distributions.MP_forward_temp.value.cal)-min(distributions.MP_forward_temp.value.cal)<2.5
+%                     MP.T_boundlayer_forward.value=0;
+%                 end
             end
             if backward_flag
                 distributions.MP_backward_temp.value.cal=MP_Temp_averaged.backward(:,2);               
@@ -1042,6 +1106,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.MP_backward_MP2.std=MP_Temp_averaged.backward(:,10);
                 distributions.MP_backward_MP3.std=MP_Temp_averaged.backward(:,11);
                 distributions.MP_backward_MP4.std=MP_Temp_averaged.backward(:,12);
+                
+                %dirty fix
+%                 if max(distributions.MP_backward_temp.value.cal)-min(distributions.MP_backward_temp.value.cal)<2.5
+%                     MP.T_boundlayer_backward.value=0;
+%                 end
             end 
         end
           
@@ -1055,8 +1124,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),MP.Temp.value,mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
                 centerline_flag=1;
             catch
-                distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
-                centerline_flag=1;
+                try
+                    distributions.centerline_temp.value.cal=[mean(calibratedData.TCH1_1F),mean(calibratedData.TCH2_1F),mean(calibratedData.TCH3_1F),mean(calibratedData.TCH4_1F)];
+                    centerline_flag=1;
+                catch
+                    centerline_flag=0;
+                end
             end
         end
         
@@ -1070,7 +1143,11 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         try
             distributions.GHFS_TC.value.cal=[mean(calibratedData.HFS1TC),mean(calibratedData.HFS2TC),mean(calibratedData.HFS3TC),mean(calibratedData.HFS4TC)];
         catch
-            distributions.GHFS_TC.value.cal=[mean(calibratedData.TCH1_2W),mean((calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2),mean(calibratedData.TCH3_2W),mean(calibratedData.TCH4_2W)];
+            try
+                distributions.GHFS_TC.value.cal=[mean(calibratedData.TCH1_2W),mean((calibratedData.TCH1_2W+calibratedData.TCH3_2W)./2),mean(calibratedData.TCH3_2W),mean(calibratedData.TCH4_2W)];
+            catch
+                distributions.GHFS_TC.value.cal=[0,0,0,0];
+            end
         end
         
         %inner wall thermocouples
@@ -1136,8 +1213,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             distributions.GHFS_TC.value.non_cal=[mean(experimentalData.HFS1TC),mean(experimentalData.HFS2TC),mean(experimentalData.HFS3TC),mean(experimentalData.HFS4TC)];
             %GHFS_TC_flag=1;
         catch
-            distributions.GHFS_TC.value.non_cal=[mean(experimentalData.TCH1_2W),mean(experimentalData.TCH2_2W),mean(experimentalData.TCH3_2W),mean(experimentalData.TCH4_2W)];
-            %GHFS_TC_flag=0;
+            try
+                distributions.GHFS_TC.value.non_cal=[mean(experimentalData.TCH1_2W),mean(experimentalData.TCH2_2W),mean(experimentalData.TCH3_2W),mean(experimentalData.TCH4_2W)];
+                %GHFS_TC_flag=0;
+            catch
+                distributions.GHFS_TC.value.non_cal=[0,0,0,0];
+            end
         end
         
         %inner wall thermocouples
@@ -1162,15 +1243,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         %along the tube
         if centerline_flag~=0
             for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
-                distributions.centerline_partpress_h2o.value.cal(molefr_ctr)=IAPWS_IF97('psat_T',(distributions.centerline_temp.value.cal(molefr_ctr)+273.15))*10;  % * 10 to convert MPa to bar
+                distributions.centerline_partpress_h2o.value.cal(molefr_ctr)=IAPWS_IF97('psat_T',(distributions.centerline_temp.value.cal(molefr_ctr)+273.15))*10;  % * 10 to convert MPa to bar            
                 distributions.centerline_molefr_h2o.value.cal(molefr_ctr)=distributions.centerline_partpress_h2o.value.cal(molefr_ctr)/steam.press.value;
+                
                 if distributions.centerline_molefr_h2o.value.cal(molefr_ctr)>1  %due to superheat!
                     distributions.centerline_molefr_h2o.value.cal(molefr_ctr)=1;
                 end
                 distributions.centerline_molefr_NC.value.cal(molefr_ctr)=1-distributions.centerline_molefr_h2o.value.cal(molefr_ctr); 
             end  
+            steam.moleFr_660.value=distributions.centerline_molefr_h2o.value.cal(5);
         end
-       
+      
         %==================================================================================================================
         %geometry - vertical distribution of sensors
         if MP_flag
@@ -1201,17 +1284,23 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                        
         end
         
-        if numel(distributions.centerline_temp.value.cal)==12
-            %centerline geometry
-            distributions.centerline_temp.position_y=[220 320 420 520 620 670 720 820 920 1020 1120 1220];
-            distributions.GHFS_TC.position_y=[220 420 670 920];  %position of sensors in mm
-        else             
-            if numel(distributions.centerline_temp.value.cal)==5 
-                distributions.centerline_temp.position_y=[210+27.5 360+27.5 431+27.5 733+27.5 1035+27.5];
-            else
-                distributions.centerline_temp.position_y=[210+27.5 360+27.5 733+27.5 1035+27.5];
+        if centerline_flag
+            if numel(distributions.centerline_temp.value.cal)==12
+                %centerline geometry
+                distributions.centerline_temp.position_y=[220 320 420 520 620 670 720 820 920 1020 1120 1220];
+                distributions.GHFS_TC.position_y=[220 420 670 920];  %position of sensors in mm
+            else             
+                if numel(distributions.centerline_temp.value.cal)==5 
+                    distributions.centerline_temp.position_y=[210+27.5 360+27.5 431+27.5 733+27.5 1035+27.5];
+                else
+                    distributions.centerline_temp.position_y=[210+27.5 360+27.5 733+27.5 1035+27.5];
+                end
+                distributions.GHFS_TC.position_y=[210+27.5 431+27.5 733+27.5 1035+27.5];  %position of sensors in mm
             end
-            distributions.GHFS_TC.position_y=[210+27.5 431+27.5 733+27.5 1035+27.5];  %position of sensors in mm
+            
+            distributions.centerline_molefr_h2o.position_y=distributions.centerline_temp.position_y;
+            distributions.centerline_partpress_h2o.position_y=distributions.centerline_temp.position_y;
+            distributions.centerline_molefr_NC.position_y=distributions.centerline_temp.position_y;    
         end
         
         distributions.coolant_temp_0deg.position_y=[235-53 809+47 1261+35];  %see document in D:\Data\Facility Instrumentation\Thermocouples called  blah blah positions
@@ -1224,9 +1313,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         distributions.wall_inner.position_y=distributions.GHFS_TC.position_y;
         distributions.wall_outer.position_y=distributions.GHFS_TC.position_y;
         distributions.wall_dT.position_y=distributions.GHFS_TC.position_y;  %positions with reference to the bottom of the test tube everywhere!!!!
-        distributions.centerline_molefr_h2o.position_y=distributions.centerline_temp.position_y;
-        distributions.centerline_partpress_h2o.position_y=distributions.centerline_temp.position_y;
-        distributions.centerline_molefr_NC.position_y=distributions.centerline_temp.position_y;
+        
 
         %geometry - horizontal distribution of sensors
         if MP_flag
@@ -1278,16 +1365,28 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         catch
         end
         
-        
-        
+
         %% Temperature distribution derivatives
         if centerline_flag
             mixing_zone=centerline_derivs(distributions.centerline_temp);
             steam.mixing_zone_length.value=mixing_zone.length_max;
+            
             steam.mixing_zone_start.value=mixing_zone.start;
+            steam.mixing_zone_end.value=mixing_zone.end;
             steam.mixing_zone_length.error=mixing_zone.length_error;
             steam.mixing_zone_start.error=mixing_zone.start_error;
+            steam.mixing_zone_end.error=mixing_zone.end_error;
             
+            steam.mixing_zone_lengthInt.value=mixing_zone.lengthInt_max;
+            steam.mixing_zone_startInt.value=mixing_zone.startInt;
+            steam.mixing_zone_endInt.value=mixing_zone.endInt;
+            
+            steam.mixing_zone_lengthInt.error=mixing_zone.lengthInt_error;
+            steam.mixing_zone_startInt.error=mixing_zone.startInt_error;
+            steam.mixing_zone_endInt.error=mixing_zone.endInt_error;            
+            
+            % calculate mflux based on steam power
+            steam.mFlux.value=steam.mflow.value/(pi*0.02*(steam.mixing_zone_start.value+steam.mixing_zone_end.value)/2);
             % total heat transmitted through wall based on GHFS and dT
             GHFS.total_HF_dT.value=wall_heatflow([GHFS.wall_heatflux_GHFS1.value,GHFS.wall_heatflux_GHFS2.value,GHFS.wall_heatflux_GHFS3.value,GHFS.wall_heatflux_GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
             GHFS.total_HF_GHFS.value=wall_heatflow([GHFS.GHFS1.value,GHFS.GHFS2.value,GHFS.GHFS3.value,GHFS.GHFS4.value],[220 420 670 920],steam.mixing_zone_start.value);
@@ -1302,7 +1401,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.temp.error=error_PT100; %function call
         coolant.temp_inlet.error=error_PT100;
         coolant.temp_outlet.error=error_PT100;
-        coolant.press.error=error_press(coolant.press.value);
+        [coolant.press.error,~]=error_press(coolant.press.value);
         coolant.temp_inlet_TC.error=0.05;
         coolant.temp_outlet_TC.error=0.05;
         %coolant - recalculated values
@@ -1314,6 +1413,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.spec_heat.error =0.001*coolant.spec_heat.value; %ooooooooooooooooo
         coolant.power.error =error_coolantpower(coolant.mflow.value,coolant.spec_heat.value,coolant.dT.value,coolant.power.value,coolant.mflow.error ,coolant.spec_heat.error ,coolant.dT.error );
         coolant.power_TC.error=error_coolantpower(coolant.mflow.value,coolant.spec_heat.value,coolant.dT_TC.value,coolant.power.value,coolant.mflow.error ,coolant.spec_heat.error ,coolant.dT_TC.error );
+        coolant.power_Offset.error=coolant.power.error;
+        coolant.power_TC_Offset.error=coolant.power_TC.error;
         coolant.dynvis.error =0.001*coolant.dynvis.value; %ooooooooooooooooo
         coolant.kinvis.error =0.001* coolant.kinvis.value; %ooooooooooooooooo
         coolant.thermcond.error =0.001*coolant.thermcond.value; %ooooooooooooooooo
@@ -1322,10 +1423,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.reynolds.error =0.001*coolant.reynolds.value; %ooooooooooooooooo
         coolant.htc_dittusboleter.error =0.001*coolant.htc_dittusboleter.value; %ooooooooooooooooo
         coolant.htc_gnielinski.error =0.001*coolant.htc_gnielinski.value; %oooooooooooooooooooooo
-        
-                      
+        coolant.htc_laminar.error =0.001*coolant.htc_gnielinski.value;
+        coolant.htc.error=0.001*coolant.htc.value;           
         %steam - measured values
-        steam.press.error=error_press(steam.press.value);
+        [steam.press.error,~]=error_press(steam.press.value);
+        [steam.pressPartEst.error,~]=error_press(steam.press.value);
+        [steam.pressPart.error,~]=error_press(steam.press.value);
         steam.temp.error=error_PT100;
         steam.press_init.error=steam.press.error;
         steam.temp_init.error=steam.temp.error;      
@@ -1353,13 +1456,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.enthalpy_liquid.error =0.001*steam.enthalpy_liquid.value; %ooooooooooooooooo
         steam.evap_heat.error =0.001*steam.evap_heat.value; %ooooooooooooooooo
         steam.power.error =error_steam_power(mean(230),mean(calibratedData.HE9601_I),steam.power.value);  %XXXXXXXXXXXXXXXXXXX
+        steam.powerOffset.error=error_steam_power(mean(230),mean(calibratedData.HE9601_I),steam.powerOffset.value);
         steam.mflow.error =error_mflow_steam(steam.power.value,steam.evap_heat.value,steam.mflow.value,steam.power.error ,steam.evap_heat.error );
+        if centerline_flag
+            steam.mFlux.error=sqrt((steam.mflow.error/steam.mflow.value)^2+(steam.mixing_zone_start.error/steam.mixing_zone_start.value)^2+(steam.mixing_zone_end.error/steam.mixing_zone_end.value)^2)*steam.mFlux.value;
+        end
         steam.density.error =error_dens(steam.temp.value,steam.press.value,steam.temp.error ,steam.press.error );
         steam.vflow.error =error_volflow_steam(steam.vflow.value,steam.mflow.value,steam.density.value,steam.mflow.error ,steam.density.error );
         steam.velocity.error =error_velocity(steam.velocity.value,steam.vflow.value,(pi*(0.021/2)^2),steam.vflow.error,0);
+       
         
         %facility - calculated values only
         facility.wall_dT.error=error_dT(steam.temp.error);
+        facility.powerOffset.error=1;
+        facility.powerOffset_TC.error=1;
         facility.heat_losses.error=sqrt(steam.power.error^2+coolant.power.error^2);
         facility.heat_losses_TC.error=sqrt(steam.power.error^2+coolant.power_TC.error^2);
         facility.dT_losses.error=sqrt((sqrt(facility.heat_losses.error^2+coolant.power.error^2)/(facility.heat_losses.value+coolant.power.value))^2+(coolant.mflow.error/coolant.mflow.value)^2+(coolant.spec_heat.error/coolant.spec_heat.value)^2)*facility.dT_losses.value;
@@ -1369,7 +1479,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.wall_heatflux_powerbased.error=steam.power.error/(pi*0.02*1.3);
         %         facility.voltage.error=1;
         facility.current.error=1;
-        facility.NCtank_press.error=error_press(facility.NCtank_press.value);
+        [facility.NCtank_press.error,~]=error_press(facility.NCtank_press.value);
         facility.NCtank_temp.error=error_PT100;
         
          % GHFS - errors
@@ -1384,10 +1494,10 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS3_offset_raw.error=GHFS.GHFS3_raw.error;
             GHFS.GHFS4_offset_raw.error=GHFS.GHFS4_raw.error;
             
-            GHFS.GHFS1_temp.error=0.05;
-            GHFS.GHFS2_temp.error=0.05;
-            GHFS.GHFS3_temp.error=0.05;
-            GHFS.GHFS4_temp.error=0.05;
+            GHFS.GHFS1_temp.error=TCerror;
+            GHFS.GHFS2_temp.error=TCerror;
+            GHFS.GHFS3_temp.error=TCerror;
+            GHFS.GHFS4_temp.error=TCerror;
             
             GHFS.wall_dT_GHFS1.error=error_dT(GHFS.GHFS1_temp.error);
             GHFS.wall_dT_GHFS2.error=error_dT(GHFS.GHFS2_temp.error);
@@ -1399,18 +1509,29 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.GHFS3.error=error_GHFS(GHFS.GHFS3.value,GHFS.GHFS3_raw.value);
             GHFS.GHFS4.error=error_GHFS(GHFS.GHFS4.value,GHFS.GHFS4_raw.value);
             
-            GHFS.wall_heatflux_GHFS1.error=facility.wall_heatflux_dT.error;
-            GHFS.wall_heatflux_GHFS2.error=facility.wall_heatflux_dT.error;
-            GHFS.wall_heatflux_GHFS3.error=facility.wall_heatflux_dT.error;
-            GHFS.wall_heatflux_GHFS4.error=facility.wall_heatflux_dT.error;
+            GHFS.wall_heatflux_GHFS1.error=error_wall_heatflux_GHFS(GHFS.wall_heatflux_GHFS1.value,facility.wall_htc.value,GHFS.wall_dT_GHFS1.value,facility.wall_htc.error ,GHFS.wall_dT_GHFS1.error );
+            GHFS.wall_heatflux_GHFS2.error=error_wall_heatflux_GHFS(GHFS.wall_heatflux_GHFS2.value,facility.wall_htc.value,GHFS.wall_dT_GHFS2.value,facility.wall_htc.error ,GHFS.wall_dT_GHFS2.error );
+            GHFS.wall_heatflux_GHFS3.error=error_wall_heatflux_GHFS(GHFS.wall_heatflux_GHFS3.value,facility.wall_htc.value,GHFS.wall_dT_GHFS3.value,facility.wall_htc.error ,GHFS.wall_dT_GHFS3.error );
+            GHFS.wall_heatflux_GHFS4.error=error_wall_heatflux_GHFS(GHFS.wall_heatflux_GHFS4.value,facility.wall_htc.value,GHFS.wall_dT_GHFS4.value,facility.wall_htc.error ,GHFS.wall_dT_GHFS4.error );
             
             GHFS.total_HF_dT.error=0;  %XXXXXXXXXXXXXXXXXXX 
             GHFS.total_HF_GHFS.error=0;  %XXXXXXXXXXXXXXXXXXX 
             GHFS.total_mflow_dT.error=0;
             GHFS.total_mflow_GHFS.error=0;
+            
+            GHFS.GHFS1sens.error=0;
+            GHFS.GHFS2sens.error=0;
+            GHFS.GHFS3sens.error=0;
+            GHFS.GHFS4sens.error=0;
+            
+            GHFS.GHFS1sensCALC.error=0;
+            GHFS.GHFS2sensCALC.error=0;
+            GHFS.GHFS3sensCALC.error=0;
+            GHFS.GHFS4sensCALC.error=0;
 
             % MP - errors
             MP.MP1.error=0.002*MP.MP1.value;
+            MP.MP1_filmthick.error=0.002*MP.MP1_filmthick.value;
             MP.MP2.error=0.002*MP.MP2.value;
             MP.MP3.error=0.002*MP.MP3.value;
             MP.MP4.error=0.002*MP.MP4.value;
@@ -1460,71 +1581,79 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                  
         %% NC gases ==============================================================================================================
         %  values and errors
-        
-        % values
-        [steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,steam.temp_init.value,NC.moles_h2o_test.value,NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_N2_test.error,NC.moles_He_test.error]=NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
-        NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
-        NC.moles_total_init.value=NC.moles_N2_test.value+NC.moles_He_test.value;
-        
-        % estimate tube length occupied by NC mixture, based on NC moles estimate calculated with recorded temperature
-        %initialize
-        NC.moles_total_est.value=0;
-        
-        if centerline_flag~=0
-            for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
-                distributions.centerline_NC_moles_per_height.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);  
-            end
-            
-            for mole_ctr=1:numel(distributions.centerline_temp.value.cal)-1
-                distance=(distributions.centerline_temp.position_y(mole_ctr+1)-distributions.centerline_temp.position_y(mole_ctr))/1000;  %divide by 1000 to convert mm to m
-                %trapezoid (a+b)*h/2 a = value at mole_ctr b = value at mole_ctr+1 h = distance
-                NC.moles_total_est.value=NC.moles_total_est.value+(distributions.centerline_NC_moles_per_height.value.cal(mole_ctr+1)+distributions.centerline_NC_moles_per_height.value.cal(mole_ctr))*distance/2;  %sum all the calculated NC moles from temperatures
-            end
-        end
-        
-        %get NC mole fraction based on mole amount based on estimation
-        NC.NC_molefraction_est.value=NC.moles_total_est.value/(NC.moles_total_init.value+NC.moles_h2o_test.value);
-        NC.NC_molefraction_est.error=1;  % &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        % estimate tube length occupied by NC mixture, based on initial conditions estimate of total NC moles
-        NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);      
-        % and based on deduced amount of NC moles from temeprature measurements
-        NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_est.value,eos_type);      
-        
-        
-%         facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*1.3); %delivered power over tube area
-        facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*(1.3-NC.length_est.value)); %delivered power over tube area
-        
-        %errors
-        NC.N2_molefraction_init.error=NC.N2_molefraction.error;
-        NC.He_molefraction_init.error=NC.He_molefraction.error;
-        NC.NC_molefraction.error=NC.N2_molefraction.error+NC.N2_molefraction.error;  
-        NC.moles_total_init.error=NC.moles_N2_test.error+NC.moles_He_test.error;
-        NC.moles_total_est.error=1; %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        try   %try because in old recordings there is no TF9603
-            NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
-            NC.length_est.error=error_NC_length(NC.length_init.value,NC.moles_total_est.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_est.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
-        catch
-        end
-        
-        %distributions
-        distributions.NC_length_init.position_y=[1,1330-NC.length_init.value*1000-1,1330-NC.length_init.value*1000,1330];
-        distributions.NC_length_init.position_x=zeros(numel(distributions.NC_length_init.position_y),1);
-        distributions.NC_length_est.position_y=[1,1330-NC.length_est.value*1000-1,1330-NC.length_est.value*1000,1330];
-        distributions.NC_length_est.position_x=zeros(numel(distributions.NC_length_est.position_y),1);
-        distributions.centerline_NC_moles_per_height.position_y=distributions.centerline_molefr_NC.position_y;
-        distributions.centerline_NC_moles_per_height.position_x=distributions.centerline_molefr_NC.position_x;
         try
-            distributions.NC_length_init.error=NC.length_init.error;
-            distributions.NC_length_est.error=NC.length_est.error; 
+            % values
+            [NC.N2_inNC_mfrac.value,NC.N2_inNC_mfrac.error,steam.molefraction.value,NC.N2_molefraction.value,NC.He_molefraction.value,steam.molefraction.error,...
+                NC.N2_molefraction.error,NC.He_molefraction.error,NC.N2_molefraction_init.value,NC.He_molefraction_init.value,steam.press_init.value,steam.temp_init.value...
+                ,NC.moles_h2o_test.value,NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_N2_test.error,NC.moles_He_test.error]=...
+                NC_filling(steam.press.value,steam.temp.value,steam.press.error,steam.temp.error,file,eos_type);
+            steam.moleFr_660.error=steam.molefraction.error;
+            NC.NC_molefraction.value=NC.N2_molefraction.value + NC.He_molefraction.value;
+            NC.moles_total_init.value=NC.moles_N2_test.value+NC.moles_He_test.value;
+            steam.pressPart.value=steam.press.value.*(1-NC.NC_molefraction.value);
+            % estimate tube length occupied by NC mixture, based on NC moles estimate calculated with recorded temperature
+            %initialize
+            NC.moles_total_est.value=0;
+
+            if centerline_flag~=0
+                for molefr_ctr=1:numel(distributions.centerline_temp.value.cal)
+                    distributions.centerline_NC_moles_per_height.value.cal(molefr_ctr)=NC_moles_estimate(distributions.centerline_temp.value.cal(molefr_ctr)+273.15,steam.press.value,distributions.centerline_molefr_NC.value.cal(molefr_ctr),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);  
+                end
+
+                for mole_ctr=1:numel(distributions.centerline_temp.value.cal)-1
+                    distance=(distributions.centerline_temp.position_y(mole_ctr+1)-distributions.centerline_temp.position_y(mole_ctr))/1000;  %divide by 1000 to convert mm to m
+                    %trapezoid (a+b)*h/2 a = value at mole_ctr b = value at mole_ctr+1 h = distance
+                    NC.moles_total_est.value=NC.moles_total_est.value+(distributions.centerline_NC_moles_per_height.value.cal(mole_ctr+1)+distributions.centerline_NC_moles_per_height.value.cal(mole_ctr))*distance/2;  %sum all the calculated NC moles from temperatures
+                end
+            end
+
+            %get NC mole fraction based on mole amount based on estimation
+            NC.NC_molefraction_est.value=NC.moles_total_est.value/(NC.moles_total_init.value+NC.moles_h2o_test.value);
+            steam.pressPartEst.value=steam.press.value.*(1-NC.NC_molefraction_est.value);
+            NC.NC_molefraction_est.error=NC.NC_molefraction_est.value*sqrt((steam.mixing_zone_start.error/steam.mixing_zone_start.value)^2+(steam.press.error/steam.press.value)^2+(steam.temp.error/steam.temp.value)^2);  % &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            % estimate tube length occupied by NC mixture, based on initial conditions estimate of total NC moles
+            NC.length_init.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_init.value,eos_type);      
+            % and based on deduced amount of NC moles from temeprature measurements
+            NC.length_est.value=length_NC(coolant.temp.value+273.15,steam.press.value,distributions.centerline_molefr_h2o.value.cal(end),NC.moles_N2_test.value,NC.moles_He_test.value,NC.moles_total_est.value,eos_type);      
+
+
+%             facility.wall_heatflux_powerbased.value=steam.powerOffset.value/(pi*0.02*1.3); %delivered power over tube area
+            facility.wall_heatflux_powerbased.value=steam.power.value/(pi*0.02*(1.3-NC.length_est.value)); %delivered power over tube area
+
+            %errors
+            NC.N2_molefraction_init.error=NC.N2_molefraction.error;
+            NC.He_molefraction_init.error=NC.He_molefraction.error;
+            NC.NC_molefraction.error=NC.N2_molefraction.error;  
+            NC.moles_total_init.error=NC.moles_N2_test.error+NC.moles_He_test.error;
+            NC.moles_total_est.error=1; %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            try   %try because in old recordings there is no TF9603
+                NC.length_init.error=error_NC_length(NC.length_init.value,NC.moles_total_init.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_init.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+                NC.length_est.error=error_NC_length(NC.length_init.value,NC.moles_total_est.value,mean(calibratedData.TF9603)+273.15,steam.press.value*10^5,NC.moles_total_est.error,0.05,steam.press.error*10^5);  %*10^5 so it's in pascal
+            catch
+            end
+
+            %distributions
+            distributions.NC_length_init.position_y=[1,1330-NC.length_init.value*1000-1,1330-NC.length_init.value*1000,1330];
+            distributions.NC_length_init.position_x=zeros(numel(distributions.NC_length_init.position_y),1);
+            distributions.NC_length_est.position_y=[1,1330-NC.length_est.value*1000-1,1330-NC.length_est.value*1000,1330];
+            distributions.NC_length_est.position_x=zeros(numel(distributions.NC_length_est.position_y),1);
+            distributions.centerline_NC_moles_per_height.position_y=distributions.centerline_molefr_NC.position_y;
+            distributions.centerline_NC_moles_per_height.position_x=distributions.centerline_molefr_NC.position_x;
+            try
+                distributions.NC_length_init.error=NC.length_init.error;
+                distributions.NC_length_est.error=NC.length_est.error; 
+            catch
+
+            end
+            distributions.NC_length_init.value.cal=[0,0,1,1];
+            distributions.NC_length_est.value.cal=[0,0,1,1];
+
+            % compare assumed values and actual values of NC moles in the
+            % facility
+            file.NCratio=NC.moles_total_est.value/NC.moles_total_init.value; %this value is used to figure out if the recording has any value at all
         catch
+            disp('stupid old file')
         end
-        distributions.NC_length_init.value.cal=[0,0,1,1];
-        distributions.NC_length_est.value.cal=[0,0,1,1];
-               
-        % compare assumed values and actual values of NC moles in the
-        % facility
-        file.NCratio=NC.moles_total_est.value/NC.moles_total_init.value; %this value is used to figure out if the recording has any value at all
-        
         %% Boundary conditions ==============================================================================================================
         %  values and errors
         
@@ -1542,9 +1671,12 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         BC.Coolant_flow.error=coolant.mflow.error;
         BC.Coolant_temp.error=coolant.temp.error;
         BC.Steam_pressure.error=steam.press.error;
-        BC.NC_molefraction.error=NC.NC_molefraction.error;
-        BC.He_molefraction.error=NC.He_molefraction.error;
-        BC.N2_molefraction.error=NC.N2_molefraction.error;  
+        try
+            BC.NC_molefraction.error=NC.NC_molefraction.error;
+            BC.He_molefraction.error=NC.He_molefraction.error;
+            BC.N2_molefraction.error=NC.N2_molefraction.error;
+        catch
+        end
 
        
         %% ADD UNITS
@@ -1566,6 +1698,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.enthalpy.unit='kJ/kg'; 
         coolant.spec_heat.unit='J/(kg*K)'; %multiply by 1000 so unit is J/kg*K
         coolant.power.unit='W'; 
+        coolant.power_Offset.unit='W';
+        coolant.power_TC_Offset.unit='W';
         coolant.power_TC.unit='W'; 
         coolant.dynvis.unit='Pa*s'; 
         coolant.kinvis.unit='m2/s'; 
@@ -1575,12 +1709,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.reynolds.unit='1'; % hydraulic diameter of the annulus = 0.0791 m
         coolant.htc_dittusboleter.unit='W/(m2*K)'; 
         coolant.htc_gnielinski.unit='W/(m2*K)'; 
+        coolant.htc_laminar.unit='W/(m2*K)';
+        coolant.htc.unit='W/(m2*K)';
 
         % steam side thermodynamic codnitions - measured
         steam.press.unit='bar'; 
+        steam.pressPartEst.unit='bar'; 
+        steam.pressPart.unit='bar'; 
         steam.press_init.unit='bar';
         steam.temp_init.unit='C';
-        steam.power.unit='W';       
+        steam.power.unit='W'; 
+        steam.powerOffset.unit='W';  
         steam.temp.unit=[char(176),'C']; 
         steam.heater_temp.unit=[char(176),'C']; 
         
@@ -1604,14 +1743,22 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         steam.enthalpy.unit='kJ/kg';   
         steam.enthalpy_liquid.unit='kJ/kg'; 
         steam.evap_heat.unit='J/kg';
-        steam.mflow.unit='kg/s';       
+        steam.mflow.unit='kg/s';  
+        steam.mFlux.unit='kg/m^2s';
         steam.vflow.unit='m3/s'; 
         steam.velocity.unit='m/s';
         steam.mixing_zone_length.unit='mm';
         steam.mixing_zone_start.unit='mm';
+        steam.mixing_zone_end.unit='mm';
+        
+        steam.mixing_zone_lengthInt.unit='mm';
+        steam.mixing_zone_startInt.unit='mm';
+        steam.mixing_zone_endInt.unit='mm';
         
     % steam - coolant interface - facility
         facility.wall_dT.unit=[char(176),'C']; 
+        facility.powerOffset.unit='W';
+        facility.powerOffset_TC.unit='W';
         facility.heat_losses.unit='W'; 
         facility.heat_losses_TC.unit='W'; 
         facility.dT_losses.unit=[char(176),'C'];
@@ -1625,7 +1772,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.NCtank_temp.unit=[char(176),'C']; 
         
     % NC mole fractions units
+        NC.N2_inNC_mfrac.unit='1';
         steam.molefraction.unit='1';
+        steam.moleFr_660.unit='1';
         NC.N2_molefraction.unit='1';
         NC.He_molefraction.unit='1';
         NC.NC_molefraction.unit='1';
@@ -1678,9 +1827,20 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             GHFS.total_HF_GHFS.unit='W';
             GHFS.total_mflow_dT.unit='kg/s';
             GHFS.total_mflow_GHFS.unit='kg/s';
-        
+            
+            GHFS.GHFS1sens.unit='V/W';
+            GHFS.GHFS2sens.unit='V/W';
+            GHFS.GHFS3sens.unit='V/W';
+            GHFS.GHFS4sens.unit='V/W';
+            
+            GHFS.GHFS1sensCALC.unit='V/W';
+            GHFS.GHFS2sensCALC.unit='V/W';
+            GHFS.GHFS3sensCALC.unit='V/W';
+            GHFS.GHFS4sensCALC.unit='V/W';
+            
         % Movable probe units   
             MP.MP1.unit='V';
+            MP.MP1_filmthick.unit='mm';
             MP.MP2.unit='V';
             MP.MP3.unit='V';
             MP.MP4.unit='V';
@@ -1767,7 +1927,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
       
 %% Analyze dynamic behaviour of NC mixing front only in continous injection tests
 
-        if ~st_state_flag
+        if frontDynamics_flag
             disp('Calculating NC mixing front behaviour since no steady-state option was chosen')
             %calculate the onset of mixing front passage for every sensor
             av_window=1;
@@ -1781,13 +1941,14 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             sensorList={'TF9603','TF9604','TF9605','TF9606','TF9608','TF9610','TF9611','TF9612','TF9613'}; %,'TF9614'};
             sensorPos=[220,320,420,520,670,820,920,1020,1120];%,1220];
             sensorDist=diff(sensorPos);
-           
+            colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
+
             for sensCntr=1:numel(sensorList)
 
                 currSens=sensorList{sensCntr};
                 currYData=steam.(currSens).var;
                 smoothYData=smooth(currYData,10);
-
+                
                 yAmount=numel(currYData);
                 % This part, based on variable name, assign appropriate period
                 % (GHFS1, GHFS2, GHFS3, GHFS4, MP1, MP2, MP3, MP4 - fast period)
@@ -1809,14 +1970,17 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             h1=figure('visible','off');
             hold on
             for sensCntr=1:numel(sensorList)     
-                plot(frontDataTime{sensCntr})    
+                plot(frontDataTime{sensCntr},'LineWidth',1,'Color',colorstring{sensCntr})    
             end
             title([file_list,' NC Front in time'],'interpreter', 'none')
-            ylabel('Temp')
-            xlabel('Time [s]')
+            ylabel(['Temperature [',char(176),'C]'])
+            xlabel('Residence time [s]')
             legend(sensorList)
-            pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIME'];
+            h1.Children(2).XLabel.FontWeight='bold';
+            h1.Children(2).YLabel.FontWeight='bold';
+            pathPrintName=[pathPrint,'\','NCFrontTIME_',file_list];
             saveas(h1,pathPrintName,'png')
+            print(h1,pathPrintName,'-dmeta')
             close(h1)
             
 %                 figure
@@ -1865,69 +2029,68 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             h2=figure('Visible','off');
             title(file_list)
             hold on
-            subplot(3,1,1)
-            plot(frontVelAvg,'.')
-            title('NC front velocities based on different parameters')
-            ylabel('Velocity mm/s')
-            xlabel('Sensor')
-            subplot(3,1,2)
-            plot(frontResidenceTime,'.')
-            title('Front residence time per sensor')
-            ylabel('s')
-            xlabel('Sensor')
-            subplot(3,1,3)
-            plot(frontSize,'.')
-            title('Front Size in mm per sensor')
-            ylabel('mm')
-            xlabel('Sensor')
+            s1=subplot(3,1,1);
+            plot(sensorPos,frontVelAvg,'.','MarkerSize',14,'Color',colorstring{1})
+%             title('NC front velocities based on different parameters')
+            ylabel('Velocity [mm/s]')
+%             xlabel('Sensor')
+            s1.XLabel.FontWeight='bold';
+            s1.YLabel.FontWeight='bold';
+            
+            s2=subplot(3,1,2);
+            plot(sensorPos,frontResidenceTime,'.','MarkerSize',14,'Color',colorstring{2})
+%             title('Front residence time per sensor')
+            ylabel('Residence time [s]')
+%             xlabel('Sensor')
+            s2.XLabel.FontWeight='bold';
+            s2.YLabel.FontWeight='bold';
+            
+            s3=subplot(3,1,3);
+            plot(sensorPos,frontSize,'.','MarkerSize',14,'Color',colorstring{3})
+%             title('Front Size in mm per sensor')
+            ylabel('Mixing length [mm]')
+            xlabel('Sensor vertical position [mm]')
             h2.Position=[403 -100 660 820];
-            pathPrintName=[pathPrint,'\',file_list,'_FrontDetails'];
-            saveas(h2,pathPrintName,'png')    
+            pathPrintName=[pathPrint,'\','FrontDetails_',file_list];
+            s3.XLabel.FontWeight='bold';
+            s3.YLabel.FontWeight='bold';
+            
+            h2.Position=[ 403,  100,   560,   520];
+            saveas(h2,pathPrintName,'png')   
+            print(h2,pathPrintName,'-dmeta')
             close(h2)
             
+            %store for later processing
+            steam.contInj.vel=frontVelAvg;
+            steam.contInj.restTme=frontResidenceTime;
+            steam.contInj.mixL=frontSize;
             %resample front data to fit virtual length coordinates
             h3=figure('visible','off');
             hold on
 %             h4=figure('visible','off');
 %             hold on
-            
+%% mixing zone in temperature
             for frontCntr=1:numel(frontSize)
-                
+                currSens=sensorList{frontCntr};
+                currYData=steam.(currSens).var;
                 %get stds of front
                 frontStd(frontCntr)=mean(movstd(frontDataTime{frontCntr},round(numel(frontDataTime{frontCntr})/20)));%/mean(frontDataTime{frontCntr}));
-                
-%                 %fft
-%                 Y=fft(frontDataTime{frontCntr});
-%                 Fs = 10;                                     % Sampling frequency                    
-%                 T = 1/Fs;                                   % Sampling period       
-%                 L = numel(frontDataTime{frontCntr});        % Length of signal
-%                 t = (0:L-1)*T;  
-%                 P2 = abs(Y/L);
-%                 P1 = P2(1:L/2+1);
-%                 P1(2:end-1) = 2*P1(2:end-1);
-%                 %Define the frequency domain f and plot the single-sided amplitude spectrum P1. The amplitudes are not exactly at 0.7 and 1, as expected, because of the added noise. On average, longer signals produce better frequency approximations.
-% 
-%                 f = Fs*(0:(L/2))/L;
-%                 set(0, 'CurrentFigure', h4)
-%                 plot(f,P1) 
-%                 title('Single-Sided Amplitude Spectrum of X(t)')
-%                 xlabel('f (Hz)')
-%                 ylabel('|P1(f)|')
 
                 %add padding to get right of edge effects
                 set(0, 'CurrentFigure', h3)
                 x=frontDataTime{frontCntr}';
                 padding=30;
                 dataPad=[repmat(x(1), 1, padding), x, repmat(x(end), 1, padding) ];
-%                 noPaddingResamp=resample(frontDataTime{frontCntr},frontSize(frontCntr), numel(frontDataTime{frontCntr}));
 
-                resampledDataPad=resample(dataPad,frontSize(frontCntr), numel(frontDataTime{frontCntr}));
-                padding_mod=ceil(padding*frontSize(frontCntr)/numel(frontDataTime{frontCntr}));
+                resampledDataPad=resample(dataPad,frontSize(frontCntr), numel(x));
+                padding_mod=ceil(padding*frontSize(frontCntr)/numel(x));
                 frontDataEulerian{frontCntr}=resampledDataPad(padding_mod+1:end-padding_mod);
-               
+                steam.contInj.frontData{frontCntr}=currYData(frontArrivalStart(frontCntr):frontArrivalEnd(frontCntr));
+                steam.contInj.frontArriv{frontCntr}=frontArrivalStart(frontCntr);
+                steam.contInj.frontDep{frontCntr}=frontArrivalEnd(frontCntr);
                 %padding distorts final data by 1 mm shortening
                 %sometimes
-                plot(frontDataEulerian{frontCntr})
+                plot(frontDataEulerian{frontCntr},'LineWidth',1,'Color',colorstring{frontCntr})
                 
                 steam.(['mixFront_',sensorList{frontCntr}]).value=frontSize(frontCntr);
                 steam.(['mixFront_',sensorList{frontCntr}]).var=frontDataEulerian{frontCntr};
@@ -1936,28 +2099,77 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 
             end
             legend(sensorList)
-            title([file_list,' NC Front in mm'],'interpreter', 'none')
-            ylabel('Temp')
-            xlabel('Size [mm]')
-            pathPrintName=[pathPrint,'\',file_list,'_NCFrontLENGTH'];
+%             title([file_list,' NC Front in mm'],'interpreter', 'none')
+            ylabel(['Temperature [',char(176),'C]'])
+            xlabel('Length [mm]')
+            xlim([0 400])
+            h3.Children(2).XLabel.FontWeight='bold';
+            h3.Children(2).YLabel.FontWeight='bold';
+            pathPrintName=[pathPrint,'\','NCFrontLENGTH_',file_list];
             saveas(h3,pathPrintName,'png')
+            print(h3,pathPrintName,'-dmeta')
             close(h3)
-            
+%% mixing zone in heat flux
+            hHFS=figure('Visible','off');
+            hold on
+            hfsSensorList={'GHFS1','GHFS2','GHFS3','GHFS4'};
+            frontList=[1,3,5,7]; % corresponds to locations of GHFS 
+            for frHFS=1:numel(hfsSensorList)
+                currSens=hfsSensorList{frHFS};
+                currFront=frontList(frHFS);
+                currYData=GHFS.(currSens).var;
+                %get stds of front
+%                 frontStd(frontCntr)=mean(movstd(frontDataTime{frontCntr},round(numel(frontDataTime{frontCntr})/20)));%/mean(frontDataTime{frontCntr}));
+
+                %add padding to get right of edge effects
+                set(0, 'CurrentFigure', hHFS)
+                x=currYData(frontArrivalStart(currFront)/timing.fast:frontArrivalEnd(currFront)/timing.fast);
+                padding=30/timing.fast;
+                dataPad=[repmat(x(1), 1, padding), x', repmat(x(end), 1, padding) ];
+
+                resampledDataPad=resample(dataPad,frontSize(currFront), numel(dataPad));
+                padding_mod=ceil(padding*numel(resampledDataPad)/numel(dataPad));
+                frontDataEulerianHFS{frHFS}=resampledDataPad(padding_mod+1:end-padding_mod);
+
+                %padding distorts final data by 1 mm shortening
+                %sometimes
+                plot(frontDataEulerianHFS{frHFS},'LineWidth',1,'Color',colorstring{frHFS})
+                
+                steam.(['mixFront_',hfsSensorList{frHFS}]).var=frontDataEulerianHFS{frHFS};
+                steam.(['mixFront_',hfsSensorList{frHFS}]).error=1;
+                steam.(['mixFront_',hfsSensorList{frHFS}]).unit='various';
+                
+            end
+            legend(hfsSensorList)
+%             title([file_list,' NC Front in mm'],'interpreter', 'none')
+            ylabel('Heat flux [W/m^2]')
+            xlabel('Length [mm]')
+            xlim([0 400])
+            hHFS.Children(2).XLabel.FontWeight='bold';
+            hHFS.Children(2).YLabel.FontWeight='bold';
+            pathPrintName=[pathPrint,'\','NCFrontGHFS_LENGTH_',file_list];
+            saveas(hHFS,pathPrintName,'png')
+            print(hHFS,pathPrintName,'-dmeta')
+            close(hHFS)
+
+%%
 %             pathPrintName=[pathPrint,'\',file_list,'_NCFrontFFT'];
 %             saveas(h4,pathPrintName,'png')
 %             close(h4)
             
             h3=figure('visible','off');
             hold on
-            plot(frontStd,'.');
+            plot(frontStd,'.','MarkerSize',14);
 %             legend(sensorList)
             title([file_list,' NC Front norm std'],'interpreter', 'none')
             ylabel('Norm std')
             xlabel('sensor')
-            pathPrintName=[pathPrint,'\',file_list,'_NCFrontStd'];
+            pathPrintName=[pathPrint,'\','NCFrontStd_',file_list];
             saveas(h3,pathPrintName,'png')
+            print(h3,pathPrintName,'-dmeta')
             close(h3)
             
+            steam.contInj.frontSTD=frontStd;
             %calculate velocity from pressure drop in NC tank
             
             %find NC feeding onset            
@@ -1981,6 +2193,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                 NCfeedStart=820;
             end
             
+            steam.contInj.NCpress=facility.NCtank_press.var(NCfeedStart:end);
+            
 %             %test feeding start recognition
 %             figure
 %             plot(NCtankMoles)
@@ -1995,7 +2209,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             molesTube=molesTube(NCfeedStart:end);
             NCdelay=NCfeedStart-frontArrivalStart(end);
             molesTubewhenstart=molesTube(abs(NCdelay));
-            molesTube=molesTube+molesTubewhenstart;   %dirty trick
+            molesTube=molesTube+molesTubewhenstart;  
             
 %             figure
 %             plot(molesTube)
@@ -2069,7 +2283,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             h4=figure('visible','off');
             h4.Position=([500 200 500, 250]);
-            plot(feedingTime-feedingTime(1),sensorPos(end)-tubeFillLength,'LineWidth',2)
+            plot(feedingTime-feedingTime(1),sensorPos(end)-tubeFillLength,'-.','LineWidth',2)
             hold on
             sensorPosBackward=-(sensorPos-sensorPos(end))+110; %because we observe last one first, we have to start counting backward
             plot(frontStartZeroed, sensorPos(end)-(sensorPosBackward-sensorPosBackward(end)),'.-','MarkerSize',12,'LineWidth',1.5)  % substract last term, to set it as a starting point
@@ -2080,15 +2294,34 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             ylabel('Vertical position [mm]')
             xlabel('Time [s]')
             legend('Calculated based on pressure drop','Observed with thermocouples','Location','NorthEast','FontSize','11')
-            pathPrintName=[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'];
+            pathPrintName=[pathPrint,'\','NCFrontTIMEadvancement_',file_list];
             saveas(h4,pathPrintName,'png')
-            print(h4,[pathPrint,'\',file_list,'_NCFrontTIMEadvancement'],'-dmeta')
+            print(h4,pathPrintName,'-dmeta')
 %             savefig(h4,[pathPrintName,'.fig'])
 %             close(h4)
 
             %velocity vs front size
             NCmoleFlow=smooth(diff(molesTube),20);  % pseudo mole over s
+
+            if sum(frontArrivalStart<NCfeedStart)
+                frontArrivalStart(frontArrivalStart<NCfeedStart)=NCfeedStart+1;
+            end
             NCmoleFlowSnapshots=NCmoleFlow(frontArrivalStart-NCfeedStart);
+            steam.contInj.frontArriv=frontArrivalStart;
+            h6=figure('visible','off');
+            h6.Position=([500 200 500, 250]);
+            plot(NCmoleFlow,'-','LineWidth',1.5)
+            grid on
+%             title(' NC feeding rate','interpreter', 'none')
+            ylabel('Feeding rate [mol/s]')
+            xlabel('Time [s]')
+            pathPrintName=[pathPrint,'\','NCFeedingRate_',file_list];
+            saveas(h6,pathPrintName,'png')
+            print(h6,pathPrintName,'-dmeta')
+            
+            steam.contInj.NCfeed=NCmoleFlow;
+            
+            %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             steamMoleFlow=steam.mflow.var.*(1000/18.01528);  % times 1000 to move from kg/s to g/s and divide by molar mass of steam to move to moles over second
             steamMoleFlow=smooth(steamMoleFlow,50);
             steamMoleFlowSnapshots=steamMoleFlow(frontArrivalStart);
@@ -2102,7 +2335,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             ylabel('Front Size')
             xlabel('Mole ratio')
             subplot(2,1,2)
-            plot(steamMoleFlowSnapshots,frontSize,'.')
+            plot(steamMoleFlowSnapshots,frontSize,'.','MarkerSize',14)
             xlim([min(steamMoleFlowSnapshots) max(steamMoleFlowSnapshots)])
             
             fitParam=polyfit(steamMoleFlowSnapshots,frontSize',1);
@@ -2117,8 +2350,9 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
             
             ylabel('Front Size')
             xlabel('Steam Moleflow')
-            pathPrintName=[pathPrint,'\',file_list,'_NCFrontSizevsMolarRatio'];
+            pathPrintName=[pathPrint,'\','NCFrontSizevsMolarRatio_',file_list];
             saveas(h5,pathPrintName,'png')
+            print(h5,pathPrintName,'-dmeta')
             close(h5)
             
             %front std's

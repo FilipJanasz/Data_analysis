@@ -40,7 +40,7 @@ function nc_length=length_NC(equilibrium_T,test_press,h2o_mole_fraction_equlibri
     mixture_components=length(mole_fr);
 
     %% check applicability condition (for all mixture components p/pc > T/2*Tc) for Redlich Kwong
-    if eos==2;
+    if eos==2
         reset(symengine)
         RK_app=zeros(1,mixture_components);
         for i=1:mixture_components

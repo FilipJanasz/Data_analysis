@@ -27,6 +27,8 @@ test_amount=size(ndata);
     % 2 - Redlich Kwong
     eos=1;
 
+    hw=waitbar(0,'Calculating initial conditions');
+    
 for n=1:test_amount(1)
     if mole_fr_NC(n)==0
         press_NC_tank_both=0;
@@ -44,8 +46,10 @@ for n=1:test_amount(1)
     initial_cond{n,8}=initial_cond{n,7}-wall_dT(n);
     initial_cond{n,9}=clnt_mflow(n);
     initial_cond{n,10}=wall_dT(n);
+    waitbar(n/test_amount(1))
 end
 
+close(hw)
 %sort rows by NC gas mole fraction, so later it's easier to indentify same
 %initial conditions
 initial_cond=sortrows(initial_cond,[2,3,6,9,10]);
@@ -65,4 +69,4 @@ initial_cond{1,8}='Coolant temp';
 initial_cond{1,9}='Coolant mass flow';
 initial_cond{1,10}='wall dT';
 
-xlswrite('D:\Data\Data_analysis\NC_filling_estimation\initial_conditions.xlsx',initial_cond)
+xlswrite('D:\Data_analysis\NC_filling_estimation\initial_conditions.xlsx',initial_cond)

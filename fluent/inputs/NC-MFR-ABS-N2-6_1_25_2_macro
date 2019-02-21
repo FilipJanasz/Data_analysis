@@ -1,30 +1,48 @@
 (cx-macro-define
- '( (runmacr . "
-	/file/read-case \"/home/janasz_f/2017_2D_template/template30k.cas\" ok
-/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.00013001 n 429.4972 n 0 y n 1 n 0 n n y 5 10 n n 1 y
-/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.081568 n 408.0968 n 0 y n 1 n 0 n n y 5 10 y
-	/solve/monitors/surface/clear-monitors
-	/solve/monitors/volume/clear-monitors
-/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/udm4.out\" 1 n flow-time
-/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/press.out\" 1 n flow-time
+ '( (runmacr . " 
+/file/read-case \"D:\CFD2018\caseTemplates/template30k.cas\" 
+/define/boundary-conditions/mass-flow-inlet steam_inlet yes no yes no 2.6001 yes yes \"udf\" \"inlet_temp::libudf_2D\" no 0 yes no 1 no 0 no no yes 5 10 no no 1 yes 
+/define/boundary-conditions/mass-flow-inlet coolant_inlet y n y n 118.5844 n 408.0968 n 0 y n 1 n 0 n n y 5 10 y
+/solve/monitors/surface/clear-monitors
+/solve/monitors/volume/clear-monitors
+/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/udm4.out\" 1 y flow-time
+/solve/monitors/surface/set-monitor inletTemp \"Area-Weighted Average\" temperature steam_inlet () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/inletTemp.out\" 1 y flow-time
+/solve/monitors/surface/set-monitor inletMFlow \"Mass Flow Rate\" steam_inlet () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/inletMFlow.out\" 1 y flow-time
+/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/press.out\" 1 y flow-time
+/solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/h2o.out\" 1 y flow-time
+/solve/monitors/volume/set-monitor h2omass \"Mass Integral\" h2o steam () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/h2omass.out\" 1 y flow-time
+/solve/monitors/volume/set-monitor n2mass \"Mass Integral\" n2 steam () n n yes \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/n2mass.out\" 1 y flow-time
 (rp-var-define 'cttemp 408.0968 'real #f)
 (rp-var-define 'steamtemp 429.4972 'real #f)
-	/solve/initialize/initialize-flow
-	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
-	/solve/initialize/initialize-flow ok
+(rp-var-define 'wallcond/underrelax 0.2 'real #f)
+(rp-var-define 'wallcond/wall_mf_ur 0.2 'real #f)
+/solve/initialize/initialize-flow
+/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+/solve/initialize/initialize-flow ok
 /solve/patch steam () species-0 0.13436
-/define/operating-conditions/operating-pressure 2777.4
-/solve/patch coolant () pressure 52925.0654
+/solve/patch steam () x-velocity n 0
+/solve/patch steam tube insulation_cone coolant () temperature 318.529
+/define/operating-conditions/operating-pressure 27774
+/solve/patch coolant () pressure 529250.6544
 /solve/patch coolant () x-velocity n 0.063734
-/file/write-case \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/NC-MFR-ABS-N2-6_1_25_2.cas\" ok
-/file/auto-save/root-name \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/NC-MFR-ABS-N2-6_1_25_2.cas\"
-	/solve/dual-time-iterate 1000 20 n ok n ok 
-	/solve/set/time-step 1
-	/solve/dual-time-iterate 3500 20 y y 
-/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/h2o_centerline\" yes n n h2o y 1 0 symmetry ()
-/plot/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/temp_centerline\" yes n n temperature y 1 0 symmetry ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/temp_wall\" yes n n temperature y 1 0 steam_tube ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/h2o_wall\" y n n h2o y 1 0 steam_tube ()
-/plot/plot n \"/home/janasz_f/NC-MFR-ABS-N2-6_1_25_2/udm4_wall\" y n n udm-4 y 1 0 steam_tube ()
-	")
-   ))
+/file/write-case \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/NC-MFR-ABS-N2-6_1_25_2.cas\" ok
+/file/auto-save/root-name \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/NC-MFR-ABS-N2-6_1_25_2.cas\"
+/solve/set/p-v-coupling 22
+/solve/set/time-step 0.001
+/solve/dual-time-iterate 100 40 n yes 
+/solve/set/time-step 0.01
+/solve/dual-time-iterate 10000 40 y y
+/file/write-data \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/NC-MFR-ABS-N2-6_1_25_2_FINAL.dat\" 
+")
+))
+(cx-macro-define
+ '( (plotmacr . " 
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/h2o_centerline.txt\" y y 1 0 n n h2o symmetry ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/temp_centerline.txt\" y y 1 0 n n temperature symmetry ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/temp_wall.txt\" y y 1 0 n n temperature steam_tube ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/h2o_wall.txt\" y y 1 0 n n h2o steam_tube ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/udm4_wall.txt\" y y 1 0 n n udm-4 steam_tube ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/N2_wall.txt\" y y 1 0 n n n2 steam_tube ()
+/plot/plot n \"D:\CFD2018/results\NC-MFR-ABS-N2-6_1_25_2/N2_centerline.txt\" y y 1 0 n n n2 symmetry ()
+")
+))

@@ -82,7 +82,7 @@ function [press_NC_tank, press_NC_tank_He]=NCfilling_estimation_fun(mole_fr_h2o,
     RK_app=zeros(1,mixture_components);
     for i=1:mixture_components
         RK_app(i)=test_press/pc(i)/(Tsat/2/Tc(i));
-        if RK_app(i)>1 && eos==2;
+        if RK_app(i)>1 && eos==2
              warning('Redlich-Kwong equation not applicable - for a mixture component the condition is not met (p/pc > T/2*Tc), forcing ideal gas equation')
              eos=1;
         end
@@ -187,14 +187,15 @@ function [press_NC_tank, press_NC_tank_He]=NCfilling_estimation_fun(mole_fr_h2o,
     press_NC_tank=press_temp;
     T_NC_tank=T_sat_temp;
 
-    % Define Redlich-Kwong equation (for two species in NC tank - parameters a and b change slightly)
-    Tc_NC_tank=Tc(1:2);
-    pc_NC_tank=pc(1:2);
+    
     if eos==1
         press_fun_NC=press_fun;
         Vm_fun_NC=Vm_fun;
         T_fun_NC=T_fun;
     elseif eos==2
+        % Define Redlich-Kwong equation (for two species in NC tank - parameters a and b change slightly)
+        Tc_NC_tank=Tc(1:2);
+        pc_NC_tank=pc(1:2);
         [press_fun_NC,Vm_fun_NC,T_fun_NC]=Redlich_Kwong(R,Tc_NC_tank,pc_NC_tank,mole_fr_NC_tank);
     end
 

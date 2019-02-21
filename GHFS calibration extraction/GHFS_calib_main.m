@@ -2,7 +2,10 @@ function [file,data]=GHFS_calib_main(clear_flag,filePath_default)
 %%  PICK A FOLDER FOR PROCCESSING  
          
     %display gui to pick directory
+    oldCd=cd;
+    cd('D:\Movable Probe\Probe Calibration_Guillaume');
     directories = uigetdir(filePath_default,'Pick a directory');
+    cd(oldCd);
     try
         [file_list, fileCounter]=filter_tdms_files(directories);
         directories={directories};
@@ -28,8 +31,13 @@ function [file,data]=GHFS_calib_main(clear_flag,filePath_default)
                 delete(file_to_del_name)
                 disp(['Deleting file  ','processed_steady_data_',file_list{dir_counter}{fc},'.mat'])
             end
-            [file(fc),data(fc)]=GHFS_processing_fun(file_list{dir_counter}{fc},directories{dir_counter});
-% below is for debugging
+            
+%             [file(fc),data(fc)]=GHFS_processing_fun(file_list{dir_counter}{fc},directories{dir_counter});
+            [fileTemp,dataTemp]=GHFS_processing_fun(file_list{dir_counter}{fc},directories{dir_counter});
+
+            file(fc)=fileTemp;
+            data(fc)=dataTemp;
+            % below is for debugging
 %            [steam1, coolant1, facility1, NC1, distributions1, file1,BC1, GHFS1, MP1]=file_processing(interactive_flag,file_list{dir_counter}{fc},directories{dir_counter},st_state_flag,options);
 %            steam(fc)=steam1;
 %            coolant(fc)=coolant1;

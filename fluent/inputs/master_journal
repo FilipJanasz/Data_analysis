@@ -1,0 +1,5 @@
+
+/file/read-macro D:/CFD2018/inputs/NC-MFR-ABS-N2-6_1_macro
+/file/execute-macro runmacr
+/file/execute-macro plotmacr
+

@@ -149,10 +149,23 @@ else
 end
 
 %% plot data and errorbars
-h=plot(x,y, color{1}); % main plot
+try
+    h=plot(x,y, color{1}); % main plot
+catch
+    spec=color{1};
+    %line_spec={line_color,line_style,line_width,line_marker,marker_color,marker_size};
+    h=plot(x,y);
+    h.Color=spec{1};
+    h.LineStyle=spec{2};
+    h.LineWidth=spec{3};
+    h.Marker=spec{4};
+    h.MarkerFaceColor=spec{5};
+    h.MarkerEdgeColor=spec{5};
+    h.MarkerSize=spec{6};
+end
 allh=nan(length(x), 6); % all errorbar handles
 for k=1:length(x)
-    if ~isempty(lx) & ~isempty(ly) % both errors are specified
+    if ~isempty(lx) && ~isempty(ly) % both errors are specified
         l1=line([lx(k) ux(k)],[y(k) y(k)]);
         hold on;
         l2=line([lx(k) lx(k)],[y(k)-0.1*erry(k) y(k)+0.1*erry(k)]);
@@ -161,14 +174,14 @@ for k=1:length(x)
         l5=line([x(k)-0.1*errx(k) x(k)+0.1*errx(k)],[ly(k) ly(k)]);
         l6=line([x(k)-0.1*errx(k) x(k)+0.1*errx(k)],[uy(k) uy(k)]);
         allh(k, :)=[l1, l2, l3, l4, l5, l6];
-    elseif isempty(lx) & ~isempty(ly) % x errors are not specified
+    elseif isempty(lx) && ~isempty(ly) % x errors are not specified
         l4=line([x(k) x(k)],[ly(k) uy(k)]);
         hold on;
         errx=nanmean(abs(diff(x)));
         l5=line([x(k)-0.1*errx x(k)+0.1*errx],[ly(k) ly(k)]);
         l6=line([x(k)-0.1*errx x(k)+0.1*errx],[uy(k) uy(k)]);
         allh(k, 4:6)=[l4, l5, l6];
-    elseif ~isempty(lx) & isempty(ly) % y errors are not specified
+    elseif ~isempty(lx) && isempty(ly) % y errors are not specified
         l1=line([lx(k) ux(k)],[y(k) y(k)]);
         hold on;
         erry=nanmean(abs(diff(y)));

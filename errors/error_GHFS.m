@@ -16,5 +16,5 @@ function err_GHFS_abs=error_GHFS(ghfs,ghfs_raw)
     s0_err_rel=NI9215_err_rel+Area_err_rel+volt_err_rel+current_err_rel+receiving_area_err_rel;
 
     err_GHFS_rel=s0_err_rel+NI9215_err_rel+Area_err_rel;
-    err_GHFS_abs=err_GHFS_rel*ghfs_raw;
+    err_GHFS_abs=err_GHFS_rel*ghfs;
 end

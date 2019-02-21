@@ -42,8 +42,8 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
         layer_start=854;
         layer_end=910;
     else
-        high=find(y_dat_norm>0.96);
-        low=find(y_dat_norm<0.1 );
+        high=find(y_dat_norm>0.98);
+        low=find(y_dat_norm<0.12 );
         layer_start=high(end);
         tempLow=low(low>layer_start);
         layer_end=tempLow(1);
@@ -62,19 +62,43 @@ function [frontArrivalMiddle,frontArrivalDevMax,frontArrivalStart,frontArrivalEn
     end
 
     st_devFront=st_dev_local(frontArrivalStart:frontArrivalEnd);
-    frontArrivalDevMax=find(st_devFront==max(st_devFront))+frontArrivalStart;
+    frontArrivalDevMax=find(st_devFront==max(st_devFront))+frontArrivalStart-1;
     
     fx=figure('visible','off');
-    plot(st_dev_local)
+    s1=subplot(2,1,1);
     hold on
-    yyaxis right
-    plot(x_dat,y_dat_norm)
-    plot([frontArrivalMiddle frontArrivalMiddle], ylim,'.-r')
-    plot([frontArrivalDevMax frontArrivalDevMax], ylim,'.-g')
-    plot([frontArrivalStart frontArrivalStart], ylim,'--k')
-    plot([frontArrivalEnd frontArrivalEnd], ylim,'--b')
-    pathPrintName=[pathPrint,'\',file_list,'_',currSens];
+    plot(x_dat,y_dat,'.-','Color',[0, 0.4470, 0.7410],'LineWidth',1.5)
+%     plot([frontArrivalMiddle frontArrivalMiddle], ylim,'.-r')
+    xlim([frontArrivalStart-50 frontArrivalEnd+50])
+    ylim([y_dat(frontArrivalEnd)-1 y_dat(frontArrivalStart)+1])
+    plot([frontArrivalDevMax frontArrivalDevMax], ylim,'.-','Color',[0.4660, 0.6740, 0.1880],'LineWidth',1.5)
+    plot([frontArrivalStart frontArrivalStart], ylim,'.--k')
+    plot([frontArrivalEnd frontArrivalEnd], ylim,'.--k')
+    ylabel(['Temperature ',char(176),'C'])
+    s1.FontSize=11;
+    s1.YLabel.FontWeight='bold';
+    grid on
+    
+    
+    s2=subplot(2,1,2);
+    hold on
+    plot(st_dev_local,'.-','Color',[0.8500, 0.3250, 0.0980],'LineWidth',1.5)
+%     plot([frontArrivalMiddle frontArrivalMiddle], ylim,'.-r')
+    plot([frontArrivalDevMax frontArrivalDevMax], ylim,'.-','Color',[0.4660, 0.6740, 0.1880],'LineWidth',1.5)
+    plot([frontArrivalStart frontArrivalStart], ylim,'.--k')
+    plot([frontArrivalEnd frontArrivalEnd], ylim,'.--k')
+    ylabel('Temperature STD')
+    xlabel('Time [s]')
+    s2.FontSize=11;
+    s2.XLabel.FontWeight='bold';
+    s2.YLabel.FontWeight='bold';
+    grid on
+    xlim([frontArrivalStart-50 frontArrivalEnd+50])
+    
+    %save
+    pathPrintName=[pathPrint,'\',currSens,'_',file_list];
     saveas(fx,pathPrintName,'png')
+    print(fx,[pathPrintName],'-dmeta')
     close(fx)
     
 %     

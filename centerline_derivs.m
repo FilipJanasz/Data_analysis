@@ -12,27 +12,63 @@ function mix_zone=centerline_derivs(temp_distribution)
 %     gas_zone=distr_norm<=cut_off;
     mixing_zone=distr_norm<(1-cut_off) & distr_norm>cut_off;
     positions=find(mixing_zone);
-  
-    if ~isempty(positions)
-        if (positions(end)+1)<=distr_size && (positions(1)-1)>0
-            mix_zone.length_max=vert_pos(positions(end)+1)-vert_pos(positions(1)-1);
-            mix_zone.length_min=vert_pos(positions(end))-vert_pos(positions(1));
-            mix_zone.length_error=(mix_zone.length_max-mix_zone.length_min)/2;
-            mix_zone.start=vert_pos(positions(1)-1);
-            mix_zone.end=vert_pos(positions(end)+1);
-            mix_zone.start_error=(mix_zone.start-vert_pos(positions(1)))/2;
-        else
-            mix_zone.length_max=NaN;
-            mix_zone.start=NaN;
-            mix_zone.start_error=NaN;
-            mix_zone.length_error=NaN;
-        end
+    
+    
+    %if there are locations found
+    if ~isempty(positions) && (positions(end)+1)<=distr_size %&& (positions(1)-1)>0)
         
+        %values
+        mix_zone.length_max=vert_pos(positions(end)+1)-vert_pos(positions(1)-1);
+        mix_zone.length_min=vert_pos(positions(end))-vert_pos(positions(1));
+        mix_zone.start=vert_pos(positions(1)-1);
+        mix_zone.end=vert_pos(positions(end)+1);
+
+        %errors            
+        mix_zone.length_error=(mix_zone.length_max-mix_zone.length_min)/2;
+        mix_zone.start_error=(mix_zone.start-vert_pos(positions(1)))/2;
+        mix_zone.end_error= mix_zone.start_error;
+ 
     else
         mix_zone.length_max=NaN;
         mix_zone.start=NaN;
+        mix_zone.end=NaN;
         mix_zone.start_error=NaN;
+        mix_zone.end_error=NaN;
         mix_zone.length_error=NaN;
+    end
+    
+    %interpolate data on a tighter grid
+    vertPosInt=10:10:vert_pos(end);
+    distrNormInterp=interp1(vert_pos,distr_norm,vertPosInt);
+    mixing_zoneInt=distrNormInterp<(1-cut_off) & distrNormInterp>cut_off;
+    posInterp=find(mixing_zoneInt);
+    distrInt_size=numel(vertPosInt);
+    
+    %if there are locations found with interpolation
+    if ~isempty(posInterp) && (posInterp(end)+1)<=distrInt_size %&& (posInterp(1)-1)>0)
+           
+            %with 1D interpolation
+            mix_zone.lengthInt_max=vertPosInt(posInterp(end)+1)-vertPosInt(posInterp(1)-1);
+            mix_zone.lengthInt_min=vertPosInt(posInterp(end))-vertPosInt(posInterp(1));     
+            mix_zone.startInt=vertPosInt(posInterp(1)-1);
+            mix_zone.endInt=vertPosInt(posInterp(end)+1);
+            
+            %errors
+%             mix_zone.lengthInt_error=(mix_zone.lengthInt_max-mix_zone.lengthInt_min)/2;
+            mix_zone.lengthInt_error=50;
+%             mix_zone.startInt_error=(mix_zone.startInt-vertPosInt(posInterp(1)))/2;
+            mix_zone.startInt_error=50;
+            mix_zone.endInt_error= mix_zone.startInt_error;
+ 
+    else
+
+        %with 1D interpolation
+        mix_zone.lengthInt_max=NaN;
+        mix_zone.startInt=NaN;
+        mix_zone.endInt=NaN;
+        mix_zone.startInt_error=NaN;
+        mix_zone.endInt_error=NaN;
+        mix_zone.lengthInt_error=NaN;
     end
     
 %     distr_vars=zeros(1,distr_size);

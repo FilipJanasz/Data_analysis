@@ -1,4 +1,4 @@
-function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,handles)
+function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,frontDynamics_flag,handles)
     try
         %%  PICK A FOLDER FOR PROCCESSING  
 
@@ -51,7 +51,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
                         disp(['Deleting file  ','processed_steady_data_',file_list{dir_counter}{fc},'.mat'])
                     end
 
-                    [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},dirChoice{dir_counter},st_state_flag,options);
+                    [steam(fc), coolant(fc), facility(fc), NC(fc), distributions(fc), file(fc),BC(fc), GHFS(fc), MP(fc),timing(fc)]=file_processing(interactive_flag,file_list{dir_counter}{fc},dirChoice{dir_counter},st_state_flag,frontDynamics_flag,options);
 
                     %fancy bling wait bar:
                     waitbar(fc/fileCounter{dir_counter},h)

@@ -163,6 +163,9 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     x_dat=period:period:y_amount*period;
     sample_rate=1/period;
     
+    if strcmp(y_param,'CFD')
+        x_dat=handles.data.(y_param)(file_choice).(y_param_var).time;
+    end
     % if NOTCH filter box is checked, apply notch filter with the frequency
     % described in GUI 
     % accepts a few values for frequency, delimited with a comma and
@@ -243,7 +246,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         end
         % apply filter to data
         y_dat=filtfilt(num,den,y_dat);
-        
+        y_dat=y_dat(10:end);
+        x_dat=x_dat(10:end);
         %forwad info for legend
         lowpass_str=[' | lowp ',lowpass_type];
         
@@ -282,7 +286,17 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     else
         smooth_str='';
     end
-
+    
+    %check is user wants to plot -y instead of y
+    flip_y_axis=get(handles.flip_y_axis,'Value');
+    
+    if flip_y_axis
+        y_dat=-y_dat;
+        %forwad info for legend
+        flip_str=' | -y';
+    else
+        flip_str='';
+    end
    
     % if Normalize box is checked, normalize graph to between 0 an 1
     if get(handles.normalize, 'Value')
@@ -299,20 +313,12 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         norm_str='';
     end
     
-    %check is user wants to plot -y instead of y
-    flip_y_axis=get(handles.flip_y_axis,'Value');
     
-    if flip_y_axis
-        y_dat=-y_dat;
-        %forwad info for legend
-        flip_str=' | -y';
-    else
-        flip_str='';
-    end
     
     %define axes
     axes(handles.var_axes);
-        
+    grid on   
+    box on
     %check if user wants to hold previous graphs
     hold_flag=get(handles.hold_checkbox, 'Value');
     if ~hold_flag
@@ -366,8 +372,8 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     end
     
     % plot with nice color and get user defined line style
-    colorstring = 'kbgrmcy';
-
+%     colorstring = 'kbgrmcy';
+    colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
     line_style_all=get(handles.line_style, 'String');
     line_style_no=get(handles.line_style, 'Value');
     line_style=line_style_all{line_style_no};
@@ -382,20 +388,20 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     
     % arrange user defined styling parameters
     if strcmp(line_color,'auto')
-        line_color=colorstring(handles.plotcounter);
+        line_color=colorstring{handles.plotcounter};
 %         line_color='';
     end
     
-    if strcmp(line_marker,'none')
-        line_marker='';
-    end
-    
-    if strcmp(line_style,'none')
-        line_style='';
-    end
+%     if strcmp(line_marker,'none')
+%         line_marker='none';
+%     end
+%     
+%     if strcmp(line_style,'none')
+%         line_style='';
+%     end
     
     %warn if user is about to do something not too smart
-    if y_amount>5000 && ~isempty(line_marker)  
+    if y_amount>5000 && ~strcmp(line_marker,'none')  
         button = questdlg('You''re about to plot a lot of points with line markers enabled - might be slow. Continue with markers?');
         if strcmp(button,'No')
             line_marker='';
@@ -407,7 +413,15 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     line_spec=[line_style,line_color,line_marker];
     
     %PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING PLOTTING
-    handles.graph{handles.plotcounter}=plot(x_dat,y_dat,line_spec);
+    handles.graph{handles.plotcounter}=plot(x_dat,y_dat);
+    h=handles.graph{handles.plotcounter};
+    h.Color=line_color;
+    h.LineStyle=line_style;
+    h.LineWidth=1.5;
+    h.Marker=line_marker;
+    h.MarkerFaceColor=line_color;
+    h.MarkerEdgeColor=line_color;
+    h.MarkerSize=14;
     box off
     
     %assign and store a name to the graph
@@ -600,16 +614,21 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     %OTHERWISE DOESNT WORK, FOR SOME STUPID REASON
     h.Parent=f;   
     %adjust figure size so it matches the axes
-    f.Units='characters';
-    f.Position=h.Position.*1.2;
+%     f.Units='characters';
+    f.Position=[181   250   1160   550];
+%     f.Position=h.Position.*1.2;
     %optionally make visible
 %         f.Visible='on';
 %         f.Name=saveDataName;
 
     % 4.save again, to desired format, if it different than fig
-    if ~strcmp(ext,'.fig')
+     if ~strcmp(ext,'.fig')
         delete([file_name,'.fig'])  
         export_fig (saveDataName, '-transparent','-p','0.02')           % http://ch.mathworks.com/matlabcentral/fileexchange/23629-export-fig   
+        savefig(f,file_name)
+        print(file_name,'-dmeta')
+    else
+        savefig(f,file_name)
     end
     msgbox(['Figure saved succesfully as ',saveDataName])
     %move back to original directory

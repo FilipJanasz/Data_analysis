@@ -4,11 +4,13 @@ function varargout = GHFS_calibration_gui(varargin)
     % Determine where your m-file's folder is.
     script_folder = fileparts(which(mfilename)); 
     % Add that folder plus all subfolders to the path.
-%     addpath(genpath(script_folder));
+    addpath(genpath(script_folder));
     cd(script_folder)
     cd ..
     mainfold=cd;
     addpath(mainfold);
+    addpath('D:\Data_analysis\errorbarxy');
+    addpath('D:\Data_analysis\convertTDMS');
 
     % GHFS_CALIBRATION_GUI MATLAB code for GHFS_calibration_gui.fig
     %      GHFS_CALIBRATION_GUI, by itself, creates a new GHFS_CALIBRATION_GUI or raises the existing
@@ -98,6 +100,7 @@ function process_btn_Callback(hObject, ~, handles)
     
     % based on user choice, acces and process picked files
     clear_flag=0;
+    handles.file_path_disp
     filePath_default=get(handles.file_path_disp,'String'); 
     
     % call function down the line for file processing

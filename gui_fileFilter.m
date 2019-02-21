@@ -211,9 +211,9 @@ function applyrangePushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 NCratio=handles.NCratioMat;
-min=str2double(handles.rangeminEdit.String);
-max=str2double(handles.rangemaxEdit.String);
-fittingRange=NCratio>=min & NCratio<=max;
+min1=str2double(handles.rangeminEdit.String);
+max2=str2double(handles.rangemaxEdit.String);
+fittingRange=NCratio>=min1 & NCratio<=max2;
 handles.dataTable1.Data(:,3)=num2cell(fittingRange);
 
 

@@ -1,0 +1,41 @@
+(cx-macro-define
+ '( (runmacr . "
+	/file/read-case \"/home/janasz_f/2017_2D_template/template30kHe.cas\" ok
+	/define/boundary-conditions/mass-flow-inlet steam_inlet y y n 0.08267 y y \"udf\" \"inlet_temp::libudf_2D\" n 0 y n 1 n 0 n n y 5 10 n n 1 n 0 y
+	/define/boundary-conditions/mass-flow-inlet coolant_inlet y y n 0.5 n 400 n 0 y n 1 n 0 n n y 5 10 y
+	/solve/monitors/surface/clear-monitors
+	/solve/monitors/volume/clear-monitors
+	/solve/monitors/surface/set-monitor udm4 \"Integral\" udm-4 steam_tube () n n yes \"/home/janasz_f/xxx/udm4.out\" 1 n flow-time
+	/solve/monitors/surface/set-monitor inletTemp \"Area-Weighted Average\" temperature steam_inlet () n n yes \"/home/janasz_f/xxx/inletTemp.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor press \"Volume-Average\" absolute-pressure steam () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor h2o \"Volume-Average\" h2o steam () n n yes \"/home/janasz_f/xxx/press.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor n2mass \"Volume Integral\" n2 steam () n n yes \"/home/janasz_f/xxx/n2mass.out\" 1 n flow-time
+	/solve/monitors/volume/set-monitor hemass \"Volume Integral\" he steam () n n yes \"/home/janasz_f/xxx/hemass.out\" 1 n flow-time
+	(rp-var-define 'cttemp 408 'real #f)
+	(rp-var-define 'steamtemp 500 'real #f)
+	/solve/initialize/initialize-flow
+	/solve/initialize/compute-defaults/mass-flow-inlet steam_inlet
+	/solve/initialize/initialize-flow ok
+	/solve/patch steam () species-0 0.95
+	/solve/patch steam () species-1 0.95
+	/solve/patch steam () x-velocity n 0
+	/solve/patch steam tube insulation_cone coolant () temperature 296.096
+	/define/operating-conditions/operating-pressure 2801.1
+	/solve/patch coolant () pressure 600000
+	/solve/patch coolant () x-velocity n 0.1
+	/file/write-case \"/home/janasz_f/xxx/yyy.cas\" ok
+	/file/auto-save/root-name \"yyy\"
+	/solve/dual-time-iterate 1000 20 n ok n ok 
+	/solve/set/time-step 1
+	/solve/dual-time-iterate 3500 20 y y 
+	/plot/plot n \"xxx\" yes n n h2o y 1 0 symmetry () 
+	/plot/plot n \"xxx\" yes n n temperature y 1 0 symmetry () 
+	/plot/plot n \"xxxz\" yes n n temperature y 1 0 steam_tube () 
+	/plot/plot n \"xxxddd\" y n n temperature y 1 0 steam_tube ()
+	/plot/plot n \"xxxddd\" y n n udm-4 y 1 0 steam_tube ()	
+	/plot/plot n \"xxxgghg\" y n n n2 y 1 0 steam_tube ()
+	/plot/plot n \"xxxgghg\" y n n n2 y 1 0 symmetry ()
+	/plot/plot n \"xxxgghg\" y n n he y 1 0 steam_tube ()
+	/plot/plot n \"xxxgghg\" y n n he y 1 0 symmetry ()
+	")
+   ))

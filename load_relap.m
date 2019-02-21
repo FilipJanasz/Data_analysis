@@ -1,7 +1,7 @@
 function [RELAP_primary, RELAP_secondary, RELAP_ext]=load_relap(handles)
      try   
 %         default_dir=get(handles.file_path_disp,'String');  
-        default_dir='D:\Data\Relap5';
+        default_dir='D:\Relap5';
 
 %         dirChoice=[dirChoice,'\DATA'];
         try

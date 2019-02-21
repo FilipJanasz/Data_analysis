@@ -1660,8 +1660,36 @@ function toolbar_init_ClickedCallback(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function relap_ClickedCallback(hObject, eventdata, handles)
-    addpath('D:\Data\Relap5\2017ClosedTubeSimulator')
-    RelapGUI;
+    
+    %get path to relap
+    try
+        fid = fopen('RelapScriptPath.txt','r');
+        relapPath = fgetl(fid);
+        fclose(fid);
+    catch
+        relapPath='0';
+    end
+    
+    worked=0;
+    updateFlag=0;
+    
+    while ~worked
+        addpath(relapPath);
+        try
+            RelapGUI(relapPath)
+            worked=1;
+        catch
+            waitfor(msgbox('Matlab code for Relap integration not found. Please provide working path to ''2017ClosedTubeSimulator'''));
+            relapPath=uigetdir;
+            updateFlag=1;
+        end  
+    end
+    
+    if updateFlag
+        fid = fopen('RelapScriptPath.txt','w');
+        fprintf(fid,'%s',relapPath);
+        fclose(fid);
+    end
 
 % --- Executes on button press in stdev_checkbox.
 function stdev_checkbox_Callback(hObject, eventdata, handles)

@@ -99,7 +99,7 @@ end
 if nargin==3
     dim1 = size(in1);dim2 = size(in2);
     if length(dim1)>2 || length(dim2)>2,out = NaN;return,end
-    if any(dim1~=dim2);
+    if any(dim1~=dim2)
         if dim1==ones(1,2),in1 = in1*ones(dim2);dim1=dim2;
         elseif dim2==ones(1,2),in2 = in2*ones(dim1);
         elseif dim1==fliplr(dim2),in1 = in1';dim1=dim2;

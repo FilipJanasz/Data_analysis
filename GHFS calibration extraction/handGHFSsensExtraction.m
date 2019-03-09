@@ -81,7 +81,7 @@ titleString=GHFS_file(1).directory(end-5:end-1);
 ylabel('Sensitivity [mV/W]')
 xlabel(sprintf('Temperature [%cC]', char(176)))
 % legend(paramToGet(2:end),'Location','northwest','Interpreter','none')
-l1=legend({'2^{nd} order polynomial','10% interval','based on \DeltaT','based on heating power'},'Location','northwest');
+l1=legend({'10% interval','2^{nd} order polynomial','based on \DeltaT','based on heating power'},'Location','northwest');
 %  set(ll, 'interpreter', 'tex')
 print('D:\Data_analysis\figureOutputs\senitivityGHFS','-dmeta')
 

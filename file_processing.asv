@@ -597,12 +597,8 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         facility.heat_losses.value=steam.power.value-coolant.power.value;
         facility.heat_losses_TC.value=steam.power.value-coolant.power_TC.value;
         facility.dT_losses.value=(coolant.power.value+facility.heat_losses.value)/(coolant.mflow.value/3600*coolant.spec_heat.value);  % how much more dT should there be in coolant water
-        try
-            facility.wallThermcond.value=steel_316L_thermcond(mean(GHFS.GHFS1_temp.var));
-        catch
-            facility.wallThermcond.value=15;
-        end
-        facility.wall_htc.value=2*facility.wallThermcond.value/(0.02*log(0.03/0.02));
+        facility.wallThermcond.value=currTc;
+        facility.wall_htc.value=2*currTc/(0.02*log(0.03/0.02));
 %         facility.wall_htc.value=2*15/(0.02*log(0.03/0.02));
 %         facility.wall_heatflux_dT.value=facility.wall_htc.value*facility.wall_dT.value;
         facility.wall_heatflux_dT.value=mean(GHFS.wall_heatflux_GHFS1.var+GHFS.wall_heatflux_GHFS2.var+GHFS.wall_heatflux_GHFS3.var+GHFS.wall_heatflux_GHFS4.var)/4;
@@ -1422,7 +1418,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
         coolant.power_Offset.error=coolant.power.error;
         coolant.power_TC_Offset.error=coolant.power_TC.error;
         coolant.dynvis.error = error_IAPWS_custom('mu_pT',coolant.press.value/10,coolant.press.error/10,coolant.temp.value+273.15,coolant.temp.error);
-        coolant.kinvis.error =coolant.kinvis.value*error_custom(coolant.dynvis.value,coolant.dynvis.error,coolant.dens.value,coolant.dens.error);
+        coolant.kinvis.error =coolant.kinvis.value*error_custom(coolant.dynvis.value,coolant.dynvis.value,coolant.dens.value,coolant.dens.error);
         coolant.thermcond.error =error_IAPWS_custom('k_pT',coolant.press.value/10,coolant.press.error/10,coolant.temp.value+273.15,coolant.temp.error);
         coolant.prandtl.error =coolant.prandtl.value*error_custom(coolant.spec_heat.value,coolant.spec_heat.error,coolant.dynvis.value,coolant.dynvis.error,coolant.thermcond.value,coolant.thermcond.error);
         coolant.velocity.error =sqrt((coolant.vflow.error/coolant.vflow.value)^2+(0.0001/0.021)^2+(0.0001/0.021)^2)*coolant.velocity.value;

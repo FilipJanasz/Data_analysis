@@ -4,5 +4,6 @@ function power_error_abs=error_steam_power(voltage,current,power)
 % pg4: +/- 1% for current and voltage
 volt_err=0.01;
 current_err=0.01;
-power_error_abs=sqrt((volt_err/voltage)^2+(current_err/current)^2)*power;
+% power_error_abs=sqrt((volt_err/voltage)^2+(current_err/current)^2)*power;
+power_error_abs=sqrt((volt_err)^2+(current_err)^2)*power;
 end

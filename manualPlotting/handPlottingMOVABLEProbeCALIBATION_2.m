@@ -118,7 +118,7 @@ fsz = 11;      % Fontsize
 pos=find(x>1);
 xMax=pos(1);
 
-yFit=x(1:xMax);
+xFit=x(1:xMax);
 
 totalDat={fDat,lDat,mDat};
 h=figure;
@@ -141,7 +141,7 @@ electrNames={'Top electrode','Side electrode','Center electrode'};
 for n=1:3
 %     yFit=xFit;
 %     xFit=totalDat{n}(1:xMax)-0.9;
-    xFit=totalDat{n}(1:xMax);
+        yFit=totalDat{n}(1:xMax);
 %     temp=xFit;
 %     xFit=yFit;
     
@@ -173,7 +173,9 @@ for n=1:3
     f1=plot(xFit,fitDat,'.-');
     f1.LineWidth=1.5;
     f1.MarkerSize=15;
-
+    
+    %calculate slop
+    slope{n}=diff(yFit)./diff(xFit);
 end
 
 xlabel('Film thickness [mm]','FontWeight','bold')
@@ -181,6 +183,16 @@ l1=legend({'Data','4th order poly fit'},'Location','southoutside','Orientation',
 l1.Position=[0.3829 0.0850 0.2700 0.0283];
 s1.Position=[0.1300    0.2000    0.7750    0.2157];
 
+
+%% clear up voltage related error
+err(1)=0.001456;
+err(2)=0.003456;
+
+for m=1:3
+    for n=1:2
+        thickErr(m,n)=err(n)*max(slope{m});
+    end
+end
 %% save
 %  saveas(gcf,'D:\Data_analysis\figureOutputs\temp','epsc')
 %  saveas(gcf,'D:\Data_analysis\figureOutputs\temp','png')

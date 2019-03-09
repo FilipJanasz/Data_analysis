@@ -510,7 +510,7 @@ function plot_button_Callback(hObject, eventdata, handles)
         XexpErr=[XexpErr,')'];
         XerrFun=@(x,handles) eval(XexpErr);
     end
-    
+
     for cntr=1:files_chosen
         if strcmp(x_param,'custom')
             x_dat(cntr)=customExpressionFunX(file_choice(cntr));
@@ -1145,6 +1145,12 @@ function xerr_checkbox_Callback(hObject, eventdata, handles)
 % --- Executes on button press in yerr_checkbox.
 function yerr_checkbox_Callback(hObject, eventdata, handles)
 
+% --- Executes during object creation, after setting all properties.
+function xmaj_radiobutton_CreateFcn(hObject, eventdata, handles)
+
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 % --- Executes on button press in xmaj_radiobutton.
 function xmaj_radiobutton_Callback(hObject, eventdata, handles)
@@ -1705,7 +1711,7 @@ function toolbar_init_estimator_ClickedCallback(hObject, eventdata, handles)
 
 % --- Executes on button press in table_pushbutton.
 function table_pushbutton_Callback(hObject, eventdata, handles)
-    %prepare data for tbale display
+    %prepare data for table display
     data4table=0;
 %     try
         for tabCounter=1:numel(handles.x_dat)
@@ -1745,6 +1751,7 @@ function table_pushbutton_Callback(hObject, eventdata, handles)
 
         tableTab.ColumnName=reshape([name4table_x;name4table_y],1,2*numel(handles.graph_name));
         tableTab.Position=[0 0 860 400];
+        namesSorted
 %     catch
 %         msgbox('No data to be displayed - chose and plot data first')
 %     end

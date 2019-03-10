@@ -118,7 +118,7 @@ fsz = 11;      % Fontsize
 pos=find(x>1);
 xMax=pos(1);
 
-xFit=x(1:xMax);
+yFit=x(1:xMax);
 
 totalDat={fDat,lDat,mDat};
 h=figure;
@@ -141,7 +141,7 @@ electrNames={'Top electrode','Side electrode','Center electrode'};
 for n=1:3
 %     yFit=xFit;
 %     xFit=totalDat{n}(1:xMax)-0.9;
-        yFit=totalDat{n}(1:xMax);
+        xFit=totalDat{n}(1:xMax);
 %     temp=xFit;
 %     xFit=yFit;
     

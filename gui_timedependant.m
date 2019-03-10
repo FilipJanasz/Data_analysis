@@ -418,7 +418,9 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     h.Color=line_color;
     h.LineStyle=line_style;
     h.LineWidth=1.5;
-    h.Marker=line_marker;
+    if ~isempty(line_marker)
+        h.Marker=line_marker;
+    end
     h.MarkerFaceColor=line_color;
     h.MarkerEdgeColor=line_color;
     h.MarkerSize=14;

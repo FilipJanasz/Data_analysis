@@ -210,16 +210,28 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
     [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing]=gui_main(interactive_flag,st_state_flag,clear_flag,frontDynamics_flag,handles);
     
     %transfer data to handles structure
-    handles.steam=[handles.steam,steam];
-    handles.coolant=[handles.coolant,coolant];
-    handles.facility=[handles.facility,facility];
-    handles.NC=[handles.NC,NC];
-    handles.file=[handles.file,file];
-    handles.BC=[handles.BC,BC];
-    handles.GHFS=[handles.GHFS,GHFS];
-    handles.MP=[handles.MP,MP];
-    handles.timing=[handles.timing,timing];
-    handles.distributions=[handles.distributions,distributions];
+    if ~handles.relap5flag.Value
+        handles.steam=[handles.steam,steam];
+        handles.coolant=[handles.coolant,coolant];
+        handles.facility=[handles.facility,facility];
+        handles.NC=[handles.NC,NC];
+        handles.file=[handles.file,file];
+        handles.BC=[handles.BC,BC];
+        handles.GHFS=[handles.GHFS,GHFS];
+        handles.MP=[handles.MP,MP];
+        handles.timing=[handles.timing,timing];
+        handles.distributions=[handles.distributions,distributions];
+    else
+        handles.steam=steam;
+        handles.coolant=coolant;
+        handles.facility=facility;
+        handles.NC=NC;
+        handles.file=file;
+        handles.BC=BC;
+        handles.GHFS=GHFS;
+        handles.MP=MP;
+        handles.timing=timing;
+    end
    
     % push the data to main workspace, just in case
     assignin('base','steam',handles.steam)
@@ -251,7 +263,14 @@ function addData_pushbutton_Callback(hObject, eventdata, handles)
 %     handles.popupmenu_y_axis_var.String=fieldnames(handles.(vars{1}));    %http://blogs.mathworks.com/videos/2009/02/27/dynamic-field-name-usage/
     
     %update data selector listbox
-    file_list={handles.file(1:end).name};
+    if ~handles.relap5flag.Value
+        file_list={handles.file(1:end).name};
+    else
+        for n=1:numel(handles.RELAP_primary)
+            file_list{n}=handles.RELAP_primary(n).file;
+        end
+    end
+        
     handles.plot_exclude.String=file_list;
     mark_file=1:1:numel(file_list);
     handles.plot_exclude.Value=mark_file;
@@ -345,6 +364,14 @@ function load_RELAP_dat_Callback(hObject, eventdata, handles)
     assignin('base','RELAP_secondary',handles.RELAP_secondary)
     assignin('base','RELAP_ext',handles.RELAP_ext)
     
+    
+    %fix temps
+    for n=1:numel(handles.RELAP_primary)
+        handles.RELAP_primary(n).tempg.value=handles.RELAP_primary(n).tempg.value-273.15;
+        handles.RELAP_primary(n).tempf.value=handles.RELAP_primary(n).tempf.value-273.15;
+    end
+    
+    
     vars=handles.popupmenu_x_axis.String;
     
     if isempty(find(strcmp(vars,'RELAP_primary'), 1))
@@ -412,7 +439,13 @@ function load_RELAP_dat_Callback(hObject, eventdata, handles)
     handles.popupmenu18.Value=1;
     
     %update data selector listbox
-    file_list={handles.file(1:end).name};
+    if ~handles.relap5flag.Value
+        file_list={handles.file(1:end).name};
+    else
+        for n=1:numel(handles.RELAP_primary)
+            file_list{n}=handles.RELAP_primary(n).file;
+        end
+    end
     handles.plot_exclude.String=file_list;
     mark_file=1:1:numel(file_list);
     handles.plot_exclude.Value=mark_file;
@@ -1588,22 +1621,22 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     f.Position=[300   200   1250   680];
     
     %fix fonts etc
-    h.XAxis(1).FontSize=24;
-    h.XAxis(1).Label.FontSize=24;
+    h.XAxis(1).FontSize=20;
+    h.XAxis(1).Label.FontSize=20;
     h.XAxis(1).Label.FontWeight='bold';
-    h.Legend.FontSize=24;
-    h.Legend.Location='northeast';
+    h.Legend.FontSize=20;
+    h.Legend.Location='eastoutside';
     
     for axN=1:2
-        h.YAxis(axN).FontSize=24;
-        h.YAxis(axN).Label.FontSize=24;
+        h.YAxis(axN).FontSize=20;
+        h.YAxis(axN).Label.FontSize=20;
         h.YAxis(axN).Label.FontWeight='bold'; 
     end
-    set(h,'Position',[27 7.8451 201.9200 40.9241])
+%     set(h,'Position',[27 7.8451 201.9200 40.9241])
 
     for chN=1:numel(h.Children)
         h.Children(chN).LineWidth=3*h.Children(chN).LineWidth;
-        h.Children(chN).MarkerSize=2*h.Children(chN).MarkerSize;
+        h.Children(chN).MarkerSize=1.5*h.Children(chN).MarkerSize;
     end
     % 4.save again, to desired format, if it is different than fig
     if ~strcmp(ext,'.fig')
@@ -2436,3 +2469,12 @@ function varMax_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in relap5flag.
+function relap5flag_Callback(hObject, eventdata, handles)
+% hObject    handle to relap5flag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of relap5flag

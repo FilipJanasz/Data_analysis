@@ -26,7 +26,9 @@ function [RELAP_primary, RELAP_secondary, RELAP_ext]=load_relap(handles)
                 load([directory{fc},'\',file_list_ext{fc}]);  
                 
                  % get values for primary side
-                RELAP_primary(fc).file=exp_cmp_data.file;
+                cutoffs=strfind(directory{fc},'_');
+                cutoff=cutoffs(end);
+                RELAP_primary(fc).file=[strrep(exp_cmp_data.file,'_output_R_processed_for_Matlab',''),directory{fc}(cutoff:end)];
                 var_list_prim=fieldnames(exp_cmp_data.primary);
                 for var_cntr_prim=1:numel(var_list_prim)
                     RELAP_primary(fc).(var_list_prim{var_cntr_prim}).value=mean(exp_cmp_data.primary.(var_list_prim{var_cntr_prim})(:,end));
@@ -53,6 +55,10 @@ function [RELAP_primary, RELAP_secondary, RELAP_ext]=load_relap(handles)
                     RELAP_ext(fc).(var_list_ext{var_cntr_ext}).unit='-';
                 end
                 
+                % calc wall dT
+                RELAP_ext(fc).wall_dT.value=RELAP_primary(fc).tempf.value-RELAP_secondary(fc).tempf.value;
+                RELAP_ext(fc).wall_dT.error=0;
+                RELAP_ext(fc).(var_list_ext{var_cntr_ext}).unit='-';
                 %fancy bling wait bar:
                 waitbar(fc/fileAmount,h)
             end

@@ -1,6 +1,6 @@
 clc
 
-expNo=5;
+expNo=13;
 for expSwitch=1:expNo
     
     colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
@@ -9,18 +9,23 @@ for expSwitch=1:expNo
     varYRelap{1}='RELAP_secondary(relCnt).tempf';
     varYRelap{2}='RELAP_primary(relCnt).tempg';
     varYRelap{3}='RELAP_primary(relCnt).htvat';
+    varYRelap{4}='RELAP_primary(relCnt).quala';
     unitLength=80; %height of single Relap5 volume
-    offset(1)=500;%-620 for primaty +500 for secondary
+    
+    offset(1)=500;%-620 for primary +500 for secondary
     offset(2)=-620;
     offset(3)=-620;
+    offset(4)=-620;
 
     varXexp{1}='distributions(n).coolant_temp_0deg';
     varXexp{2}='distributions(n).centerline_temp';
     varXexp{3}='distributions(n).wall_inner';
+    varXexp{4}='distributions(n).centerline_molefr_NC';
 
     yLab{1}='Coolant temperature [^{\circ}C]';
     yLab{2}='Centerline temperature [^{\circ}C]';
     yLab{3}='Wall temperature [^{\circ}C]';
+    yLab{4}='NC mole fraction [1]';
     xLab='Tube elevation [mm]';
 
     %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -67,9 +72,10 @@ for expSwitch=1:expNo
         %% plotting
         % Defaults for this blog post
         width = 3;     % Width in inches
-        height = 5;    % Height in inches
+        height = 3;    % Height in inches
 
         f=figure;
+        box on
         f.Position=([500 50 500+width*100, height*100]);
         hold on
         markerList={'o','d','^','<','>'};
@@ -80,8 +86,10 @@ for expSwitch=1:expNo
             if n<relAmnt+1
                 h(n)=plot(xRelap{n,expSwitch},yRelap{n,expSwitch}); 
                 legendString{n}=RELAP_primary(n).file;
-                legendString{n}=strrep(legendString{n},currExpName,'');
-                legendString{n}(1)=[];
+                dashLoc=strfind(legendString{n},'_');
+%                 legendString{n}=strrep(legendString{n},currExpName,'');
+%                 legendString{n}(1)=[];
+                legendString{n}=legendString{n}(dashLoc+1:end);
                 switch legendString{n}
                     case 'ST'
                         legendString{n}='Nodalization 1';
@@ -104,7 +112,9 @@ for expSwitch=1:expNo
             h(n).MarkerFaceColor=colorstring{n};
 
         end
-
+        
+        limX=xlim;
+        xlim([0 limX(2)]);
         xlabel(xLabCurr);
         ylabel(yLabCurr);
         f.Children.XLabel.FontWeight='bold';
@@ -112,7 +122,7 @@ for expSwitch=1:expNo
         legH=legend(legendString);
         legH.Interpreter='none';
         legH.Location='eastoutside';
-        titH=title(currExpName);
+        titH=title(currExpName,'Interpreter','none');
         %% save
         currVarSimpl=strrep(varYRelapCurr,'RELAP_primary(relCnt).','');
         dotPos=strfind(currVarSimpl,'.');
@@ -120,6 +130,6 @@ for expSwitch=1:expNo
         fileName=['D:\Relap5\tempPlots\',currExpName,'_',currVarSimpl];
         print(f,fileName,'-dmeta')
         disp('Fertig')
-
+        close(f)
     end
 end

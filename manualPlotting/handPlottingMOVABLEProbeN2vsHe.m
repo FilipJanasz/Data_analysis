@@ -46,6 +46,8 @@ Forleg1=[];
 Forleg2=[];
 Forleg3=[];
 %%
+markerList={'-o','-^','-d'};
+
 subplot(3,1,1)
 hold on
 for n=1:breakPos
@@ -67,17 +69,18 @@ for n=1:breakPos
 
     fl.EdgeColor=colorstring{n};
     %plot data
-    f=plot(xDat,yDat,'-');
+    f=plot(xDat,yDat,markerList{n},'MarkerIndices',1:10:length(yDat));
     f.LineWidth=1.5;
-    f.MarkerSize=15;
+    f.MarkerSize=6;
     f.Color=colorstring{n};
+    f.MarkerFaceColor=colorstring{n};
     Forleg1=[Forleg1,f];
     grid on
 
 end
 xlim([xCut,0])
 ylabel('Temp. [\circC]','FontWeight','bold')
-l=legend(Forleg1,{'N_2','He','1:1 MIX'});
+l=legend(Forleg1,{'N_2','He','1:1 molar mixture of N_2 and He'});
 l.Location='northoutside';
 l.Orientation='horizontal';
 l.FontWeight='bold';
@@ -113,10 +116,11 @@ for n=breakPos+1:breakPos2
 
     fl.EdgeColor=colorstring{n-breakPos};
 %    plot data
-    f=plot(xDat,yDat,'-');
+    f=plot(xDat,yDat,markerList{n-breakPos},'MarkerIndices',1:10:length(yDat));
     f.LineWidth=1.5;
-    f.MarkerSize=15;
+    f.MarkerSize=6;
     f.Color=colorstring{n-breakPos};
+    f.MarkerFaceColor=colorstring{n-breakPos};
     Forleg3=[Forleg3,f];
     grid on
 
@@ -154,10 +158,11 @@ for n=breakPos2+1:numel(toPlot)
 
     fl.EdgeColor=colorstring{n-breakPos2};
     %plot data
-    f=plot(xDat,yDat,'-');
+    f=plot(xDat,yDat,markerList{n-breakPos2},'MarkerIndices',1:10:length(yDat));
     f.LineWidth=1.5;
-    f.MarkerSize=15;
+    f.MarkerSize=6;
     f.Color=colorstring{n-breakPos2};
+    f.MarkerFaceColor=colorstring{n-breakPos2};
     Forleg3=[Forleg3,f];
     grid on
 
@@ -165,7 +170,7 @@ end
 ylim([118 119.5])
 xlim([xCut,0])
 
-xlabel('Horizontal position [mm]','FontWeight','bold')
+xlabel('Horizontal position [mm], wall at 0 mm, tube center at -10 mm','FontWeight','bold')
 ylabel('Temp. [\circC]','FontWeight','bold')
 % ylim([0.4,1.1])
 A=ylim;
@@ -177,6 +182,6 @@ hold on
 
 
 %% save
-print('D:\Data_analysis\MPTempHorizontal','-dmeta')
+print('D:\Data_analysis\MPTempHorizontal_variousZones','-dmeta')
 
 disp('Fertig')

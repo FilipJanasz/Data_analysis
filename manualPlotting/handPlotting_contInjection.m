@@ -24,6 +24,7 @@ colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940
 
 s1=subplot(3,1,1);
 hold on
+box on
 
 l3=plot(y3Dat,'');
 l2=plot(y2Dat,'');
@@ -47,6 +48,7 @@ s1.YLabel.FontWeight='bold';
 
 s2=subplot(3,1,2);
 hold on
+box on
 
 period=0.01;
 % period=1;
@@ -76,6 +78,7 @@ s2.XLabel.FontWeight='bold';
 
 s3=subplot(3,1,3);
 hold on
+box on
 
 l9=plot(y9Dat,'');
 l8=plot(y8Dat,'');
@@ -99,5 +102,5 @@ s3.XLabel.FontWeight='bold';
 
 %% save
 
-print(h,'dupa','-dmeta')
+print(h,'Zone passage in temp flux and rec length','-dmeta')
 disp('Fertig')

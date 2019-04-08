@@ -1,6 +1,4 @@
 clc
-h=figure;
-hold on
 
 addpath 'D:\Data_analysis\export_figure'
 % Defaults for this blog post
@@ -15,7 +13,16 @@ end
 
 %files to plot
 % toPlot={'NC-MFR-ABS-1_4-LF','NC-MFR-ABS-1_4-HF'};
-toPlot={'NC-MFR-ABS-1_4-LF'};
+% toPlot={'NC-MFR-ABS-N2-6_2_2'};
+% toPlot={'NC-MFR-ABS-1_4-LF'};
+
+% for nn=1:numel(file)
+
+h=figure;
+box on
+hold on    
+toPlot={file(10).name};
+
 
 for fCntr2=1:numel(toPlot)
     plotPos(fCntr2)=find(strcmp(allFiles,toPlot{fCntr2}));
@@ -41,16 +48,25 @@ for n=1:numel(toPlot)
     f1=plot(distributions(plotPos(n)).MP_forward_temp.position_x,distributions(plotPos(n)).MP_forward_temp.var,'.-');
     f1.LineWidth=1.5;
     f1.MarkerSize=15;
+    ylabel(['Temperature [\circC]'])
     
-%      f1=plot(distributions(plotPos(n)).MP_backward_temp.position_x,distributions(plotPos(n)).MP_backward_temp.var,'.-');
-%     f1.LineWidth=1.5;
-%     f1.MarkerSize=15;
-    
+    yyaxis right
+    h.Children.YAxis(2).Color=[0 0 0];
+    sensor='MP_forward_MP4';
+    MPsig=distributions(plotPos(n)).(sensor).var;
+    MPsig=MPsig-min(MPsig);
+    MPsig=movmean(MPsig,2);
+    f1=plot(distributions(plotPos(n)).(sensor).position_x,MPsig,'.-');
+    f1.LineWidth=1.5;
+    f1.Marker='d';
+    f1.MarkerSize=4;
+    f1.MarkerFaceColor=f1.Color;
+    ylim([0.0025 0.025]);
 
 end
 % f1.MarkerFaceColor='blue';
 grid on
-ylabel(['Temperature [\circC]'])
+ylabel(['Voltage [V]'])
 xlabel('Horizontal position [mm]')
 xlim([-10,0])
 % ylim([0.4,1.1])
@@ -66,6 +82,7 @@ hold on
 % print('D:\Data_analysis\figureOutputs\temp','-dpng')
 % print('D:\Data_analysis\figureOutputs\temp','-deps')
 % print('D:\Data_analysis\figureOutputs\temp','-dtiff')
+% end
 print('D:\Data_analysis\figureOutputs\MPTempHorizontal','-dmeta')
 
 display('Fertig')

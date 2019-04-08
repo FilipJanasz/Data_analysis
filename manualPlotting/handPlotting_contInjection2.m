@@ -16,11 +16,11 @@ y6Dat=steam(3).mixFront_TF9606.var;
 
 s1=subplot(2,1,1);
 hold on
-
+box on
 l1=plot(y1Dat,'');
-l2=plot(smooth(y1Dat,50),':','Color',[0.5660, 0.7740, 0.2880]);
+l2=plot(smooth(y1Dat,50),'-','Color',[0.5660, 0.7740, 0.2880]);
 l1.LineWidth=1.5;
-l2.LineWidth=1.5;
+l2.LineWidth=2.5;
 ylim([125,147])
 xlim([0,900])
 xlabel('Time [s]')
@@ -33,11 +33,11 @@ s1.XLabel.FontWeight='bold';
 
 s2=subplot(2,1,2);
 hold on
-
+box on
 l5=plot(y5Dat,'','Color',[0.8500, 0.3250, 0.0980]);
-l6=plot(smooth(y5Dat,20),':','Color',[0.5660, 0.7740, 0.2880]);
+l6=plot(smooth(y5Dat,20),'-','Color',[0.5660, 0.7740, 0.2880]);
 l5.LineWidth=1.5;
-l6.LineWidth=1.5;
+l6.LineWidth=2.5;
 ylim([125,147])
 xlim([0,225])
 xlabel('Recalculated length [mm]')
@@ -50,5 +50,5 @@ s2.XLabel.FontWeight='bold';
 
 %% save
 
-print(h,'dupa','-dmeta')
+print(h,'Mixing zone time_length CIN N2 4_2','-dmeta')
 disp('Fertig')

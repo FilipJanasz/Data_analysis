@@ -4,6 +4,7 @@ function [f,P1]=calcFFT(X,Fs)
     L=numel(X);
     n = 2*2^nextpow2(L);
     % Fs=100;
+%     Y = fft(hanning(length(X)).*X,n);
     Y = fft(X,n);
     %Compute the two-sided spectrum P2. Then compute the single-sided spectrum P1 based on P2 and the even-valued signal length L.
     L=n;

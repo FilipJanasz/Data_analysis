@@ -21,6 +21,7 @@ y9Dat=steam(6).contInj.mixL;
 
 s1=subplot(3,1,1);
 hold on
+box on
 
 l1=plot(sensorPos,y1Dat,'-o');
 l2=plot(sensorPos,y4Dat,'-^');
@@ -47,6 +48,7 @@ s1.YLabel.FontWeight='bold';
 
 s2=subplot(3,1,2);
 hold on
+box on
 
 % period=0.01;
 l4=plot(sensorPos,y2Dat,'-o');
@@ -67,12 +69,14 @@ l6.LineWidth=1.5;
 ylabel('Residence time [s]')
 % title('Mixing zone passage')
 grid on
+box on
 s2.YLabel.FontWeight='bold';
 
 % legend('He','MIX','N2')
 
 s3=subplot(3,1,3);
 hold on
+box on
 
 l7=plot(sensorPos,y3Dat,'-o');
 l8=plot(sensorPos,y6Dat,'-^');
@@ -100,5 +104,5 @@ s3.YLabel.FontWeight='bold';
 
 %% save
 
-print(h,'dupa2','-dmeta')
+print(h,'front vel res time length vs sens pos','-dmeta')
 disp('Fertig')

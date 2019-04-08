@@ -38,6 +38,7 @@ set(h, 'defaultFigurePaperPosition', defsize);
 
 hold on
 Forleg=[];
+
 for n=1:numel(toPlot)
 
     box on
@@ -52,10 +53,11 @@ for n=1:numel(toPlot)
     
 
     %plot data
-    f=plot(xDat,yDat,'-');
+    f=plot(xDat,yDat,markerList{n},'MarkerIndices',1:5:length(yDat));
     f.LineWidth=1.5;
-    f.MarkerSize=15;
+    f.MarkerSize=6;
     f.Color=colorstring{n};
+    f.MarkerFaceColor=colorstring{n};
     
 %     f2=plot(xDat,yMin,'-');
 %     f2.Color=colorstring{n};
@@ -77,12 +79,12 @@ for n=1:numel(toPlot)
 % s.XLabel.FontWeight='bold';
 Forleg=[Forleg,f];
 end
-xlabel('Horizontal position [mm]','FontWeight','bold')
+xlabel('Horizontal position [mm], wall at 0 mm, tube center at -10 mm','FontWeight','bold')
 ylabel('Temp. STD [\circC]','FontWeight','bold')
 % ylim([0.4,1.1])
 A=ylim;
 hold on
-l=legend(Forleg,'Condensation zone','Mixing zone','NC plug, 13 degree offset');
+l=legend(Forleg,'Condensation zone','Mixing zone','NC plug, offset by 13\circC');
 l.Location='northoutside';
 l.Orientation='horizontal';
 l.FontWeight='bold';
@@ -97,6 +99,6 @@ l.FontWeight='bold';
 % print('D:\Data_analysis\figureOutputs\temp','-dpng')
 % print('D:\Data_analysis\figureOutputs\temp','-deps')
 % print('D:\Data_analysis\figureOutputs\temp','-dtiff')
-print('D:\Data_analysis\MPTempHorizontal','-dmeta')
+print('D:\Data_analysis\MPTempHorizontal_STD only','-dmeta')
 
 display('Fertig')

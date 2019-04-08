@@ -1,6 +1,7 @@
 clc
 
 h=figure;
+box on
 % h.Position0;
 % h.Position=[600 300 500 500];
 
@@ -61,7 +62,7 @@ l33.Color=l3.Color;
 % ylim([125,147])
 xlim([0.7 1.2])
 % xlabel('Sensor Position [mm]')
-a=ylabel('Mixing zone length [mm]');
+a=ylabel('Mixing zone length L_m_i_x [mm]');
 b=xlabel('Steam velocity [mm]');
 % title('Mixing zone passage')
 grid on
@@ -132,5 +133,5 @@ b.FontWeight='bold';
 
 %% save
 
-print(h,'dupa2','-dmeta')
+print(h,'mixing zone length vs velocity','-dmeta')
 disp('Fertig')

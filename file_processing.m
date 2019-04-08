@@ -2116,6 +2116,7 @@ function [steam, coolant, facility, NC, distributions, file, BC, GHFS, MP,timing
 %             title([file_list,' NC Front in mm'],'interpreter', 'none')
             ylabel(['Temperature [',char(176),'C]'])
             xlabel('Length [mm]')
+            box on
             xlim([0 400])
             h3.Children(2).XLabel.FontWeight='bold';
             h3.Children(2).YLabel.FontWeight='bold';

@@ -23,7 +23,9 @@ yst=[600,1130,2200]; %for GHFS3
 range=400;
 
 h=figure;
- legF=[];
+legF=[];
+markerList={'-v','-s','-o'};
+markerListTemp={'-^','-d','-*'};
 for n=1:numel(plotPos)
     
     % Set the default Size for display
@@ -56,19 +58,24 @@ for n=1:numel(plotPos)
     xDat=period:period:numel(yDat1{n})*period;
 
     
-    f1=plot(xDat,yDat1{n},'-');
+    f1=plot(xDat,yDat1{n},markerList{n},'MarkerIndices',1:8000:length(yDat1{n}));
     f1.LineWidth=1.5;
     f1.Color=colorstring{n};
+    f1.MarkerFaceColor=f1.Color./1.3;
+    f1.MarkerEdgeColor=f1.MarkerFaceColor;
+    
 
      ylabel('Heat flux [W/m^2]','FontWeight','bold')
      ylim([0 10000])
  %%
     yyaxis right
-    f3=plot(yDat2{n},'-');
+    f3=plot(yDat2{n},markerListTemp{n},'MarkerIndices',1:80:length(yDat2{n}));
     f3.Color=colorstring{n};
     f3.Color=f3.Color./1.3;
+    f3.MarkerFaceColor=f3.Color./1.3;
+    f3.MarkerEdgeColor=f3.MarkerFaceColor;
     ylim([115 147])
-  ylabel(['Temperature [',char(176),'C]'],'FontWeight','bold')   
+    ylabel(['Temperature [',char(176),'C]'],'FontWeight','bold')   
    
     box on
     grid on
@@ -82,6 +89,7 @@ leg=legend(legF,{'He','He temp.','Mix','Mix temp.','N_2','N_2 temp.'},'FontWeigh
 
 leg.Location='northoutside';
 leg.Orientation='horizontal';
+leg.FontSize;
 %% save
 print('D:\Data_analysis\HFvsNCgasCONTINJ','-dmeta')
 % 

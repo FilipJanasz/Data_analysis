@@ -1,6 +1,7 @@
 clc
 
 h=figure;
+box on
 % h.Position0;
 % h.Position=[1200 300 500 500];
 
@@ -175,5 +176,5 @@ b.FontWeight='bold';
 
 %% save
 
-print(h,'dupa2','-dmeta')
+print(h,'Temp std vs steam velocity','-dmeta')
 disp('Fertig')

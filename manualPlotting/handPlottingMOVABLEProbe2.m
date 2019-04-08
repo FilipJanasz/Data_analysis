@@ -39,6 +39,7 @@ set(h, 'defaultFigurePaperPosition', defsize);
 
 hold on
 Forleg=[];
+markerList={'-o','-^','-d'};
 for n=1:numel(toPlot)
     box on
     xDat=distributions(plotPos(n)).MP_forward_temp.position_x;
@@ -63,11 +64,11 @@ for n=1:numel(toPlot)
 %     fl.LineStyle='none';
     fl.EdgeColor=colorstring{n};
     %plot data
-    f=plot(xDat,yDat,'-');
+    f=plot(xDat,yDat,markerList{n},'MarkerIndices',1:10:length(yDat));
     f.LineWidth=1.5;
-    f.MarkerSize=15;
+    f.MarkerSize=6;
     f.Color=colorstring{n};
-    
+    f.MarkerFaceColor=colorstring{n};
 %     f2=plot(xDat,yMin,'-');
 %     f2.Color=colorstring{n};
 %     f3=plot(xDat,yMax,'-');
@@ -88,16 +89,33 @@ for n=1:numel(toPlot)
 % s.XLabel.FontWeight='bold';
 Forleg=[Forleg,f];
 end
-xlabel('Horizontal position [mm]','FontWeight','bold')
+xlabel('Horizontal position [mm], wall at 0 mm, tube center at -10 mm','FontWeight','bold')
 ylabel('Temp. [\circC]','FontWeight','bold')
 % ylim([0.4,1.1])
 A=ylim;
 hold on
-l=legend(Forleg,toPlot,'Interpreter','none');
+
+% add some markers
+% markerList={'o','^','d'};
+% for n=1:numel(toPlot)
+%     xDat=distributions(plotPos(n)).MP_forward_temp.position_x;
+%     yDat=distributions(plotPos(n)).MP_forward_temp.var;
+%     if n==3
+%         offs=13;
+%         yDat=yDat+offs;
+%     end
+%     nth=10;
+%     f=plot(xDat(1:nth:end),yDat(1:nth:end),markerList{n});
+%     f.MarkerFaceColor=colorstring{n};
+%     f.Color=colorstring{n};
+%     
+% end
+
+legendText={'Condensation zone','Mixing zone','NC plug, offset by 13\circC'};
+l=legend(Forleg,legendText);
 l.Location='northoutside';
 l.Orientation='horizontal';
 l.FontWeight='bold';
-
 % plot([520 520],[A(1),A(2)],'k--','LineWidth',1)
 % plot([920 920],[A(1),A(2)],'k--','LineWidth',1)
 

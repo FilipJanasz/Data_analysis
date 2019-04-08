@@ -118,7 +118,7 @@ fsz = 11;      % Fontsize
 pos=find(x>1);
 xMax=pos(1);
 
-yFit=x(1:xMax);
+xFit=x(1:xMax);
 
 totalDat={fDat,lDat,mDat};
 h=figure;
@@ -141,7 +141,7 @@ electrNames={'Top electrode','Side electrode','Center electrode'};
 for n=1:3
 %     yFit=xFit;
 %     xFit=totalDat{n}(1:xMax)-0.9;
-        xFit=totalDat{n}(1:xMax);
+        yFit=totalDat{n}(1:xMax);
 %     temp=xFit;
 %     xFit=yFit;
     
@@ -168,11 +168,16 @@ for n=1:3
     ylabel(electrNames{n},'FontWeight','bold')
     f1=plot(xFit,yFit,'.-');
     f1.LineWidth=1.5;
-    f1.MarkerSize=15;
-
+    f1.Marker='o';
+    f1.MarkerSize=6;
+    f1.MarkerFaceColor=f1.Color;
+    
+    %plot second
     f1=plot(xFit,fitDat,'.-');
     f1.LineWidth=1.5;
-    f1.MarkerSize=15;
+    f1.Marker='^';
+    f1.MarkerSize=4;
+    f1.MarkerFaceColor=f1.Color;
     
     %calculate slop
     slope{n}=diff(yFit)./diff(xFit);

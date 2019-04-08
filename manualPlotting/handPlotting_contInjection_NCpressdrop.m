@@ -25,6 +25,7 @@ y6Dat=steam(6).contInj.NCfeed;
 
 s1=subplot(2,1,1);
 hold on
+box on
 
 l1=plot(y1Dat,'-');
 l2=plot(y2Dat,'-');
@@ -51,6 +52,7 @@ s1.YLabel.FontWeight='bold';
 % 
 s2=subplot(2,1,2);
 hold on
+box on
 
 n=10;
 smN=100;
@@ -111,5 +113,5 @@ s2.XLabel.FontWeight='bold';
 
 %% save
 
-print(h,'dupa2','-dmeta')
+print(h,'press drop feed rate vs time','-dmeta')
 disp('Fertig')

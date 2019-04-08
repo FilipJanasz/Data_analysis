@@ -54,7 +54,7 @@ for n=1:numel(plotPos)
     defsize = [left, bottom, width, height];
     set(h, 'defaultFigurePaperPosition', defsize);
 %%
-%     s1=subplot(2,1,1);
+    s1=subplot(1,2,n);
     hold on
     grid on
 %     xDat=distributions(plotPos(n)).MP_forward_temp.position_x;
@@ -125,7 +125,7 @@ for n=1:numel(plotPos)
 %     legend([f1,f3],{'GHFS','Double thermcouple'})
     legF=[legF,f2];
 end
-leg=legend(legF,{['N_2, pk-pk ',num2str(round(max(yDat{1})-min(yDat{1})))],['He, pk-pk ',num2str(round(max(yDat{2})-min(yDat{2})))]},'FontWeight','bold');
+leg=legend(legF,{['N_2, peak-to-peak ',num2str(round(max(yDat{1})-min(yDat{1})))],['He, peak-to-peak ',num2str(round(max(yDat{2})-min(yDat{2})))]},'FontWeight','bold');
 leg.Location='northeast';
 %% save
 print('D:\Data_analysis\HFvsNCgas_PLUG','-dmeta')

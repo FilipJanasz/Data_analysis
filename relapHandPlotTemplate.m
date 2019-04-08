@@ -1,5 +1,5 @@
 clc
-expNo=5;
+expNo=17;
 clear tempY tempX yRelap xRelap yExp xExp varYRelap varXexp yLab xLab
 
 colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
@@ -42,6 +42,17 @@ varYexp{n}='steam(n).mflow';
     
 xLab{n}='Coolant velocity [m/s]';
 yLab{n}='Condensation mass flow [kg/s]';
+
+%NC vs mflow
+n=4;
+varYRelap{n}='RELAP_ext(relCnt).steamMflowEvap';
+varXRelap{n}='RELAP_ext(relCnt).N2moles';
+
+varXexp{n}='NC(n).moles_total_est';
+varYexp{n}='steam(n).mflow';
+    
+yLab{n}='Condensation mass flow [kg/s]';
+xLab{n}='He gas [moles]';
     
 %% plotting loop below 
 for plotCtr=1:numel(varYRelap)
@@ -94,9 +105,10 @@ for plotCtr=1:numel(varYRelap)
     %% plotting
     % Defaults for this blog post
     width = 4;     % Width in inches
-    height = 3;    % Height in inches
+    height = 4;    % Height in inches
 
     f=figure;
+    box on
     f.Position=([500 50 500+width*100, height*100]);
     hold on
     markerList={'o','d','^','<','>'};
@@ -107,6 +119,8 @@ for plotCtr=1:numel(varYRelap)
             [xRelapSorted,sortKey]=sort(xRelap(n,:));
             yRelapSorted=yRelap(n,:);
             yRelapSorted=yRelapSorted(sortKey); %sorts the same way as X'es
+            yRelapSorted(xRelapSorted==0)=[];
+            xRelapSorted(xRelapSorted==0)=[];
             h(n)=plot(xRelapSorted,yRelapSorted); 
             legendString{n}=RELAP_primary(n).file;
             findDash=strfind(legendString{n},'_');
@@ -142,7 +156,8 @@ for plotCtr=1:numel(varYRelap)
     f.Children.YLabel.FontWeight='bold';
     legH=legend(legendString);
     legH.Interpreter='none';
-    legH.Location='eastoutside';
+    legH.Location='southoutside';
+    legH.Orientation='horizontal';
 %     titH=title(currExpName);
 
     %% save

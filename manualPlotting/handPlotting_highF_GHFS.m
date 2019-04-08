@@ -129,7 +129,7 @@ for n=1:numel(plotPos)
 %     xlim([-10,0])
     p2pGHFS=round(max(yDat1{n})-min(yDat1{n}));
     p2pdT=round(max(yDat2{n})-min(yDat2{n}));
-    leg=legend([f1,f3],{['GHFS, pk-pk: ',num2str(p2pGHFS)],['dT, pk-pk: ',num2str(p2pdT)]});
+    leg=legend([f1,f3],{['GHFS, peak-to-peak: ',num2str(p2pGHFS)],['dT, peak-to-peak: ',num2str(p2pdT)]});
     leg.Location='northoutside';
     leg.FontWeight='bold';
     leg.Orientation='horizontal';

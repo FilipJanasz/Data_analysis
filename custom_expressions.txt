@@ -41,3 +41,4 @@ NC.N2_molefraction.value/(NC.N2_molefraction.value+NC.He_molefraction.value) han
 (steam.power.value-facility.powerOffset.value) (handles.steam(x).power.value-handles.facility(x).powerOffset.value) 
 (steam.power.value-facility.powerOffset_TC.value) (handles.steam(x).power.value-handles.facility(x).powerOffset_TC.value) 
 1-RELAP_primary.voidg.value 1-handles.RELAP_primary(x).voidg.value 
+steam.TF9603.value*steam.mixing_zone_end.value handles.steam(x).TF9603.value*handles.steam(x).mixing_zone_end.value 

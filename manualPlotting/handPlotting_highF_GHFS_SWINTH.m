@@ -6,7 +6,7 @@ colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940
 
 % Defaults for this blog post
 width = 6;     % Width in inches
-height = 9;    % Height in inches
+height = 6;    % Height in inches
 alw = 1;    % AxesLineWidth
 fsz = 11;      % Fontsize
 % all files
@@ -24,13 +24,13 @@ end
 % toPlot={'NC-MFR-ABS-He-4_4'}; %use with GHFS4
 % toPlot={'NC-CMP-3_v1'}; %use with GHFS3
 % 'NC-CMP-3_v1'
-toPlot={'NC-CMP-5_v2real','NC-MFR-ABS-2_5_4','NC-MFR-ABS-He-4_4'};
-sensors={'GHFS2','GHFS3','GHFS3'};
+toPlot={'NC-CMP-5_v2real','NC-MFR-ABS-2_5_4'};
+sensors={'GHFS2','GHFS3'};
 for fCntr2=1:numel(toPlot)
     plotPos(fCntr2)=find(strcmp(allFiles,toPlot{fCntr2}));
 end
-xSt=500;
-xEnd=700;
+xSt=300;
+xEnd=500;
 % plotPos=[3,5,9,13,19];
 % plotPos=[19];
 h=figure;
@@ -120,17 +120,20 @@ for n=1:numel(plotPos)
 
     grid on
     box on
-%     if n==1 || n==2
-%          ylim([1.0e+04    2.1*1.0e+04])
-%     else
-% %         ylim([-1000    10000])
-%     end
+    if n==1 || n==2
+         ylim([1.1e+04    2.2*1.0e+04])
+    else
+%         ylim([-1000    10000])
+    end
     xlim([xSt xEnd])
 %     xlim([-10,0])
     p2pGHFS=round(max(yDat1{n})-min(yDat1{n}));
     p2pdT=round(max(yDat2{n})-min(yDat2{n}));
-    leg=legend([f1,f3],{['GHFS, peak-to-peak: ',num2str(p2pGHFS)],['dT, peak-to-peak: ',num2str(p2pdT)]});
-    leg.Location='northoutside';
+%     leg=legend([f1,f3],{['GHFS, peak-to-peak: ',num2str(p2pGHFS)],['dT, peak-to-peak: ',num2str(p2pdT)]});
+%     if n==1
+        leg=legend([f2,f4],{'GHFS','dT'});
+%     end
+    leg.Location='northeast';
     leg.FontWeight='bold';
     leg.Orientation='horizontal';
     
@@ -139,7 +142,7 @@ end
 xlabel('Time [s]','FontWeight','bold') 
 % legend([f1,f3],{'GHFS','Double thermcouple'})
 %% save
-print('D:\Data_analysis\HF_dTvsGHFS','-dmeta')
+print('D:\Data_analysis\HF_dTvsGHFS_SWINTH','-dmeta')
 
 disp('Fertig')
 %%

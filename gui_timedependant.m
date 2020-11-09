@@ -149,15 +149,15 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     % (GHFS1, GHFS2, GHFS3, GHFS4, MP1, MP2, MP3, MP4 - fast period)
     % rest slow, but not MP_Pos, MP_Temp, GHFS1_temp etc
     if (~isempty(strfind(y_param_var,'GHFS')) && (isempty(strfind(y_param_var,'temp')) && isempty(strfind(y_param_var,'wall')))) || ~isempty(strfind(y_param_var,'MP'))
-        period=handles.timing.fast;
-%         disp('fast')
+        period=handles.timing(file_choice).fast;
+        disp('fast')
 %     elseif  ~isempty(strfind(y_param_var,'GHFS')) && (~isempty(strfind(y_param_var,'temp')) && ~isempty(strfind(y_param_var,'wall'))) || ~isempty(strfind(y_param_var,'Pos'))
     elseif  ~isempty(strfind(y_param,'MP')) && (~isempty(strfind(y_param_var,'Temp')) || ~isempty(strfind(y_param_var,'Pos')))
-        period=handles.timing.MP;
-%         disp('MP')
+        period=handles.timing(file_choice).MP;
+        disp('MP')
     else
-        period=handles.timing.slow;
-%         disp('slow')
+        period=handles.timing(file_choice).slow;
+        disp('slow')
     end
 
     x_dat=period:period:y_amount*period;

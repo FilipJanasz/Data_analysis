@@ -50,9 +50,9 @@ function [N2_inNC_mfrac,N2_inNC_mfracErr,h2o_mole_frac, N2_mole_frac,He_mole_fra
         N2_inNC_mfracErr=0;
     else
         N2_inNC_mfracErr=sqrt((HePressErr/HePress)^2+Perr3^2)*1;
-        if N2_inNC_mfracErr>0.0704
-            N2_inNC_mfracErr=0.0704;
-        end
+%         if N2_inNC_mfracErr>0.0704
+%             N2_inNC_mfracErr=0.0704;
+%         end
     end
     %calulate values of mole fractions for measured p and T and also for p
     %and T offset by p and T errors (arg_mod)

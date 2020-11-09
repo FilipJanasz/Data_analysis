@@ -1,7 +1,7 @@
 function varargout = gui_distributions(varargin)
     % Edit the above text to modify the response to help gui_distributions
 
-    % Last Modified by GUIDE v2.5 10-Oct-2018 22:17:04
+    % Last Modified by GUIDE v2.5 19-May-2019 15:27:12
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -119,6 +119,14 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     val_y=get(handles.var_popupmenu,'Value');
     y_param=list_y{val_y}; 
     
+%get full time varying data for current distributions and it's size
+try 
+full_matrix=handles.data(file).(y_param).var;
+[rows,columns]=size(full_matrix);
+timeDat=1;
+catch
+    timeDat=0;
+end
     
     if ~contains(y_param,'RELAP')
         %get user choice for averaging period for distributions and obtain data
@@ -130,10 +138,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
             %get interval parameters entered by user in GUI
             intervalCenter=str2double(handles.intervalCenter_edit.String);
             intervalWidth=str2double(handles.intervalWidth_edit.String);
-            %get full time varying data for current distributions and it's size
-            full_matrix=handles.data(file).(y_param).var;
-            [rows,columns]=size(full_matrix);
-
+            
             %estimate averaging interval start and end based on user entered
             %data
             intervalStart=intervalCenter-floor(intervalWidth/2);
@@ -148,6 +153,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
 
             %calculate average data for given paramteters
             distribution_avg=zeros(1,columns);
+
             for columnCntr=1:columns
                 distribution_avg(columnCntr)=mean(full_matrix(intervalStart:intervalEnd,columnCntr));
             end
@@ -353,6 +359,34 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
         end
     end
     
+        inclBounding=handles.minMax.Value;
+    
+    if inclBounding && timeDat
+        hold on
+        %calculate bounding array
+        distrMin=zeros(1,columns);
+        distrMax=zeros(1,columns);
+        distrStd=zeros(1,columns);
+        for columnCntr=1:columns
+            distrMin(columnCntr)=min(full_matrix(:,columnCntr));
+            distrMax(columnCntr)=max(full_matrix(:,columnCntr));
+            distrStd(columnCntr)=std(full_matrix(:,columnCntr));
+        end
+        
+        x2=[x_dat, fliplr(x_dat)];
+        inBetween=[distrMin,fliplr(distrMax)];
+%         inBetween=[value_dat-distrStd,fliplr(value_dat+distrStd)];
+        fBound=fill(x2,inBetween,'g');
+        fBound.FaceAlpha=0.1;
+        fBound.FaceColor=colorstring{handles.plotcounter};
+        fBound.EdgeAlpha=0.5;
+
+        fBound.EdgeColor=colorstring{handles.plotcounter};
+        fBound.Marker='none';
+    elseif inclBounding && ~timeDat
+        handles.minMax.Value=0;
+        waitfor(msgbox("Time resolved data / STD data not available for Min-Max bounding region plotting","Min - Max error"));
+    end
     
     %PLOTTING PLOTTING PLOTTING==================================================================
     %depending on user choice, plot along chosen axis, 3D, with or without
@@ -420,7 +454,7 @@ function plot_pushbutton_Callback(hObject, eventdata, handles)
     elseif st_dev_flag && ~st_dev_available
         msgbox('Standard deviation data not available for the chosen variables / files - omitting')
     end
-    
+       
 
     %add legend and create graph name
     processing_string=[smooth_str,norm_str,flip_str];
@@ -1473,3 +1507,12 @@ function xOffBox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of xOffBox
+
+
+% --- Executes on button press in minMax.
+function minMax_Callback(hObject, eventdata, handles)
+% hObject    handle to minMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of minMax

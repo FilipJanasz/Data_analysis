@@ -1,8 +1,12 @@
 clc
-expNo=17;
+% expNo=6;
+expNo=numel(file);
+relNo=numel(RELAP_primary);
+
 clear tempY tempX yRelap xRelap yExp xExp varYRelap varXexp yLab xLab
 
 colorstring = {'[0, 0.4470, 0.7410]','[0.8500, 0.3250, 0.0980]','[0.9290, 0.6940, 0.1250]','[0.4940, 0.1840, 0.5560]','[0.4660, 0.6740, 0.1880]','[0.3010, 0.7450, 0.9330]','[0.6350, 0.0780, 0.1840]','[0, 0.5, 0]','[1, 0, 0]','[0, 0, 0]','[0,0,1]'};
+
 
 %% var input
 %mflow vs press
@@ -72,10 +76,32 @@ for plotCtr=1:numel(varYRelap)
     yLabCurr=yLab{plotCtr};
 
     %% get Relap data
-    relAmnt=numel(RELAP_ext)/expNo;
+    %compare experiment files with Relap files
+    compCnt=0;
+    for n=1:expNo
+        %this loops checks which experiments were calculated with Relap and
+        %only uses these for plotting
+        tempExpName=file(n).name;
+        
+        fileFlag=0;
+        for m=1:relNo
+            tempRelName=RELAP_primary(m).file;
+            
+            if contains(tempRelName,tempExpName) && length(tempExpName)+3==length(tempRelName) &&fileFlag==0
+                fileFlag=1;
+                compCnt=compCnt+1;
+      
+            end
+            clc
+        end
+    end
+    
+    relAmnt=relNo/compCnt;
+    
+    %get the data from Relap
     for n=1:relAmnt
 
-        for m=1:expNo
+        for m=1:compCnt
             relCnt=(m-1)*relAmnt+n;
             tempX(m)=eval(varXRelapCurr);
             tempY(m)=eval(varYRelapCurr);
@@ -108,6 +134,7 @@ for plotCtr=1:numel(varYRelap)
     height = 4;    % Height in inches
 
     f=figure;
+    grid on
     box on
     f.Position=([500 50 500+width*100, height*100]);
     hold on

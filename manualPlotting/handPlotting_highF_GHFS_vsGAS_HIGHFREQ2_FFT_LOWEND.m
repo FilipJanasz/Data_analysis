@@ -84,7 +84,7 @@ for n=1:numel(ghfsList)
 
     end
     
-    xlim([0,5])
+    xlim([0,20])
     if n==2
         leg=legend(legF,{'Condensation','Mixing','NC gas plug'},'FontWeight','bold');
         title('GHFS2 420 mm')

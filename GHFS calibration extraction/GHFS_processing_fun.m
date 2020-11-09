@@ -108,72 +108,72 @@ function [file,data]=GHFS_processing_fun(file_list,directory)
         %% calculate fluxes XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         tubeInArea=pi*0.021*0.11;
         
-%         %GHFS zero offset and properties
-%         selector=str2double(directory(end-1));
-%         GHFS_elOffset=[-7.48,-1.68,-16.59,-39.2].*10^-8;
-%         data.GHFS_raw.var=data.GHFS.var;
-%         data.GHFS.var=data.GHFS.var-(GHFS_elOffset(selector));
-%         data.GHFS.var=-data.GHFS.var;
-%         GHFSarea=[84.78,85.54,82.34,84.31]./1000000; % m^2
-%         currArea=GHFSarea(selector);
-%         
-%         
-%         %% from power        
-%         try
-%             data.Joule_power2.var=data.Current.var.*data.Voltage.var;      % W
-%             data.Resistance.var=0.0004*75*(data.TH.var-20)+75;  %  0.0004 is TCR 75 is resistance at 20 deg  http://www.resistorguide.com/temperature-coefficient-of-resistance/ 
-%             data.Joule_power.var=data.Voltage.var.^2./data.Resistance.var;
-%             data.hfx_Joule_power.var=round(data.Joule_power.var./tubeInArea);     % W/m2
-%             data.GHFS_sensitivity_Joule_power.var=data.GHFS.var./(currArea.*data.hfx_Joule_power.var); %  V/W  (84/1000000 sensor area in m^2)
-%         catch
-%             disp('No current/voltage data available')
-%         end
-%         
-%         
-%         %% from dT
-%         currTc=steel_316L_thermcond(data.GHFS_TC.var);      % W/mK
-% %         wall_htc=2*currTc/(0.021*log(0.03/0.021));          % W/m2K
-%         
-%         %based on every tube
-%         tipDist=[1.2075,0.9399,1.0669,0.8628]./1000;  %values measured by Lucas under a microscope
-%         termDist=[2.2874,2.5142,2.4587,2.5646]./1000;
-%         T2Wpos=0.021+2*tipDist(selector);
-%         T3Wpos=0.021+2*(tipDist(selector)+termDist(selector));
-%         wall_htc=2*currTc/(T2Wpos*log(T3Wpos/T2Wpos));
-%         
-%         % calculate with heat transfer coefficient
-%         data.wall_dT.var=abs(data.T3W.var-data.T2W.var);    % K
-%         data.hfx_dT.var=data.wall_dT.var.*wall_htc;         % K*W/m2K = W/m2
-%         data.GHFS_sensitivity_dT.var=data.GHFS.var./(currArea.*data.hfx_dT.var);  % V/W
-%         
-%         % calculate with thermal conductivity
-%         data.wall_gradT.var=data.wall_dT.var./(termDist(selector));    % K/m
-%         data.hfx_gradT.var=data.wall_gradT.var.*currTc;     % K/m * W/mK = W/m2
-%         data.GHFS_sensitivity_gradT.var=data.GHFS.var./(currArea.*data.hfx_gradT.var);  % V/W
-%         
-%         
-%         %% radiation
-%         e_st=0.85;  %emissivity steel
-%         e_cu=0.78;  %emissivity cooper
-%         stefBoltz=5.670367*10^(-8);
-%         radArea=pi*0.014*0.11;  % pi d h
-%         
-% %         data.rad_power.var=emissivity*stefan_boltzman_constant.*((data.T1F.var+273.15).^4-(data.GHFS_TC.var+273.15).^4).*radiating_area; % W
-%         T1=data.T1F.var+273.15;
-%         T2=data.T2W.var+273.15;
-%         
-% %         T1=data.TH.var+273.15;
-% %         T2=data.OiltempPT100.var+273.15;
-% 
-%         data.rad_power1.var=radArea.*stefBoltz.*(T1.^4-T2.^4) ./ (1/e_cu+(radArea/tubeInArea)*(1/e_st-1)); % W       
-% %         data.rad_power2.var=radArea.*stefBoltz.*(T1.^4-T2.^4) ./ (1/e_cu+1/e_st-1); % W
-%         data.rad_power2.var=radArea.*stefBoltz.*(T1.^4-T2.^4); % W
-% %         reqDT=data.hfx_dT.var.*tubeInArea./(radArea.*stefBoltz./ (1/e_cu+(radArea/tubeInArea)*(1/e_st-1)))+T2.^4
-%         data.hfx_rad.var=data.rad_power1.var./tubeInArea;       % W/m2
-%         data.hfx_rad2.var=data.rad_power2.var./tubeInArea;     % W/m2
-%         
-%         data.GHFS_sensitivity_rad.var=data.GHFS.var./(currArea.*data.hfx_rad.var);  % V/W
-%         data.GHFS_sensitivity_rad2.var=data.GHFS.var./(currArea.*data.hfx_rad2.var);  % V/W
+        %GHFS zero offset and properties
+        selector=str2double(directory(end-1));
+        GHFS_elOffset=[-7.48,-1.68,-16.59,-39.2].*10^-8;
+        data.GHFS_raw.var=data.GHFS.var;
+        data.GHFS.var=data.GHFS.var-(GHFS_elOffset(selector));
+        data.GHFS.var=-data.GHFS.var;
+        GHFSarea=[84.78,85.54,82.34,84.31]./1000000; % m^2
+        currArea=GHFSarea(selector);
+        
+        
+        %% from power        
+        try
+            data.Joule_power2.var=data.Current.var.*data.Voltage.var;      % W
+            data.Resistance.var=0.0004*75*(data.TH.var-20)+75;  %  0.0004 is TCR 75 is resistance at 20 deg  http://www.resistorguide.com/temperature-coefficient-of-resistance/ 
+            data.Joule_power.var=data.Voltage.var.^2./data.Resistance.var;
+            data.hfx_Joule_power.var=round(data.Joule_power.var./tubeInArea);     % W/m2
+            data.GHFS_sensitivity_Joule_power.var=data.GHFS.var./(currArea.*data.hfx_Joule_power.var); %  V/W  (84/1000000 sensor area in m^2)
+        catch
+            disp('No current/voltage data available')
+        end
+        
+        
+        %% from dT
+        currTc=steel_316L_thermcond(data.GHFS_TC.var);      % W/mK
+%         wall_htc=2*currTc/(0.021*log(0.03/0.021));          % W/m2K
+        
+        %based on every tube
+        tipDist=[1.2075,0.9399,1.0669,0.8628]./1000;  %values measured by Lucas under a microscope
+        termDist=[2.2874,2.5142,2.4587,2.5646]./1000;
+        T2Wpos=0.021+2*tipDist(selector);
+        T3Wpos=0.021+2*(tipDist(selector)+termDist(selector));
+        wall_htc=2*currTc/(T2Wpos*log(T3Wpos/T2Wpos));
+        
+        % calculate with heat transfer coefficient
+        data.wall_dT.var=abs(data.T3W.var-data.T2W.var);    % K
+        data.hfx_dT.var=data.wall_dT.var.*wall_htc;         % K*W/m2K = W/m2
+        data.GHFS_sensitivity_dT.var=data.GHFS.var./(currArea.*data.hfx_dT.var);  % V/W
+        
+        % calculate with thermal conductivity
+        data.wall_gradT.var=data.wall_dT.var./(termDist(selector));    % K/m
+        data.hfx_gradT.var=data.wall_gradT.var.*currTc;     % K/m * W/mK = W/m2
+        data.GHFS_sensitivity_gradT.var=data.GHFS.var./(currArea.*data.hfx_gradT.var);  % V/W
+        
+        
+        %% radiation
+        e_st=0.85;  %emissivity steel
+        e_cu=0.78;  %emissivity cooper
+        stefBoltz=5.670367*10^(-8);
+        radArea=pi*0.014*0.11;  % pi d h
+        
+%         data.rad_power.var=emissivity*stefan_boltzman_constant.*((data.T1F.var+273.15).^4-(data.GHFS_TC.var+273.15).^4).*radiating_area; % W
+        T1=data.T1F.var+273.15;
+        T2=data.T2W.var+273.15;
+        
+%         T1=data.TH.var+273.15;
+%         T2=data.OiltempPT100.var+273.15;
+
+        data.rad_power1.var=radArea.*stefBoltz.*(T1.^4-T2.^4) ./ (1/e_cu+(radArea/tubeInArea)*(1/e_st-1)); % W       
+%         data.rad_power2.var=radArea.*stefBoltz.*(T1.^4-T2.^4) ./ (1/e_cu+1/e_st-1); % W
+        data.rad_power2.var=radArea.*stefBoltz.*(T1.^4-T2.^4); % W
+%         reqDT=data.hfx_dT.var.*tubeInArea./(radArea.*stefBoltz./ (1/e_cu+(radArea/tubeInArea)*(1/e_st-1)))+T2.^4
+        data.hfx_rad.var=data.rad_power1.var./tubeInArea;       % W/m2
+        data.hfx_rad2.var=data.rad_power2.var./tubeInArea;     % W/m2
+        
+        data.GHFS_sensitivity_rad.var=data.GHFS.var./(currArea.*data.hfx_rad.var);  % V/W
+        data.GHFS_sensitivity_rad2.var=data.GHFS.var./(currArea.*data.hfx_rad2.var);  % V/W
         
  
         %% calculate averages

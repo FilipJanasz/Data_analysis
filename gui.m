@@ -1625,7 +1625,7 @@ function toolbar_save_fig_ClickedCallback(hObject, eventdata, handles)
     h.XAxis(1).Label.FontSize=20;
     h.XAxis(1).Label.FontWeight='bold';
     h.Legend.FontSize=20;
-    h.Legend.Location='eastoutside';
+    h.Legend.Location='east';
     
     for axN=1:2
         h.YAxis(axN).FontSize=20;
